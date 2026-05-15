@@ -1,4 +1,4 @@
 package pipoo.spaceinvader;
 
-public class spaceinvader {
+public class Spaceinvader {
 }

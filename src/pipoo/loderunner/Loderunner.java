@@ -1,4 +1,4 @@
 package pipoo.loderunner;
 
-public class loderunner {
+public class Loderunner {
 }

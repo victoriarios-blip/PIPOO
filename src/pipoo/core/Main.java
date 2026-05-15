@@ -1,4 +1,4 @@
 package pipoo.core;
 
-public class main {
+public class Main {
 }
