@@ -12,8 +12,7 @@ public class Pelota extends Movible implements Colisionable {
 
     // constructor de pelota
     public Pelota(double x, double y, int radio) {
-        this.x = x;
-        this.y = y;
+        super(x, y, radio*2, radio*2);
         this.radio = radio;
         this.velocidadX = 200;
         this.velocidadY = 200;
@@ -33,7 +32,7 @@ public class Pelota extends Movible implements Colisionable {
         velocidadX = -velocidadX;
     }
 
-    public void reiniciar() {  }                 // volver al centro
+    public void reiniciar() {  } // volver al centro
 
 
     //getters
