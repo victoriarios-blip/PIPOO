@@ -1,6 +1,8 @@
 package pipoo.core;
 
-public abstract class Movible extends ElementoGrafico{
+import pipoo.core.ElementoGrafico;
+
+public abstract class Movible extends ElementoGrafico {
     protected double velocidadX;
     protected double velocidadY;
 
