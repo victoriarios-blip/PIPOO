@@ -11,6 +11,13 @@ public abstract class ElementoGrafico implements Colisionable {
     protected BufferedImage imagen = null;
     protected boolean visible = true;
 
+    public ElementoGrafico(double x, double y, int ancho, int alto) {
+        this.posicionX = x;
+        this.posicionY = y;
+        this.ancho = ancho;
+        this.alto = alto;
+    }
+
     public void dibujar(Graphics2D g) {
         if (visible && imagen != null) {
             g.drawImage(this.imagen, (int)posicionX, (int)posicionY, null);
