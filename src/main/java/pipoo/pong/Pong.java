@@ -5,25 +5,37 @@ import com.entropyinteractive.Keyboard;
 import java.awt.Graphics2D;
 import java.awt.Color;
 
-public class Pong extends Juego{
-    //declarar paleta, pelota, etc de clases
+public class Pong extends Juego {
+
+    private Pelota pelota;
+    private Paleta paleta1, paleta2;
+    private Marcador marcador;
 
     public Pong() {
-        super("Retro Pong", 800, 600); // Título y tamaño de ventana
+        super("Retro Pong", 800, 600); // titulo y tamaño de ventana
     }
 
     @Override
     public void gameStartup() {
-        // Inicializar posiciones de paletas y pelota [12, 13]
-        System.out.println("Iniciando Pong...");
+        pelota   = new Pelota(400, 300, 8);
+        paleta1  = new Paleta(20,  250, 10, 80);   // jugador con W y S
+        paleta2  = new Paleta(770, 250, 10, 80);   // jugador con flechitas
+        marcador = new Marcador();
     }
 
     @Override
     public void gameUpdate(double delta) {
-        Keyboard teclado = this.getKeyboard(); // Para leer teclas [14]
+        Keyboard teclado = this.getKeyboard();
 
-        // 1. Mover objetos (ej: pelota.mover(delta))
-        // 2. Controlar entradas del jugador
+        // Controles jugador 1
+        //if (teclado.isPressed("W")) paleta1.moverArriba(delta);
+        //if (teclado.isPressed("S")) paleta1.moverAbajo(delta);
+
+        // Controles jugador 2
+        //if (teclado.isPressed("UP"))   paleta2.moverArriba(delta);
+        //if (teclado.isPressed("DOWN")) paleta2.moverAbajo(delta);
+
+        pelota.mover(delta);
         detectarColisiones();
         actualizarPuntaje();
     }
@@ -34,26 +46,61 @@ public class Pong extends Juego{
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
 
-        // Invocar el método dibujar(g) de sus elementos (Pelota, Paletas, Fondo)
+        pelota.dibujar(g);
+        paleta1.dibujar(g);
+        paleta2.dibujar(g);
+        marcador.dibujar(g);
     }
 
     @Override
     public void gameShutdown() {
-        System.out.println("Cerrando Pong y volviendo al menú...");
-        // Guardar puntajes en Ranking [2]
+        System.out.println("Cerrando Pong...");
+        // SistemaDeJuego con ranking:
+        // sistemaDeJuego.guardarPuntaje("J1", marcador.getPuntosJ1());
+        // sistemaDeJuego.guardarPuntaje("J2", marcador.getPuntosJ2());
+
+        pelota = null;
+        paleta1 = null;
+        paleta2 = null;
+        marcador = null;
     }
 
     @Override
     protected void detectarColisiones() {
-        // Lógica si la pelota toca la paleta o los bordes
+        /* Rebote techo/piso — Pelota se encarga de invertir su propia velocidad
+        if (pelota.getY() - pelota.getRadio() <= 0 ||
+                pelota.getY() + pelota.getRadio() >= getHeight()) {
+            pelota.rebotarVertical();
+        }
+
+        // Colisión con paletas -> VER EL TEMA DE reaccionarAColisiones, PORQ RECIBE PALETA1 ACA
+        if (pelota.colisionaCon(paleta1)) {
+            pelota.reaccionarAColision(paleta1);
+        }
+        if (pelota.colisionaCon(paleta2)) {
+            pelota.reaccionarAColision(paleta2);
+        }
+
+         */
     }
 
     @Override
     protected void actualizarPuntaje() {
-        // Lógica si la pelota sale de la pantalla
+        // Pelota sale por la izquierda → punto J2
+        /*if (pelota.getX() < 0) { IMPLEMENTAR GETTERS DE PELOTA
+            marcador.sumarPuntoJ2();
+            pelota.reiniciar();
+        }
+        // Pelota sale por la derecha → punto J1
+        if (pelota.getX() > getWidth()) {
+            marcador.sumarPuntoJ1();
+            pelota.reiniciar();
+        }
+
+         */
     }
 }
-}
+
 
 
 

@@ -1,11 +1,11 @@
-package core;
+package pipoo.core;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
 import pipoo.core.Juego;
-import pong.Pong;
+import pipoo.pong.Pong;
 // import spaceinvaders.SpaceInvaders;
 // import loderunner.LodeRunner;
 
@@ -26,7 +26,7 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals("Jugar Pong")) {
-            juegoActual = new Pong();
+            //juegoActual = new Pong();
             // Inicia el juego en un hilo separado como pide el recurso de la cátedra
             hiloJuego = new Thread(() -> juegoActual.run(1.0 / 60.0));
             hiloJuego.start();
