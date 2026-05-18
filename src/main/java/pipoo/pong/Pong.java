@@ -67,7 +67,7 @@ public class Pong extends Juego {
 
     @Override
     protected void detectarColisiones() {
-        /* Rebote techo/piso — Pelota se encarga de invertir su propia velocidad
+        /* Rebotee
         if (pelota.getY() - pelota.getRadio() <= 0 ||
                 pelota.getY() + pelota.getRadio() >= getHeight()) {
             pelota.rebotarVertical();
