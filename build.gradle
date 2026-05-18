@@ -1,0 +1,23 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'lib'
+    }
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    implementation name:'bucleJuego'
+}
+
+application {
+    mainClass = 'pipoo.Main'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
