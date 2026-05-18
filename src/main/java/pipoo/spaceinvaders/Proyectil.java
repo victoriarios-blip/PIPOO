@@ -1,4 +1,4 @@
-package pipoo.spaceinvader;
+package pipoo.spaceinvaders;
 
 import pipoo.core.Movible
 

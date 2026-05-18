@@ -1,6 +1,4 @@
-package pipoo.spaceinvader;
-
-import pipoo.core.ElementoGrafico
+package pipoo.spaceinvaders;
 
 public class Escudo {
     private int resistencia;

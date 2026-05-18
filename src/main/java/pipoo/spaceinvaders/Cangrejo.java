@@ -1,4 +1,4 @@
-package pipoo.spaceinvader;
+package pipoo.spaceinvaders;
 
 public class Cangrejo {
     public Cangrejo() {

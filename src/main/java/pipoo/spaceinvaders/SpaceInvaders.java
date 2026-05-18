@@ -1,12 +1,11 @@
-package pipoo.spaceinvader;
+package pipoo.spaceinvaders;
 
-import core.Juego;
+import pipoo.core.Juego;
 import java.awt.Graphics2D;
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.List;
 
-public class Spaceinvader extends Juego{
+public class SpaceInvaders extends Juego {
     private NaveHeroe jugador;
     private List<Enemigo> oleada;
     private List<Escudo> escudos;

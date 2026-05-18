@@ -1,4 +1,4 @@
-package pipoo.spaceinvader;
+package pipoo.spaceinvaders;
 
 public class Calamar extends Enemigo{
     public Calamar() {
