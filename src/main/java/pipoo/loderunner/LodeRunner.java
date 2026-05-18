@@ -7,11 +7,11 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class Loderunner extends Juego {
+public class LodeRunner extends Juego {
     private ArrayList<Pozo> pozos;
 
-    public Loderunner(String titulo, int ancho, int alto) {
-        super(titulo, ancho, alto);
+    public LodeRunner() {
+        super("Retro Lode Runner", 800, 600);
     }
 
     @Override
