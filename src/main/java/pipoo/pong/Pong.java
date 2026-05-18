@@ -20,7 +20,7 @@ public class Pong extends Juego {
         pelota   = new Pelota(400, 300, 8);
         paleta1  = new Paleta(20,  250, 10, 80);   // jugador con W y S
         paleta2  = new Paleta(770, 250, 10, 80);   // jugador con flechitas
-        marcador = new Marcador();
+        marcador = new Marcador(200, 200, 200,200); //ver estos valores
     }
 
     @Override

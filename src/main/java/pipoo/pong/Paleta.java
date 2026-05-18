@@ -12,10 +12,7 @@ public class Paleta extends Movible implements Colisionable {
 
     // constructor de paleta
     public Paleta(double x, double y, int ancho, int alto) {
-        this.x = x;
-        this.y = y;
-        this.ancho = ancho;
-        this.alto = alto;
+        super(x, y, ancho, alto);
     }
 
     public void mover(double delta) {  }         // de Movible

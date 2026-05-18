@@ -74,6 +74,33 @@ public class Loderunner extends Juego {
 
         // ... dibujar héroe, enemigos ...
     }
+
+    @Override
+    public void gameShutdown() {
+        System.out.println("Cerrando Lode Runner...");
+
+        // 1. Recopilar los datos finales de la partida
+        // (Asumiendo que tienes variables para el nombre, nivel actual y el puntaje total)
+        // String nombreJugador = "Jugador1";
+        // int puntajeFinal = heroe.getPuntaje();
+        // int nivelAlcanzado = nivelActual;
+        // String fechaActual = ... // (Usando java.util.Date o LocalDate)
+
+        // 2. Crear la entrada del ranking (Basado en tu clase RankingEntry del UML)
+        // RankingEntry nuevaEntrada = new RankingEntry(nivelAlcanzado, puntajeFinal, fechaActual, nombreJugador);
+
+        // 3. Instanciar el Ranking, agregar la entrada y guardar en el archivo
+        // Ranking sistemaRanking = new Ranking();
+        // sistemaRanking.agregarEntrada(nuevaEntrada);
+        // sistemaRanking.guardarRanking();
+
+        // 4. Liberar recursos adicionales
+        // Si implementaste música con MediaPlayer (como sugiere la DemoSonido),
+        // aquí deberías detenerla:
+        // if (mediaPlayer != null) {
+        //     mediaPlayer.stop();
+        // }
+    }
 }
 
 
