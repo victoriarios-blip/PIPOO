@@ -1,6 +1,7 @@
 package pipoo.pong;
 
 import pipoo.core.Colisionable;
+import pipoo.core.ElementoGrafico;
 import pipoo.core.Movible;
 
 import java.awt.*;
@@ -19,7 +20,8 @@ public class Pelota extends Movible implements Colisionable {
     }
 
     public void mover(double delta) {  }        // de Movible
-    //public boolean colisionaCon(Colisionable otro) {  } // de Colisionable
+    public boolean colisionaCon(ElementoGrafico otro) { return true; }
+    public void reaccionarAColision(ElementoGrafico otro) { }
     public void dibujar(Graphics2D g) {  }      // de ElementoGrafico
 
 
