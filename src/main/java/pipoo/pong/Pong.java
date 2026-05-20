@@ -2,6 +2,8 @@ package pipoo.pong;
 
 import pipoo.core.Juego;
 import com.entropyinteractive.Keyboard;
+import pipoo.core.recursos.Marcador;
+
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
