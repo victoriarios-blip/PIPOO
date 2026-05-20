@@ -12,8 +12,21 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     Juego juegoActual;
     Thread hiloJuego;
 
+    private CardLayout cardLayout;
+    private JPanel panelMenu, panelConfig, panelRanking, panelPong, panelLoadRunner, panelSpaceInvaders;
+
     public SistemaDeJuegos() {
         setLayout(new GridLayout(1, 3, 10, 10));
+
+        cardLayout = new CardLayout();
+        this.setLayout(cardLayout);
+
+        panelMenu = new JPanel();
+        panelConfig = new JPanel();
+        panelRanking = new JPanel();
+        panelPong = new JPanel();
+        panelLoadRunner = new JPanel();
+        panelSpaceInvaders = new JPanel();
 
         JButton btnPong = new JButton("Pong");
         btnPong.addActionListener(this);
