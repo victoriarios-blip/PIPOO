@@ -1,6 +1,6 @@
 package pipoo.spaceinvaders;
 
-import pipoo.core.Movible
+import pipoo.core.Movible;
 
 public class NaveHeroe extends Movible implements Disparador {
     @Override
