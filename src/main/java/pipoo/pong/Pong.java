@@ -54,7 +54,6 @@ public class Pong extends Juego {
 
     @Override
     public void gameShutdown() {
-        System.out.println("Cerrando Pong...");
         // SistemaDeJuego con ranking:
         // sistemaDeJuego.guardarPuntaje("J1", marcador.getPuntosJ1());
         // sistemaDeJuego.guardarPuntaje("J2", marcador.getPuntosJ2());
@@ -67,7 +66,7 @@ public class Pong extends Juego {
 
     @Override
     protected void detectarColisiones() {
-        /* Rebotee
+        // Rebotee
         if (pelota.getY() - pelota.getRadio() <= 0 ||
                 pelota.getY() + pelota.getRadio() >= getHeight()) {
             pelota.rebotarVertical();
@@ -80,14 +79,12 @@ public class Pong extends Juego {
         if (pelota.colisionaCon(paleta2)) {
             pelota.reaccionarAColision(paleta2);
         }
-
-         */
     }
 
     @Override
     protected void actualizarPuntaje() {
         // Pelota sale por la izquierda → punto J2
-        /*if (pelota.getX() < 0) { IMPLEMENTAR GETTERS DE PELOTA
+        if (pelota.getX() < 0) {
             marcador.sumarPuntoJ2();
             pelota.reiniciar();
         }
@@ -96,8 +93,6 @@ public class Pong extends Juego {
             marcador.sumarPuntoJ1();
             pelota.reiniciar();
         }
-
-         */
     }
 }
 
