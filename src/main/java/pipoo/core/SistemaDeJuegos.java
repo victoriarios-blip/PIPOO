@@ -113,9 +113,9 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         Object origen = e.getSource();
         if (origen == btnPong) {
             juegoActual = new Pong();
-        } if (origen == btnLodeRunner) {
+        } else if (origen == btnLodeRunner) {
             juegoActual = new LodeRunner();
-        } if (origen == btnSpaceInvaders) {
+        } else if (origen == btnSpaceInvaders) {
             juegoActual = new SpaceInvaders();
         }
         else if (origen == btnConfigGeneral) {
