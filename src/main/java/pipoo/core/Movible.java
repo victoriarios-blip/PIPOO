@@ -13,7 +13,6 @@ public abstract class Movible extends ElementoGrafico {
             this.velocidadY = 0;
         }
 
-
     public abstract void mover(double delta);
 }
 

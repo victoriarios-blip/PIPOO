@@ -5,7 +5,7 @@ import pipoo.core.ElementoGrafico;
 public class Cangrejo extends Enemigo{
 
     public Cangrejo(double x, double y) {
-        super(x, y, 4, 15);
+        super(x, y, 30, 30);
         this.valorPuntaje = 20;
         //velocidades
     }

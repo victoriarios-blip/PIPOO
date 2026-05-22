@@ -5,23 +5,18 @@ import pipoo.core.Movible;
 
 public class NaveHeroe extends Movible implements Disparador {
     public NaveHeroe(double x, double y) {
-        super(x, y, 4, 15);
+        super(x, y, 40, 20);
         //velocidades
     }
 
     @Override
     public void mover(double delta) {
-        // lógica de movimiento (horizontal)
+        this.x += this.velocidadX * delta;
     }
 
     @Override
     public void disparar() {
-        // new Proyectil()
-    }
-
-    @Override
-    public void reaccionarAColision() {
-        // restar vida
+        //instanciar un new Proyectil(...) hacia arriba
     }
 
     @Override
