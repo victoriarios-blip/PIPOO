@@ -6,6 +6,7 @@ import pipoo.core.recursos.Marcador;
 
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 
 public class Pong extends Juego {
 
@@ -30,13 +31,20 @@ public class Pong extends Juego {
         Keyboard teclado = this.getKeyboard();
 
         // Controles jugador 1
-        //if (teclado.isPressed("W")) paleta1.moverArriba(delta);
-        //if (teclado.isPressed("S")) paleta1.moverAbajo(delta);
+        if (teclado.isKeyPressed(KeyEvent.VK_W)) {
+            paleta1.moverArriba(delta);
+        }
+        if (teclado.isKeyPressed(KeyEvent.VK_S)) {
+            paleta1.moverAbajo(delta);
+        }
 
         // Controles jugador 2
-        //if (teclado.isPressed("UP"))   paleta2.moverArriba(delta);
-        //if (teclado.isPressed("DOWN")) paleta2.moverAbajo(delta);
-
+        if (teclado.isKeyPressed(KeyEvent.VK_UP)) {
+            paleta2.moverArriba(delta);
+        }
+        if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
+            paleta2.moverAbajo(delta);
+        }
         pelota.mover(delta);
         detectarColisiones();
         actualizarPuntaje();
