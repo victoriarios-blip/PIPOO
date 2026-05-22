@@ -2,13 +2,23 @@ package pipoo.loderunner;
 import com.entropyinteractive.Keyboard;
 import pipoo.core.Juego;
 
+
 import java.awt.*;
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class LodeRunner extends Juego {
+    private Heroe heroe;
     private ArrayList<Pozo> pozos;
+    private ArrayList<Guardia> guardias;
+    private ArrayList<Lingote> lingotes;
+    private ArrayList<BarraDeManos> barras;
+    private ArrayList<Plataforma> plataformas;
+    private ArrayList<Escalera> escaleras;
+
+
 
     public LodeRunner() {
         super("Retro Lode Runner", 800, 600);
@@ -22,57 +32,167 @@ public class LodeRunner extends Juego {
     @Override
     protected void detectarColisiones() {
 
+        boolean heroeSoportado = false;
+        boolean heroeEnEscalera = false;
+
+
+        // COLISIÓN: HEROE vs GUARDIA
+        for (Guardia guardia : guardias) {
+            if (heroe.intersects(guardia)) {
+                // si un guardia atrapa al jugador, se pierde una vida y se reinicia el nivel
+                System.out.println("¡El guardia atrapó al héroe!");
+            }
+        }
+
+        // COLISIÓN: HÉROE vs LINGOTES
+        Iterator<Lingote> itOro = lingotes.iterator();
+        while (itOro.hasNext()) {
+            Lingote oro = itOro.next();
+            if (heroe.intersects(oro)) {
+                // recolectar oro suma puntos
+                heroe.recolectarOro();
+                itOro.remove(); // el oro desaparece
+            }
+        }
+
+        // COLISION: GUARDIA vs POZO
+        for (Guardia guardia : guardias) {
+            for (Pozo pozo : pozos) {
+                if (guardia.intersects(pozo) && pozo.getEstado() == 0) { // estado 0: abierto
+                    // quedan atrapados
+                    guardia.setEstaCayendo(true);
+
+                    // si tienen oro, lo sueltan
+                    if (guardia.isTieneOro()) {
+                        guardia.setTieneOro(false);
+                        // creamos un nuevo lingote en la posición donde cayo el guardia
+                        lingotes.add(new Lingote(guardia.x, guardia.y, 20, 20));
+                    }
+                }
+            }
+        }
+
+        // soporte en plataformas
+        for (Plataforma plataforma : plataformas) {
+            if (heroe.intersects(plataforma)) {
+                heroeSoportado = true;
+            }
+        }
+
+        // soporte en barras de manos
+        for (BarraDeManos barra : barras) {
+            if (heroe.intersects(barra)) {
+                heroeSoportado = true;
+            }
+        }
+
+        // soporte en escaleras
+        for (Escalera escalera : escaleras) {
+            if (heroe.intersects(escalera)) {
+                heroeSoportado = true;
+                heroeEnEscalera = true;
+            }
+        }
+
+        // gravedad final al heroe
+        heroe.setEstaCayendo(!heroeSoportado);
+        heroe.setEnEscalera(heroeEnEscalera);
     }
 
     @Override
     public void gameStartup() {
-        // Inicializar la lista vacía al arrancar el juego
+        System.out.println("Iniciando Lode Runner...");
         pozos = new ArrayList<>();
+        guardias = new ArrayList<>();
+        lingotes = new ArrayList<>();
 
-        // ... cargar resto de cosas (héroe, plataformas, etc.)
+        heroe = new Heroe(400, 500, 30, 30);
+
+        guardias.add(new Guardia(100, 100, 30, 30, heroe));
+        lingotes.add(new Lingote(200, 500, 20, 20));
+
+        // TODO: Cargar el resto del mapa (plataformas, escaleras, etc.)
+
     }
 
     @Override
     public void gameUpdate(double delta) {
         Keyboard teclado = this.getKeyboard();
-        Iterator<Pozo> iterador = pozos.iterator();
 
-        // Si presiona espacio, calculas las coordenadas X e Y al lado del héroe
+        // movimiento heroe
+        heroe.mover(delta);
+
+        // cavar Pozos
         if (teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
-            // Lógica para determinar el x e y donde cavar (a la derecha o izquierda del héroe)
-            double pozoX = heroe.getX() + unDesplazamiento;
-            double pozoY = heroe.getY() + unDesplazamiento;
-
-            // Creas el pozo y lo guardas en la lista
-            pozos.add(new Pozo(pozoX, pozoY, ancho, alto));
+            heroe.cavar();
+            double pozoX = heroe.x + heroe.width;
+            double pozoY = heroe.y + heroe.height;
+            pozos.add(new Pozo(pozoX, pozoY, 30, 30));
         }
-        // Actualizas la posición de tu héroe, los enemigos, etc...
 
-        while (iterador.hasNext()) {
-            Pozo pozoActual = iterador.next();
-
-            // Le pasamos el delta para que descuente el tiempo
+        // actualización pozos
+        Iterator<Pozo> iteradorPozos = pozos.iterator();
+        while (iteradorPozos.hasNext()) {
+            Pozo pozoActual = iteradorPozos.next();
             pozoActual.actualizar(delta);
-
-            // Si el estado es 2 (completamente cerrado), lo removemos de la lista
             if (pozoActual.getEstado() == 2) {
-                iterador.remove();
+                iteradorPozos.remove();
             }
         }
-        // ... resto de las actualizaciones (héroe, guardias, colisiones) ...
+
+        // movimiento enemigos
+        for (Guardia guardia : guardias) {
+            guardia.mover(delta);
+        }
+
+        // MOVIMIENTO VERTICAL (solo si esta en una escalera)
+        if (heroe.isEnEscalera()) {
+            if (teclado.isKeyPressed(KeyEvent.VK_UP)) {
+                heroe.setVelocidadY(-2); // subir
+            } else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
+                heroe.setVelocidadY(2);  // bajar
+            } else {
+                heroe.setVelocidadY(0);  // quieto colgando de la escalera
+            }
+        } else if (!heroe.isEstaCayendo()) {
+            // si NO esta en escalera y NO esta cayendo (piso normal),
+            heroe.setVelocidadY(0);
+        }
+
+        // MOVIMIENTO HORIZONTAL
+        if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) {
+            heroe.setVelocidadX(2);
+        } else if (teclado.isKeyPressed(KeyEvent.VK_LEFT)) {
+            heroe.setVelocidadX(-2);
+        } else {
+            heroe.setVelocidadX(0);
+        }
+
+        heroe.mover(delta);
+        // colisiones
+        detectarColisiones();
 
     }
 
+
     @Override
     public void gameDraw(Graphics2D g) {
-        // ... dibujar plataformas, fondo ...
-
-        // Dibujar cada pozo activo en la lista
+        // oro
+        for (Lingote oro : lingotes) {
+            oro.dibujar(g);
+        }
+        // pozos
         for (Pozo pozo : pozos) {
             pozo.dibujar(g);
         }
-
-        // ... dibujar héroe, enemigos ...
+        // enemigos
+        for (Guardia guardia : guardias) {
+            guardia.dibujar(g);
+        }
+        //  heroe
+        if (heroe != null) {
+            heroe.dibujar(g);
+        }
     }
 
     @Override
