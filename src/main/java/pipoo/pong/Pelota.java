@@ -38,7 +38,6 @@ public class Pelota extends Movible implements Colisionable {
     @Override
     public void dibujar(Graphics2D g) {  }      // de ElementoGrafico
 
-
     //rebotar pelota
     public void rebotarVertical() {
         velocidadY = -velocidadY;  // ella misma maneja su estado
@@ -55,7 +54,6 @@ public class Pelota extends Movible implements Colisionable {
 
         this.velocidadX = -this.velocidadX; //saca el q perdio el punto
     }
-
 
     //getters
     public double getX() {
