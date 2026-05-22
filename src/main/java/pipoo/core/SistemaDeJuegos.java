@@ -9,11 +9,17 @@ import pipoo.pong.Pong;
 import pipoo.spaceinvaders.SpaceInvaders;
 
 public class SistemaDeJuegos extends JPanel implements ActionListener {
-    Juego juegoActual;
+    private Juego juegoActual;
     Thread hiloJuego;
 
+    private JButton btnPong;
+    private JButton btnLodeRunner;
+    private JButton btnSpaceInvaders;
+
     private CardLayout cardLayout;
-    private JPanel panelMenu, panelConfig, panelRanking, panelPong, panelLoadRunner, panelSpaceInvaders;
+    private JPanel panelInicio, panelConfigP, panelConfigLR, panelConfigSI,
+            panelRankingP, panelRankingLR, panelRankingSI,
+            panelPong, panelLoadRunner, panelSpaceInvaders;
 
     public SistemaDeJuegos() {
         setLayout(new GridLayout(1, 3, 10, 10));
@@ -21,35 +27,40 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         cardLayout = new CardLayout();
         this.setLayout(cardLayout);
 
-        panelMenu = new JPanel();
-        panelConfig = new JPanel();
-        panelRanking = new JPanel();
+        panelInicio = new JPanel();
+
         panelPong = new JPanel();
         panelLoadRunner = new JPanel();
         panelSpaceInvaders = new JPanel();
 
-        JButton btnPong = new JButton("Pong");
+        panelConfigP = new JPanel();
+        panelConfigLR = new JPanel();
+        panelConfigSI = new JPanel();
+
+        panelRankingP = new JPanel();
+        panelRankingLR = new JPanel();
+        panelRankingSI = new JPanel();
+
+        btnPong = new JButton("¡Jugar!");
+        btnLodeRunner = new JButton("¡Jugar!");
+        btnSpaceInvaders = new JButton("¡Jugar!");
+
         btnPong.addActionListener(this);
-        add(btnPong);
-
-        JButton btnLodeRunner = new JButton("Lode Runner");
         btnLodeRunner.addActionListener(this);
-        add(btnLodeRunner);
-
-        JButton btnSpaceInvaders = new JButton("Space Invaders");
         btnSpaceInvaders.addActionListener(this);
-        add(btnSpaceInvaders);
+
+        //agregar los botones a los paneles
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals("Pong")) {
+        if (e.getSource() == btnPong) {
             juegoActual = new Pong();
         }
-        if (e.getActionCommand().equals("Lode Runner")) {
+        if (e.getSource() == btnLodeRunner) {
             juegoActual = new LodeRunner();
         }
-        if (e.getActionCommand().equals("Space Invaders")) {
+        if (e.getSource() == btnSpaceInvaders) {
             juegoActual = new SpaceInvaders();
         }
             hiloJuego = new Thread(() -> juegoActual.run(1.0 / 60.0));
