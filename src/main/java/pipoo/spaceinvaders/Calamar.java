@@ -1,11 +1,21 @@
 package pipoo.spaceinvaders;
 
+import pipoo.core.ElementoGrafico;
+
 public class Calamar extends Enemigo{
-    public Calamar() {
+    public Calamar(double x, double y) {
+        super(x, y, 4, 15);
         this.valorPuntaje = 10;
+        //velocidades
     }
+
     @Override
-    public void mover(double delta) { /* movimiento de oleada */ }
+    public boolean colisionaCon(ElementoGrafico otro) {
+        return false;
+    }
+
     @Override
-    public void disparar() { /* lógica de disparo */ }
+    public void reaccionarAColision(ElementoGrafico otro) {
+
+    }
 }

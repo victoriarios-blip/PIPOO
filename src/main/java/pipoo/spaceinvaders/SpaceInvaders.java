@@ -55,4 +55,4 @@ public class SpaceInvaders extends Juego {
         // Actualizar UI del puntaje actual
     }
 }
-}
+
