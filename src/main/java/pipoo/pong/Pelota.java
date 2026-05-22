@@ -8,8 +8,7 @@ import java.awt.*;
 
 public class Pelota extends Movible implements Colisionable {
     private double x, y;
-    private double velocidadX, velocidadY;
-    private int radio;
+    private final int radio;
 
     // constructor de pelota
     public Pelota(double x, double y, int radio) {
@@ -18,10 +17,25 @@ public class Pelota extends Movible implements Colisionable {
         this.velocidadX = 200;
         this.velocidadY = 200;
     }
+    @Override
+    public void mover(double delta) {
+        this.x += this.velocidadX * delta;
+        this.y += this.velocidadY * delta;
+    }
 
-    public void mover(double delta) {  }        // de Movible
-    public boolean colisionaCon(ElementoGrafico otro) { return true; }
-    public void reaccionarAColision(ElementoGrafico otro) { }
+    @Override// de Movible
+    public boolean colisionaCon(ElementoGrafico otro) {
+        return this.intersects(otro);
+    }
+
+    @Override
+    public void reaccionarAColision(ElementoGrafico otro) {
+        if (otro instanceof Paleta) {
+            this.velocidadX = -this.velocidadX;
+        }
+    }
+
+    @Override
     public void dibujar(Graphics2D g) {  }      // de ElementoGrafico
 
 
@@ -34,7 +48,13 @@ public class Pelota extends Movible implements Colisionable {
         velocidadX = -velocidadX;
     }
 
-    public void reiniciar() {  } // volver al centro
+    public void reiniciar() {
+        // reinicia la pelota en el centro
+        this.x = 400-(this.width / 2);
+        this.y = 300-(this.height / 2);
+
+        this.velocidadX = -this.velocidadX; //saca el q perdio el punto
+    }
 
 
     //getters

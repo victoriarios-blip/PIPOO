@@ -93,16 +93,6 @@ public class Pong extends Juego {
 
     @Override
     protected void actualizarPuntaje() {
-        // Pelota sale por la izquierda → punto J2
-        if (pelota.getX() < 0) {
-            marcador.sumarPuntoJ2();
-            pelota.reiniciar();
-        }
-        // Pelota sale por la derecha → punto J1
-        if (pelota.getX() > getWidth()) {
-            marcador.sumarPuntoJ1();
-            pelota.reiniciar();
-        }
     }
 }
 
