@@ -3,6 +3,7 @@ import com.entropyinteractive.Keyboard;
 import pipoo.core.Juego;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+import pipoo.core.Humano;
 
 import java.awt.*;
 import java.awt.Graphics2D;
