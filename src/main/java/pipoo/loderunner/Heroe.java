@@ -51,6 +51,11 @@ public class Heroe extends Runner{
         this.y += (this.velocidadY * delta * 60);
     }
 
+    @Override
+    public boolean colosionaCon(ElementoGrafico otro) {
+        return false;
+    }
+
     public boolean isEnEscalera() {
         return enEscalera;
     }

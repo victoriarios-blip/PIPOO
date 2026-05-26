@@ -62,6 +62,11 @@ public class Guardia extends Runner {
         this.y += this.velocidadY;
     }
 
+    @Override
+    public boolean colosionaCon(ElementoGrafico otro) {
+        return false;
+    }
+
     // getter y setter para ver si el guardia agarro o solto oro
     public boolean isTieneOro() {
         return tieneOro;
