@@ -7,8 +7,8 @@ public class Pozo  extends ElementoGrafico {
     private double tiempoRestante;
     private int estado;
 
-    public Pozo(double x, double y, int ancho, int alto) {
-        super(x, y, ancho, alto);
+    public Pozo(double x, double y, double width, double height) {
+        super(x, y, width, height);
         this.tiempoRestante = 5.0;
         this.estado = 0;
     }
