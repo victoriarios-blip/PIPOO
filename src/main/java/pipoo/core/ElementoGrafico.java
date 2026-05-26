@@ -17,6 +17,10 @@ public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double i
         }
     }
 
+    public boolean isVisible() {
+        return visible;
+    }
+
     @Override
     public Shape getLimites() {
         return this;

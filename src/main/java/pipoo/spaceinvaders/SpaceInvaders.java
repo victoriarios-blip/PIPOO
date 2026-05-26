@@ -10,6 +10,7 @@ public class SpaceInvaders extends Juego {
     private List<Enemigo> oleada;
     private List<Escudo> escudos;
     private NaveNodriza enemigoFinal;
+    private List<Proyectil> proyectiles;
 
     public SpaceInvaders() {
         super("Retro Space Invaders", 800, 600);
@@ -24,11 +25,22 @@ public class SpaceInvaders extends Juego {
 
     @Override
     public void gameUpdate(double delta) {
-        // Leer teclado para mover a NaveHeroe
-        // Bucle para mover los proyectiles y a los enemigos
+        jugador.mover(delta);
+        for (Enemigo enemigo : oleada) {
+            enemigo.mover(delta);
+            Proyectil p = enemigo.disparar();
+            if (p != null) {
+                proyectiles.add(p);}}
+        for (Proyectil p : proyectiles) {
+            p.mover(delta);
+        }
         detectarColisiones();
         actualizarPuntaje();
-        // Verificar condición de Game Over
+    }
+
+    void limpiarNoVisibles(){
+        proyectiles.removeIf(p -> !p.isVisible());
+        oleada.removeIf(e -> !e.isVisible());
     }
 
     @Override

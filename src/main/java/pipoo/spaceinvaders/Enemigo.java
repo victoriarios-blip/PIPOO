@@ -1,4 +1,6 @@
 package pipoo.spaceinvaders;
+
+import pipoo.core.ElementoGrafico;
 import pipoo.core.Movible;
 
 public abstract class Enemigo extends Movible implements Disparador{
@@ -21,10 +23,29 @@ public abstract class Enemigo extends Movible implements Disparador{
     }
 
     @Override
-    public void disparar() { /* lógica de disparo */ }
+    public Proyectil disparar() {
+        // Dispara con baja probabilidad por frame, sino retorna null
+        if (Math.random() < 0.0005) {
+            return new Proyectil(
+                    this.x + this.width / 2,
+                    this.y + this.height,
+                    Proyectil.Origen.ENEMIGO
+            );
+        }
+        return null;
+    }
 
     @Override
-    public void reaccionarAColision() {
-        // si lo toca el proyectil del héroe: muere y suma puntaje al sistema
+    public void reaccionarAColision(ElementoGrafico c) {
+        if (c instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.HEROE) {
+            this.visible = false;
+            // NOTA DE DISEÑO
+        }
     }
-}
+
+    @Override
+    public boolean colisionaCon(ElementoGrafico otro){
+            return this.intersects(otro);
+    }
+    }
+
