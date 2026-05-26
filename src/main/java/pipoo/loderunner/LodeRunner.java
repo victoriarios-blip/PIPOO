@@ -1,7 +1,8 @@
 package pipoo.loderunner;
 import com.entropyinteractive.Keyboard;
 import pipoo.core.Juego;
-
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 
 import java.awt.*;
 import java.awt.Graphics2D;
@@ -41,6 +42,7 @@ public class LodeRunner extends Juego {
             if (heroe.intersects(guardia)) {
                 // si un guardia atrapa al jugador, se pierde una vida y se reinicia el nivel
                 System.out.println("¡El guardia atrapó al héroe!");
+                //agregar que pasa cuando lo agarra
             }
         }
 
@@ -102,18 +104,69 @@ public class LodeRunner extends Juego {
     @Override
     public void gameStartup() {
         System.out.println("Iniciando Lode Runner...");
+        //inicializamos jugador
+        //jugadorLD= new Jugador();
+        //jugadorLD.setVidas(5);
+
+        //inicializamos listas de todos los elementos
         pozos = new ArrayList<>();
         guardias = new ArrayList<>();
         lingotes = new ArrayList<>();
+        plataformas = new ArrayList<>();
+        escaleras = new ArrayList<>();
+        barras = new ArrayList<>();
 
+
+        //inicializamos heroe, guardias y lingote
         heroe = new Heroe(400, 500, 30, 30);
-
         guardias.add(new Guardia(100, 100, 30, 30, heroe));
         lingotes.add(new Lingote(200, 500, 20, 20));
+        // lingote extra arriba para probar las escaleras
+        lingotes.add(new Lingote(480, 270, 20, 20));
 
-        // TODO: Cargar el resto del mapa (plataformas, escaleras, etc.)
 
+        //MAPA
+        //plataformas
+        plataformas.add(new Plataforma(0, 530, 800, 40));
+        //escaleras
+        //escalera 1: conecta el piso principal con la plataforma de la izquierda
+        escaleras.add(new Escalera(250, 400, 30, 130, false));
+        //escalera 2: conecta el piso principal con la plataforma de la derecha
+        escaleras.add(new Escalera(450, 300, 30, 230, false));
+
+        //barra de manos
+        barras.add(new BarraDeManos(300, 300, 100, 10));
+
+        // 5. CARGA DE ASSETS (Imágenes)
+        // ==========================================
+        //try {
+            // 1. Cargamos las imágenes a la memoria (Asegúrate de que la carpeta
+            // "imagenes" exista en el lugar correcto de tu proyecto)
+            //BufferedImage imgHeroe = ImageIO.read(this.getClass().getResource("imagenes/heroe.png"));
+            //BufferedImage imgGuardia = ImageIO.read(this.getClass().getResource("imagenes/guardia.png"));
+            //BufferedImage imgOro = ImageIO.read(this.getClass().getResource("imagenes/oro.png"));
+            //BufferedImage imgPlataforma = ImageIO.read(this.getClass().getResource("imagenes/ladrillo.png"));
+            //BufferedImage imgEscalera = ImageIO.read(this.getClass().getResource("imagenes/escalera.png"));
+            //BufferedImage imgBarra = ImageIO.read(this.getClass().getResource("imagenes/barra.png"));
+
+            // 2. Le asignamos la imagen al héroe
+            //heroe.setImagen(imgHeroe);
+
+            // 3. Usamos bucles (for) para asignarle la misma imagen a todos
+            // los elementos de las listas que comparten gráficos
+            //for (Guardia guardia : guardias) {guardia.setImagen(imgGuardia);}
+
+            //for (Lingote oro : lingotes) { oro.setImagen(imgOro);}
+
+            //for (Plataforma plataforma : plataformas) {plataforma.setImagen(imgPlataforma);}
+
+            //for (Escalera escalera : escaleras) {escalera.setImagen(imgEscalera);}
+
+            //for (BarraDeManos barra : barras) {barra.setImagen(imgBarra);}
+
+        //} catch (Exception e) {System.out.println("Error cargando los assets: " + e.getMessage());}
     }
+
 
     @Override
     public void gameUpdate(double delta) {

@@ -65,8 +65,6 @@ public class Heroe extends Runner{
     }
 
     @Override
-    public void reaccionarAColision(ElementoGrafico otro) {
-
-    }
+    public void reaccionarAColision(ElementoGrafico otro) {}
 }
 
