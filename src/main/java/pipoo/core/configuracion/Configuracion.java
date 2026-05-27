@@ -22,10 +22,10 @@ public abstract class Configuracion {
     }
 
     // metodos setters y getters
-    public boolean PantallaCompleta() { return pantallaCompleta; }
+    public boolean isPantallaCompleta() { return pantallaCompleta; }
     public void setPantallaCompleta(boolean pc) { this.pantallaCompleta = pc; }
 
-    public boolean SonidoActivado() { return sonidoActivado; }
+    public boolean isSonidoActivado() { return sonidoActivado; }
     public void setSonidoActivado(boolean s) { this.sonidoActivado = s; }
 
     public String getPistaMusical() { return pistaMusical; }

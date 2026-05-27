@@ -1,6 +1,9 @@
 package pipoo.loderunner;
 
+import pipoo.core.ElementoGrafico;
 import pipoo.core.Movible;
+
+import java.awt.image.BufferedImage;
 
 public abstract class Runner extends Movible {
     protected boolean estaCayendo;
@@ -16,4 +19,8 @@ public abstract class Runner extends Movible {
     public void setEstaCayendo(boolean estaCayendo) {
         this.estaCayendo = estaCayendo;
     }
+
+    public abstract void setImagen(BufferedImage nuevaImagen);
+
+    public abstract boolean colosionaCon(ElementoGrafico otro);
 }

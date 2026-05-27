@@ -64,6 +64,11 @@ public class Heroe extends Runner{
 
 
     @Override
+    public void setImagen(BufferedImage nuevaImagen) {
+
+    }
+
+    @Override
     public boolean colosionaCon(ElementoGrafico otro) {
         return false;
     }

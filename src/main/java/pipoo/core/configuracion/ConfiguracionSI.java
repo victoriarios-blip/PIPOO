@@ -44,3 +44,4 @@ public class ConfiguracionSI extends Configuracion {
         persistirEnArchivo(prop, "config_space_invaders.properties");
     }
 }
+

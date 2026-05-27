@@ -43,6 +43,8 @@ public abstract class Enemigo extends Movible implements Disparador{
         }
     }
 
+    public abstract boolean colosionaCon(ElementoGrafico otro);
+
     @Override
     public boolean colisionaCon(ElementoGrafico otro){
             return this.intersects(otro);

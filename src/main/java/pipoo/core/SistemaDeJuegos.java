@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import pipoo.core.configuracion.ConfiguracionPong;
+import pipoo.core.configuracion.PanelConfiguracionPong;
 import pipoo.loderunner.LodeRunner;
 import pipoo.pong.Pong;
 import pipoo.spaceinvaders.SpaceInvaders;
@@ -18,6 +20,10 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     private JButton btnConfigGeneral;
 
     private CardLayout cardLayout;
+
+    private ConfiguracionPong configPong = new ConfiguracionPong();
+
+
     private JPanel panelInicio, panelJuegos,
             panelConfigGeneral, panelConfigP, panelConfigLR, panelConfigSI,
             panelRankingP, panelRankingLR, panelRankingSI,
@@ -54,6 +60,11 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         btnRankingP = new JButton("Ranking");
         registrarBotones(panelPong, btnPong, btnConfigP, btnRankingP);
 
+        //panel configuracion PONG
+        PanelConfiguracionPong guiPong = new PanelConfiguracionPong(configPong, this, cardLayout);
+
+
+
         // panel lode runner
         panelLodeRunner = crearPanelJuego("LODE RUNNER");
         btnLodeRunner = new JButton("¡Jugar!");
@@ -76,8 +87,10 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         panelInicio.add(panelJuegos, BorderLayout.CENTER);
 
         this.add(panelInicio, "INICIO");
+        this.add(guiPong, "CONFIG_PONG");
 
-        this.add(panelConfigGeneral, "CONFIG_GENERAL");
+
+        /*this.add(panelConfigGeneral, "CONFIG_GENERAL");
         this.add(panelConfigP, "CONFIG_PONG");
         this.add(panelConfigSI, "CONFIG_SPACE");
         this.add(panelConfigLR, "CONFIG_LODE");
@@ -85,6 +98,8 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         this.add(panelRankingP, "RANKING_PONG");
         this.add(panelRankingSI, "RANKING_SPACE_INV");
         this.add(panelRankingLR, "RANKING_LODE_R");
+
+         */
     }
 
     //metodos auxiliares para creacion de paneles
@@ -111,6 +126,8 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         Object origen = e.getSource();
+        boolean esLanzamientoDeJuego = false; // Bandera para controlar el hilo
+
         if (origen == btnPong) {
             juegoActual = new Pong();
         } else if (origen == btnLodeRunner) {
@@ -135,8 +152,11 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
             cardLayout.show(this, "RANKING_LODE_R");
         }
 
-        hiloJuego = new Thread(() -> juegoActual.run(1.0 / 60.0));
-        hiloJuego.start();
+        if (esLanzamientoDeJuego && juegoActual != null) {
+            hiloJuego = new Thread(() -> juegoActual.run(1.0 / 60.0));
+            hiloJuego.start();
+        }
+
     }
 
     public static void main(String[] args) {
