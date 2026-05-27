@@ -2,6 +2,7 @@ package pipoo.loderunner;
 import pipoo.core.ElementoGrafico;
 
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public class Guardia extends Runner {
@@ -60,6 +61,11 @@ public class Guardia extends Runner {
         // velocidad final heredadas de ElementoGrafico
         this.x += this.velocidadX;
         this.y += this.velocidadY;
+    }
+
+    @Override
+    public void setImagen(BufferedImage nuevaImagen) {
+
     }
 
     @Override
