@@ -11,7 +11,7 @@ public class ConfiguracionSI extends Configuracion {
     private String velocidadInvasores; // "Lenta", "Media", "Rápida" <- String?? ver
     private int teclaIzq, teclaDer, teclaDisparo;
 
-    public ConfiguracionSI(String nombreArchivo) {
+    public ConfiguracionSI() {
         super("config_space_invaders.properties");
     }
 
@@ -42,6 +42,13 @@ public class ConfiguracionSI extends Configuracion {
         prop.setProperty("teclaDisparo", String.valueOf(this.teclaDisparo));
 
         persistirEnArchivo(prop, "config_space_invaders.properties");
+    }
+
+    public void setVelocidadInvasores(String velocidad) {
+        this.velocidadInvasores = velocidad;
+    }
+    public String getVelocidadInvasores() {
+        return velocidadInvasores;
     }
 }
 
