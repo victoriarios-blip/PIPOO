@@ -4,8 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import pipoo.core.configuracion.ConfiguracionPong;
-import pipoo.core.configuracion.PanelConfiguracionPong;
+import pipoo.core.configuracion.*;
 import pipoo.loderunner.LodeRunner;
 import pipoo.pong.Pong;
 import pipoo.spaceinvaders.SpaceInvaders;
@@ -22,6 +21,9 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     private CardLayout cardLayout;
 
     private ConfiguracionPong configPong = new ConfiguracionPong();
+    private ConfiguracionSI configSI = new ConfiguracionSI();
+    private ConfiguracionLR configLR = new ConfiguracionLR();
+    private ConfiguracionGeneral configGeneral = new ConfiguracionGeneral();
 
 
     private JPanel panelInicio, panelJuegos,
@@ -53,6 +55,11 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         panelJuegos = new JPanel();
         panelJuegos.setLayout(new GridLayout(1, 3, 15, 0));
 
+        //panel configuracion general
+        PanelConfiguracionGeneral guiGeneral = new PanelConfiguracionGeneral(configGeneral, this, cardLayout);
+
+
+
         // panel pong
         panelPong = crearPanelJuego("PONG");
         btnPong = new JButton("¡Jugar!");
@@ -64,13 +71,16 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         PanelConfiguracionPong guiPong = new PanelConfiguracionPong(configPong, this, cardLayout);
 
 
-
         // panel lode runner
         panelLodeRunner = crearPanelJuego("LODE RUNNER");
         btnLodeRunner = new JButton("¡Jugar!");
         btnConfigLR = new JButton("Configuración");
         btnRankingLR = new JButton("Ranking");
         registrarBotones(panelLodeRunner, btnLodeRunner, btnConfigLR, btnRankingLR);
+
+        //panel configuracion lode runner
+        PanelConfiguracionLR guiLR = new PanelConfiguracionLR(configLR, this, cardLayout);
+
 
         // panel space invaders
         panelSpaceInvaders = crearPanelJuego("SPACE INVADERS");
@@ -79,6 +89,10 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         btnRankingSI = new JButton("Ranking");
         registrarBotones(panelSpaceInvaders, btnSpaceInvaders, btnConfigSI, btnRankingSI);
 
+        //panel configuracion Space Invaders
+        PanelConfiguracionSI guiSI = new PanelConfiguracionSI(configSI, this, cardLayout);
+
+
         //agregar cada panel de juego al panel de juegos
         panelJuegos.add(panelPong);
         panelJuegos.add(panelSpaceInvaders);
@@ -86,9 +100,13 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
 
         panelInicio.add(panelJuegos, BorderLayout.CENTER);
 
+        //card layout
         this.add(panelInicio, "INICIO");
         this.add(guiPong, "CONFIG_PONG");
-
+        this.add(guiSI, "CONFIG_SPACE");
+        this.add(guiLR, "CONFIG_LODE");
+        this.add(guiGeneral, "CONFIG_GENERAL");
+        
 
         /*this.add(panelConfigGeneral, "CONFIG_GENERAL");
         this.add(panelConfigP, "CONFIG_PONG");
