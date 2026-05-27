@@ -20,7 +20,5 @@ public abstract class Runner extends Movible {
         this.estaCayendo = estaCayendo;
     }
 
-    public abstract void setImagen(BufferedImage nuevaImagen);
-
     public abstract boolean colosionaCon(ElementoGrafico otro);
 }
