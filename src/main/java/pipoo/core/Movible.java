@@ -14,6 +14,8 @@ public abstract class Movible extends ElementoGrafico {
         }
 
     public abstract void mover(double delta);
+
+    public abstract boolean colosionaCon(ElementoGrafico otro);
 }
 
 
