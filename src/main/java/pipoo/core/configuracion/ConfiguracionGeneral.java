@@ -19,8 +19,8 @@ public class ConfiguracionGeneral extends Configuracion {
     public void guardar() {
         Properties prop = new Properties();
 
-        prop.setProperty("pantallaCompleta", String.valueOf(this.PantallaCompleta()));
-        prop.setProperty("sonidoActivado", String.valueOf(this.SonidoActivado()));
+        prop.setProperty("pantallaCompleta", String.valueOf(this.isPantallaCompleta()));
+        prop.setProperty("sonidoActivado", String.valueOf(this.isSonidoActivado()));
         prop.setProperty("pistaMusical", this.getPistaMusical());
 
         persistirEnArchivo(prop, "config_general.properties");

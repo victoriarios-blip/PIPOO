@@ -2,9 +2,11 @@ package pipoo.core;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+
 
 public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double implements Colisionable {
-    protected BufferedImage imagen = null;
+    protected BufferedImage bufferImage = null;
     protected boolean visible = true;
 
     public ElementoGrafico(double x, double y, double width, double height) {
@@ -12,9 +14,13 @@ public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double i
     }
 
     public void dibujar(Graphics2D g) {
-        if (visible && imagen != null) {
-            g.drawImage(this.imagen, (int)this.x, (int)this.y, null);
+        if (visible && bufferImage != null) {
+            // Se añaden (int)this.width y (int)this.height para forzar la escala
+            g.drawImage(this.bufferImage, (int)this.x, (int)this.y, (int)this.width, (int)this.height, null);
         }
+    }
+    public void setImagen(BufferedImage nuevaImagen) {
+        this.bufferImage = nuevaImagen;
     }
 
     public boolean isVisible() {

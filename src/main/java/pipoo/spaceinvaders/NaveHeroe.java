@@ -17,6 +17,8 @@ public class NaveHeroe extends Movible implements Disparador {
     @Override
     public Proyectil disparar() {
         //instanciar un new Proyectil(...) hacia arriba
+
+        return null;
     }
 
     @Override

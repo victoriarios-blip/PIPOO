@@ -6,7 +6,7 @@ public class ConfiguracionLR extends Configuracion {
     private String skinPersonaje;
     private int teclaEfectos, teclaMusica, teclaCavar, teclaEnter;
 
-    public ConfiguracionLR(String nombreArchivo) {
+    public ConfiguracionLR() {
         super("config_lode_runner.properties");
     }
 
@@ -37,4 +37,8 @@ public class ConfiguracionLR extends Configuracion {
         persistirEnArchivo(prop, "config_lode_runner.properties");
 
     }
+
+    public void setSkinPersonaje(String skin) { this.skinPersonaje = skin; }
+    public String getSkinPersonaje() { return skinPersonaje; }
+
 }

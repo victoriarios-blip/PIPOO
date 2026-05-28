@@ -20,7 +20,10 @@ public class LodeRunner extends Juego {
     private ArrayList<Plataforma> plataformas;
     private ArrayList<Escalera> escaleras;
 
-
+    // --- ATRIBUTOS DEL HUD (Interfaz) ---
+    private BufferedImage imgScore, imgLevel, imgTitulo, imgMenu;
+    private BufferedImage imgNum1, imgNum3, imgNum4, imgNum5, imgNum6, imgNum7, imgNum8, imgNum9;
+    private BufferedImage imgHighscore; // Para la imagen "24138"
 
     public LodeRunner() {
         super("Retro Lode Runner", 800, 600);
@@ -138,34 +141,82 @@ public class LodeRunner extends Juego {
         //barra de manos
         barras.add(new BarraDeManos(300, 300, 100, 10));
 
-        // 5. CARGA DE ASSETS (Imágenes)
-        // ==========================================
-        //try {
-            // 1. Cargamos las imágenes a la memoria (Asegúrate de que la carpeta
-            // "imagenes" exista en el lugar correcto de tu proyecto)
-            //BufferedImage imgHeroe = ImageIO.read(this.getClass().getResource("imagenes/heroe.png"));
-            //BufferedImage imgGuardia = ImageIO.read(this.getClass().getResource("imagenes/guardia.png"));
-            //BufferedImage imgOro = ImageIO.read(this.getClass().getResource("imagenes/oro.png"));
-            //BufferedImage imgPlataforma = ImageIO.read(this.getClass().getResource("imagenes/ladrillo.png"));
-            //BufferedImage imgEscalera = ImageIO.read(this.getClass().getResource("imagenes/escalera.png"));
-            //BufferedImage imgBarra = ImageIO.read(this.getClass().getResource("imagenes/barra.png"));
+        try {
+            // A. HUD e Interfaz
+            imgScore = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/score.png"));
+            imgLevel = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/level.png"));
+            imgTitulo = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/titulo_lode_runner.png"));
+            imgMenu = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/men.png"));
+            imgHighscore = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/24138.png"));
+            // (Carga de números omitida por brevedad, pero es igual)
+            imgNum1 = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/1.png"));
 
-            // 2. Le asignamos la imagen al héroe
-            //heroe.setImagen(imgHeroe);
+            // B. Cargar Héroe
+            BufferedImage imgHeroeDer = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/heroe_mirando_der.png"));
+            BufferedImage imgHeroeIzq = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/heroe_mirando_izq.png"));
+            BufferedImage imgHeroeEscalera = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/heroe_subiendo_escalera.png"));
+            BufferedImage imgHeroeColgado = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/heroe_colgado_barramanos.png"));
 
-            // 3. Usamos bucles (for) para asignarle la misma imagen a todos
-            // los elementos de las listas que comparten gráficos
-            //for (Guardia guardia : guardias) {guardia.setImagen(imgGuardia);}
+            heroe.setImagen(imgHeroeDer); // Imagen por defecto
+            heroe.setImagenDer(imgHeroeDer);
+            heroe.setImagenIzq(imgHeroeIzq);
+            heroe.setImagenEscalera(imgHeroeEscalera);
+            heroe.setImagenColgado(imgHeroeColgado);
 
-            //for (Lingote oro : lingotes) { oro.setImagen(imgOro);}
+            // Cargar animación de muerte (las 7 imágenes)
+            for (int i = 1; i <= 7; i++) {
+                BufferedImage frameMuerte = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/heroe_muriendo_" + i + ".png"));
+                heroe.setImagenMuriendo(i - 1, frameMuerte);
+            }
 
-            //for (Plataforma plataforma : plataformas) {plataforma.setImagen(imgPlataforma);}
+            // C. Cargar Guardia
+            BufferedImage imgGuardiaDer = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/guardia_derecha_1.png"));
+            BufferedImage imgGuardiaIzq = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/guardia_izquierda_1.png"));
+            BufferedImage imgGuardiaEscalera = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/guardia_en_escalera.png"));
+            BufferedImage imgGuardiaColgado = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/guardia_izq_colgado.png"));
+            BufferedImage imgGuardiaAtrapado = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/guardia_atrapado_pozo.png"));
 
-            //for (Escalera escalera : escaleras) {escalera.setImagen(imgEscalera);}
+            for (Guardia guardia : guardias) {
+                guardia.setImagen(imgGuardiaDer);
+                guardia.setImgDer(imgGuardiaDer);
+                guardia.setImgIzq(imgGuardiaIzq);
+                guardia.setImgEscalera(imgGuardiaEscalera);
+                guardia.setImgColgado(imgGuardiaColgado);
+                guardia.setImgAtrapado(imgGuardiaAtrapado);
+            }
 
-            //for (BarraDeManos barra : barras) {barra.setImagen(imgBarra);}
+            // D. Entorno (Carga de los bloques básicos)
+            BufferedImage imgPlataforma = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/plataforma.png"));
+            BufferedImage imgBloque = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/bloque.png"));
+            BufferedImage imgOro = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/oro.png"));
+            BufferedImage imgEscaleraMediana = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/escalera_mediana.png"));
+            BufferedImage imgBarra = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/barramanos.png"));
+            BufferedImage imgPozo = ImageIO.read(this.getClass().getResource("pipoo/loderunner/imagenes/pozo.png"));
 
-        //} catch (Exception e) {System.out.println("Error cargando los assets: " + e.getMessage());}
+            // Asignación a las listas
+            for (Plataforma p : plataformas) {
+                p.setImagen(imgPlataforma);
+            }
+            for (Escalera e : escaleras) {
+                e.setImagen(imgEscaleraMediana);
+            }
+            for (Lingote o : lingotes) {
+                o.setImagen(imgOro);
+            }
+            for (BarraDeManos b : barras) {
+                b.setImagen(imgBarra);
+            }
+            for (Pozo p : pozos) {
+                p.setImagen(imgPozo);
+            }
+
+            // NOTA: Para usar plataforma2x1, plataforma3x1, escalera_corta, etc.,
+            // debes cargarlas aquí con ImageIO.read() y luego asignárselas manualmente
+            // a la plataforma específica que crees en el mapa.
+
+        } catch (Exception e) {
+            System.out.println("Error cargando imagenes. Verifica que los nombres sean exactos y terminen en .png: " + e.getMessage());
+        }
     }
 
 
@@ -231,21 +282,32 @@ public class LodeRunner extends Juego {
 
     @Override
     public void gameDraw(Graphics2D g) {
-        // oro
+        // 1. Dibujado de objetos del mapa que interactúan (Usa los dibujar() del padre)
         for (Lingote oro : lingotes) {
             oro.dibujar(g);
         }
-        // pozos
         for (Pozo pozo : pozos) {
             pozo.dibujar(g);
         }
-        // enemigos
         for (Guardia guardia : guardias) {
             guardia.dibujar(g);
         }
-        //  heroe
         if (heroe != null) {
             heroe.dibujar(g);
+        }
+
+        // 2. Estampado de la Interfaz (HUD)
+        if (imgTitulo != null) {
+            g.drawImage(imgTitulo, 300, 10, null); // Titulo centrado arriba
+        }
+        if (imgScore != null) {
+            g.drawImage(imgScore, 20, 20, null); // Score esquina izquierda
+        }
+        if (imgLevel != null) {
+            g.drawImage(imgLevel, 650, 20, null); // Nivel esquina derecha
+        }
+        if (imgHighscore != null) {
+            g.drawImage(imgHighscore, 120, 20, null); // Dibuja tu record numérico
         }
     }
 
@@ -275,6 +337,17 @@ public class LodeRunner extends Juego {
         //     mediaPlayer.stop();
         // }
     }
+    public static void main(String[] args) {
+        // 1. Creamos la instancia de tu juego
+        LodeRunner juego = new LodeRunner();
+
+        // 2. Arrancamos el bucle del juego a 60 FPS (1.0 / 60.0)
+        juego.run(1.0 / 60.0);
+
+        // 3. Aseguramos que el proceso termine correctamente al cerrar la ventana
+        System.exit(0);
+    }
+
 }
 
 

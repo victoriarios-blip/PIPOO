@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import pipoo.core.configuracion.*;
 import pipoo.loderunner.LodeRunner;
 import pipoo.pong.Pong;
 import pipoo.spaceinvaders.SpaceInvaders;
@@ -18,6 +19,13 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     private JButton btnConfigGeneral;
 
     private CardLayout cardLayout;
+
+    private ConfiguracionPong configPong = new ConfiguracionPong();
+    private ConfiguracionSI configSI = new ConfiguracionSI();
+    private ConfiguracionLR configLR = new ConfiguracionLR();
+    private ConfiguracionGeneral configGeneral = new ConfiguracionGeneral();
+
+
     private JPanel panelInicio, panelJuegos,
             panelConfigGeneral, panelConfigP, panelConfigLR, panelConfigSI,
             panelRankingP, panelRankingLR, panelRankingSI,
@@ -47,12 +55,21 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         panelJuegos = new JPanel();
         panelJuegos.setLayout(new GridLayout(1, 3, 15, 0));
 
+        //panel configuracion general
+        PanelConfiguracionGeneral guiGeneral = new PanelConfiguracionGeneral(configGeneral, this, cardLayout);
+
+
+
         // panel pong
         panelPong = crearPanelJuego("PONG");
         btnPong = new JButton("¡Jugar!");
         btnConfigP = new JButton("Configuración");
         btnRankingP = new JButton("Ranking");
         registrarBotones(panelPong, btnPong, btnConfigP, btnRankingP);
+
+        //panel configuracion PONG
+        PanelConfiguracionPong guiPong = new PanelConfiguracionPong(configPong, this, cardLayout);
+
 
         // panel lode runner
         panelLodeRunner = crearPanelJuego("LODE RUNNER");
@@ -61,12 +78,20 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         btnRankingLR = new JButton("Ranking");
         registrarBotones(panelLodeRunner, btnLodeRunner, btnConfigLR, btnRankingLR);
 
+        //panel configuracion lode runner
+        PanelConfiguracionLR guiLR = new PanelConfiguracionLR(configLR, this, cardLayout);
+
+
         // panel space invaders
         panelSpaceInvaders = crearPanelJuego("SPACE INVADERS");
         btnSpaceInvaders = new JButton("¡Jugar!");
         btnConfigSI = new JButton("Configuración");
         btnRankingSI = new JButton("Ranking");
         registrarBotones(panelSpaceInvaders, btnSpaceInvaders, btnConfigSI, btnRankingSI);
+
+        //panel configuracion Space Invaders
+        PanelConfiguracionSI guiSI = new PanelConfiguracionSI(configSI, this, cardLayout);
+
 
         //agregar cada panel de juego al panel de juegos
         panelJuegos.add(panelPong);
@@ -75,7 +100,13 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
 
         panelInicio.add(panelJuegos, BorderLayout.CENTER);
 
+        //card layout
         this.add(panelInicio, "INICIO");
+        this.add(guiPong, "CONFIG_PONG");
+        this.add(guiSI, "CONFIG_SPACE");
+        this.add(guiLR, "CONFIG_LODE");
+        this.add(guiGeneral, "CONFIG_GENERAL");
+        
 
         /*this.add(panelConfigGeneral, "CONFIG_GENERAL");
         this.add(panelConfigP, "CONFIG_PONG");
@@ -84,7 +115,9 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
 
         this.add(panelRankingP, "RANKING_PONG");
         this.add(panelRankingSI, "RANKING_SPACE_INV");
-        this.add(panelRankingLR, "RANKING_LODE_R");*/
+        this.add(panelRankingLR, "RANKING_LODE_R");
+
+         */
     }
 
     //metodos auxiliares para creacion de paneles
@@ -111,6 +144,8 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         Object origen = e.getSource();
+        boolean esLanzamientoDeJuego = false; // Bandera para controlar el hilo
+
         if (origen == btnPong) {
             juegoActual = new Pong();
         } else if (origen == btnLodeRunner) {
@@ -135,8 +170,11 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
             cardLayout.show(this, "RANKING_LODE_R");
         }
 
-        hiloJuego = new Thread(() -> juegoActual.run(1.0 / 60.0));
-        hiloJuego.start();
+        if (esLanzamientoDeJuego && juegoActual != null) {
+            hiloJuego = new Thread(() -> juegoActual.run(1.0 / 60.0));
+            hiloJuego.start();
+        }
+
     }
 
     public static void main(String[] args) {

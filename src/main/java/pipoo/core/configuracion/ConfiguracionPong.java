@@ -56,4 +56,34 @@ public class ConfiguracionPong extends Configuracion {
         prop.setProperty("skinCancha", String.valueOf(this.skinCancha));
         persistirEnArchivo(prop, "config_pong.properties");
     }
+
+    // Getters y Setters específicos de Pong para la GUI
+    public int getPuntosParaGanar() { return puntosParaGanar; }
+    public void setPuntosParaGanar(int puntos) { this.puntosParaGanar = puntos; }
+
+    public String getSkinPelota() { return skinPelota; }
+    public void setSkinPelota(String skin_p) { this.skinPelota = skinPelota; }
+
+    // Getters y Setters específicos de Pong para la GUI
+    public String getSkinPaletas() { return skinPaletas; }
+    public void setSkinPaletas(String skin_pa) { this.skinPaletas = skinPaletas; }
+
+    public String getSkinCancha() { return skinPelota; }
+    public void setSkinCancha(String skin_can) { this.skinPelota = skinCancha; }
+
+    public int getTeclaUpJ1() { return teclaUpJ1; }
+    public void setTeclaUpJ1(int teclaUpJ1) { this.teclaUpJ1 = teclaUpJ1; }
+
+    public int getTeclaDownJ1() { return teclaDownJ1; }
+    public void setTeclaDownJ1(int teclaDownJ1) { this.teclaDownJ1 = teclaDownJ1; }
+
+    public int getTeclaUpJ2() { return teclaUpJ2; }
+    public void setTeclaUpJ2(int teclaUpJ2) { this.teclaUpJ2 = teclaUpJ2; }
+
+    public int getTeclaDownJ2() { return teclaDownJ2; }
+    public void setTeclaDownJ2(int teclaDownJ2) { this.teclaDownJ2 = teclaDownJ2; }
+
 }
+
+
+

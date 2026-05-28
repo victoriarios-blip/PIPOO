@@ -2,12 +2,20 @@ package pipoo.loderunner;
 import pipoo.core.ElementoGrafico;
 
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public class Guardia extends Runner {
     private Heroe heroe;
     private boolean tieneOro;
     private Random random;
+
+    // ATRIBUTOS ANIMACIÓN
+    private BufferedImage imgDer;
+    private BufferedImage imgIzq;
+    private BufferedImage imgEscalera;
+    private BufferedImage imgColgado;
+    private BufferedImage imgAtrapado;
 
 
     public Guardia(double x, double y, int ancho, int alto, Heroe heroe) {
@@ -16,6 +24,13 @@ public class Guardia extends Runner {
         this.tieneOro = false;
         this.random = new Random();
     }
+
+    //  SETTERS ANIMACIONES
+    public void setImgDer(BufferedImage img) { this.imgDer = img; }
+    public void setImgIzq(BufferedImage img) { this.imgIzq = img; }
+    public void setImgEscalera(BufferedImage img) { this.imgEscalera = img; }
+    public void setImgColgado(BufferedImage img) { this.imgColgado = img; }
+    public void setImgAtrapado(BufferedImage img) { this.imgAtrapado = img; }
 
     public void perseguir() {
         if (heroe != null) {
@@ -60,6 +75,20 @@ public class Guardia extends Runner {
         // velocidad final heredadas de ElementoGrafico
         this.x += this.velocidadX;
         this.y += this.velocidadY;
+
+        // Lógica de cambio de sprite
+        if (this.velocidadX > 0 && imgDer != null) {
+            super.setImagen(imgDer);
+        } else if (this.velocidadX < 0 && imgIzq != null) {
+            super.setImagen(imgIzq);
+        }
+        // (En el futuro puedes agregar if para cuando esté en pozo y ponerle imgAtrapado)
+    }
+
+
+    @Override
+    public void setImagen(BufferedImage nuevaImagen) {
+
     }
 
     @Override

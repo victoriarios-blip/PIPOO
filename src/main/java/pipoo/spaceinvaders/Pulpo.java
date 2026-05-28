@@ -30,6 +30,7 @@ public class Pulpo extends Enemigo{
     @Override
     public Proyectil disparar() {
 
+        return null;
     }
     public int getValorPuntaje(){
         return valorPuntaje;
