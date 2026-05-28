@@ -21,3 +21,11 @@ application {
 tasks.named('test') {
     useJUnitPlatform()
 }
+sourceSets {
+    main {
+        resources {
+            srcDirs = ['src/main/java', 'src/main/resources']
+            includes = ['**/*.png', '**/*.mp3', '**/*.properties']
+        }
+    }
+}
