@@ -77,14 +77,14 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
 
         this.add(panelInicio, "INICIO");
 
-        this.add(panelConfigGeneral, "CONFIG_GENERAL");
+        /*this.add(panelConfigGeneral, "CONFIG_GENERAL");
         this.add(panelConfigP, "CONFIG_PONG");
         this.add(panelConfigSI, "CONFIG_SPACE");
         this.add(panelConfigLR, "CONFIG_LODE");
 
         this.add(panelRankingP, "RANKING_PONG");
         this.add(panelRankingSI, "RANKING_SPACE_INV");
-        this.add(panelRankingLR, "RANKING_LODE_R");
+        this.add(panelRankingLR, "RANKING_LODE_R");*/
     }
 
     //metodos auxiliares para creacion de paneles
