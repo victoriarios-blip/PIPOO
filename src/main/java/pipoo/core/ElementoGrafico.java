@@ -15,10 +15,10 @@ public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double i
 
     public void dibujar(Graphics2D g) {
         if (visible && bufferImage != null) {
-            g.drawImage(this.bufferImage, (int)this.x, (int)this.y, null);
+            // Se añaden (int)this.width y (int)this.height para forzar la escala
+            g.drawImage(this.bufferImage, (int)this.x, (int)this.y, (int)this.width, (int)this.height, null);
         }
     }
-
     public void setImagen(BufferedImage nuevaImagen) {
         this.bufferImage = nuevaImagen;
     }
