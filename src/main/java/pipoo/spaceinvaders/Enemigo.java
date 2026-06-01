@@ -3,8 +3,20 @@ package pipoo.spaceinvaders;
 import pipoo.core.ElementoGrafico;
 import pipoo.core.Movible;
 
+import java.awt.image.BufferedImage;
+
 public abstract class Enemigo extends Movible implements Disparador{
     protected int valorPuntaje;
+    protected BufferedImage imagenFrame1;
+    protected BufferedImage imagenFrame2;
+    protected boolean mostrandoFrame1 = true;
+    private double tiempoAnimacion = 0;
+
+    public void setImagenes(BufferedImage img1, BufferedImage img2) {
+        this.imagenFrame1 = img1;
+        this.imagenFrame2 = img2;
+        this.bufferImage = img1;
+    }
 
     public Enemigo(double x, double y, double width, double height) {
         super(x, y, width, height);
