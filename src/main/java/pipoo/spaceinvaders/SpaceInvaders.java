@@ -1,14 +1,14 @@
 package pipoo.spaceinvaders;
 
 import pipoo.core.Juego;
-
 import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.image.BufferedImage;
-javax.imageio.ImageIO;
+import javax.imageio.ImageIO;
+import pipoo.spaceinvaders.assets;
 
 public class SpaceInvaders extends Juego {
     private NaveHeroe jugador;
@@ -54,30 +54,40 @@ public class SpaceInvaders extends Juego {
 
         // carga de assets
         try {
-            // cargamos las imágenes a la memoria usando getResource para rutas relativas
-            BufferedImage imgNave = ImageIO.read(this.getClass().getResource("imagenes/nave.png"));
-            BufferedImage imgPulpo = ImageIO.read(this.getClass().getResource("imagenes/pulpo.png"));
-            BufferedImage imgCangrejo = ImageIO.read(this.getClass().getResource("imagenes/cangrejo.png"));
-            BufferedImage imgCalamar = ImageIO.read(this.getClass().getResource("imagenes/calamar.png"));
-            BufferedImage imgEscudo = ImageIO.read(this.getClass().getResource("imagenes/escudo.png"));
+            BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("assets/naveHeroe.png"));
+            BufferedImage naveNodriza = ImageIO.read(this.getClass().getResource("assets/naveNodriza.png"));
+            BufferedImage escudoIntacto = ImageIO.read(this.getClass().getResource("assets/escudoIntacto.png"));
 
-            // le asignamos la imagen a la nave heroe
-            jugador.setImagen(imgNave);
+            // enemigos (2 frames cada uno)
+            BufferedImage pulpo1 = ImageIO.read(this.getClass().getResource("assets/pulpo1.png"));
+            BufferedImage pulpo2 = ImageIO.read(this.getClass().getResource("assets/pulpo2.png"));
 
-            // usamos bucles (for) para asignarle la misma imagen a todos
-            // los elementos de las listas que comparten gráficos
-            for (Enemigo e : oleada) {
-                if (e instanceof Pulpo) {
-                    e.setImagen(imgPulpo);
-                } else if (e instanceof Cangrejo) {
-                    e.setImagen(imgCangrejo);
-                } else if (e instanceof Calamar) {
-                    e.setImagen(imgCalamar);
-                }
-            }
+            BufferedImage cangrejo1 = ImageIO.read(this.getClass().getResource("assets/cangrejo1.png"));
+            BufferedImage cangrejo2 = ImageIO.read(this.getClass().getResource("assets/cangrejo2.png"));
+
+            BufferedImage calamar1 = ImageIO.read(this.getClass().getResource("assets/calamar1.png"));
+            BufferedImage calamar2 = ImageIO.read(this.getClass().getResource("assets/calamar2.png"));
+
+            BufferedImage proyectilHeroe = ImageIO.read(this.getClass().getResource("assets/proyectilHeroe.png"));
+            BufferedImage proyectilEnemigo = ImageIO.read(this.getClass().getResource("assets/proyectilEnemigo.png"));
+
+
+            jugador.setImagen(naveHeroe);
+            if (ufo != null) ufo.setImagen(imgUFO); // Si instanciaron la Nave Nodriza
 
             for (Escudo escudo : escudos) {
                 escudo.setImagen(imgEscudo);
+            }
+
+            // 3. Asignación de ambos frames a los enemigos usando el nuevo método
+            for (Enemigo e : oleada) {
+                if (e instanceof Pulpo) {
+                    e.setImagenes(imgPulpo1, imgPulpo2);
+                } else if (e instanceof Cangrejo) {
+                    e.setImagenes(imgCangrejo1, imgCangrejo2);
+                } else if (e instanceof Calamar) {
+                    e.setImagenes(imgCalamar1, imgCalamar2);
+                }
             }
 
         } catch (Exception e) {
