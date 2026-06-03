@@ -7,9 +7,9 @@ import pipoo.core.Movible;
 import java.awt.*;
 
 public class Paleta extends Movible implements Colisionable {
-    private double x, y;
-    private int ancho, alto;
-    private double velocidadPaleta;
+    private static final double VELOCIDAD_BASE = 300.0;
+    private double velocidadActual = VELOCIDAD_BASE;
+
 
     // constructor de paleta
     public Paleta(double x, double y, int ancho, int alto) {
@@ -17,7 +17,12 @@ public class Paleta extends Movible implements Colisionable {
     }
 
     @Override
-    public void mover(double delta) {  }         // de Movible
+    public void mover(double delta) {
+        this.y += (this.velocidadY * delta);
+        // Limitar que la paleta no se salga de la pantalla
+        if (this.y < 0) this.y = 0;
+        if (this.y + this.height > 600) this.y = 600 - this.height;
+    }
 
     @Override
     public void reaccionarAColision(ElementoGrafico otro) { }
@@ -25,28 +30,31 @@ public class Paleta extends Movible implements Colisionable {
     @Override
     public boolean colisionaCon(ElementoGrafico otro) { return this.intersects(otro);} // de Colisionable
 
-    @Override
-    public void dibujar(Graphics2D g) {  }       // de ElementoGrafico
-
     public void moverArriba(double delta) {
-        this.y = this.y-(this.velocidadY*delta);
-    }   // origen(0,0) arriba a la izq
+        this.velocidadY = -velocidadActual; // Seteamos la velocidad negativa
+        this.mover(delta); // Llamamos al movimiento físico
+    }
+
     public void moverAbajo(double delta) {
-        this.y = this.y+(this.velocidadY*delta);
+        this.velocidadY = velocidadActual; // Seteamos la velocidad positiva
+        this.mover(delta);
     }
 
-    //getters
-    public double getX() {
-        return x;
+    public void incrementarVelocidad() {
+        this.velocidadActual *= 1.10;     }
+
+    public void resetVelocidad() {
+        this.velocidadActual = VELOCIDAD_BASE;
+        this.velocidadY = 0; // Frenar la paleta al reiniciar
     }
 
-    public double getY() {
-        return y;
+    //getters y setters
+    public double getX() { return this.x; }
+    public double getY() { return this.y; }
+    public int getAlto() { return (int)this.height; }
+    public int getAncho() { return (int)this.width; }
+    public double getVelocidadDesplazamiento() {
+        return velocidadActual;
     }
 
-    public int getAlto() { return this.alto; }
-
-    public int getAncho() {
-        return this.ancho;
-    }
 }
