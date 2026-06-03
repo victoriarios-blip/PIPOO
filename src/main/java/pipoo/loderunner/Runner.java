@@ -20,5 +20,5 @@ public abstract class Runner extends Movible {
         this.estaCayendo = estaCayendo;
     }
 
-    public abstract boolean colosionaCon(ElementoGrafico otro);
+    public abstract boolean colisionaCon(ElementoGrafico otro);
 }

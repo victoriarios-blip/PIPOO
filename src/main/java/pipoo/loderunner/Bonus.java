@@ -7,10 +7,7 @@ public class Bonus extends ElementoGrafico {
         super(x, y, width, height);
     }
 
-    @Override
-    public boolean colisionaCon(ElementoGrafico otro) {
-        return false;
-    }
+
 
     @Override
     public void reaccionarAColision(ElementoGrafico otro) {
