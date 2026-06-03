@@ -5,10 +5,10 @@ import java.awt.*;
 
 public class PanelConfiguracionPong extends JPanel {
     private ConfiguracionPong config;
-    private JCheckBox chkSonido, chkPantalla;
+    private JCheckBox chkSonido, chkPantalla, chkContraBot;
     private JComboBox<String> comboSkinsPaleta, comboSkinsCancha, comboSkinsPelota, comboMusica;
     private JComboBox<Integer> comboPuntos; //entre 11 o 15
-    // Podrías usar campos de texto simples para las teclas (simplificado)
+
     private JTextField txtUpJ1, txtDownJ1, txtUpJ2, txtDownJ2;
     private JPanel parent;
     private CardLayout cl;
@@ -17,11 +17,17 @@ public class PanelConfiguracionPong extends JPanel {
         this.config = config;
         this.parent = parent;
         this.cl = cl;
-        this.setLayout(new GridLayout(0, 2, 10, 10)); // Grilla de 2 columnas [4]
+        this.setLayout(new BorderLayout(10, 10));
 
-        // --- Inicialización de Componentes ---
+        // Inicializacion de componentes
+        JTextField txtNombreJ1 = new JTextField(config.getNombreJ1(), 10);
+        JTextField txtNombreJ2 = new JTextField(config.getNombreJ2(), 10);
         chkSonido = new JCheckBox("Sonido Activado", config.isSonidoActivado());
         chkPantalla = new JCheckBox("Pantalla Completa", config.isPantallaCompleta());
+        chkContraBot = new JCheckBox("Jugar contra BOT", config.getContraBot());
+
+        //para que habilite escribir un nombre si no jugamos contra bot
+        txtNombreJ2.setEnabled(!chkContraBot.isSelected());
 
         String[] skins = {"Original", "Neon", "Retro"};
         comboSkinsPaleta = new JComboBox<>(skins);
@@ -35,35 +41,72 @@ public class PanelConfiguracionPong extends JPanel {
         Integer[] opcionesPuntos = {11, 15};
         comboPuntos = new JComboBox<>(opcionesPuntos);
 
-        // boton volver
+        //Panel del centro
+        JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
+
+        //jugadores
+        panelFormulario.add(new JLabel("Nombre Jugador 1:"));
+        panelFormulario.add(txtNombreJ1);
+        panelFormulario.add(chkContraBot);
+        panelFormulario.add(new JLabel(""));
+        panelFormulario.add(new JLabel("Nombre Jugador 2:"));
+        panelFormulario.add(txtNombreJ2);
+        this.add(panelFormulario, BorderLayout.CENTER);
+
+        // --- 3. PANEL DE BOTONES (SUR) ---
+        // Agrupamos los botones de acción abajo para que no se estiren con el GridLayout [1, 2]
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnReset = new JButton("Reset");
         JButton btnVolver = new JButton("Volver al Menú");
-        btnVolver.addActionListener(e -> {
-            // Usa el CardLayout para mostrar la pantalla de inicio [1]
-            cl.show(parent, "INICIO");
+
+        panelBotones.add(btnGuardar);
+        panelBotones.add(btnReset);
+        panelBotones.add(btnVolver);
+        this.add(panelBotones, BorderLayout.SOUTH);
+
+        // SECCIÓN: Video y Audio
+        panelFormulario.add(new JLabel("Modo de Pantalla:"));
+        panelFormulario.add(chkPantalla);
+        panelFormulario.add(new JLabel("Sonido:"));
+        panelFormulario.add(chkSonido);
+
+        // SECCIÓN: Gameplay
+        panelFormulario.add(new JLabel("Puntos para ganar:"));
+        panelFormulario.add(comboPuntos);
+        panelFormulario.add(new JLabel("Pista Musical:"));
+        panelFormulario.add(comboMusica);
+        panelFormulario.add(new JLabel("Skin Paletas:"));
+        panelFormulario.add(comboSkinsPaleta);
+        panelFormulario.add(new JLabel("Skin Pelota:"));
+        panelFormulario.add(comboSkinsPelota);
+
+        // SECCIÓN: Info de Controles
+        panelFormulario.add(new JLabel("CONTROLES J1:"));
+        panelFormulario.add(new JLabel("Flechas Arriba / Abajo"));
+        panelFormulario.add(new JLabel("CONTROLES J2:"));
+        panelFormulario.add(new JLabel("Teclas W / S"));
+        this.add(panelFormulario, BorderLayout.CENTER);
+
+        btnVolver.addActionListener(e -> cl.show(parent, "INICIO"));
+
+        //Logica contra bot
+        chkContraBot.addActionListener(e -> {
+            boolean esBot = chkContraBot.isSelected();
+            txtNombreJ2.setEnabled(!esBot);
+            if (esBot) {
+                txtNombreJ2.setText("PIPOO BOT");
+            } else {
+                txtNombreJ2.setText(config.getNombreJ2());
+            }
         });
 
 
-        // --- Agregar al Panel ---
-        this.add(new JLabel("Ajustes de Audio:")); this.add(chkSonido);
-        this.add(new JLabel("Modo de Pantalla:")); this.add(chkPantalla);
-        this.add(new JLabel("Skin Paletas:")); this.add(comboSkinsPaleta);
-        this.add(new JLabel("Skin Pelota:")); this.add(comboSkinsPelota);
-        this.add(new JLabel("Puntos para ganar:")); this.add(comboPuntos);
-        this.add(new JLabel("Pista Musical:")); this.add(comboMusica);
-        this.add(new JLabel("")); // Espacio vacío en la grilla si es necesario
-        this.add(btnVolver);
-
-        this.add(new JLabel("CONTROLES J1:"));
-        this.add(new JLabel("Flechas Arriba / Abajo"));
-        this.add(new JLabel("CONTROLES J2:"));
-        this.add(new JLabel("Teclas W / S"));
-
-        // Botones de Acción
-        JButton btnGuardar = new JButton("Guardar");
-        JButton btnReset = new JButton("Reset");
-
         // Lógica Guardar
         btnGuardar.addActionListener(e -> {
+            config.setNombreJ1(txtNombreJ1.getText());
+            config.setNombreJ2(txtNombreJ2.getText());
+            config.setContraBot(chkContraBot.isSelected());
             config.setSonidoActivado(chkSonido.isSelected());
             config.setPantallaCompleta(chkPantalla.isSelected());
             config.setSkinPaletas((String) comboSkinsPaleta.getSelectedItem());
@@ -71,7 +114,7 @@ public class PanelConfiguracionPong extends JPanel {
             config.setPistaMusical((String) comboMusica.getSelectedItem());
             config.setPuntosParaGanar((Integer) comboPuntos.getSelectedItem());
 
-            config.guardar(); // Persistencia física discutida antes
+            config.guardar();
             JOptionPane.showMessageDialog(this, "Configuración guardada correctamente");
         });
 
@@ -81,11 +124,6 @@ public class PanelConfiguracionPong extends JPanel {
             actualizarGUI();
             JOptionPane.showMessageDialog(this, "Valores restaurados por defecto.");
         });
-
-        this.add(btnGuardar);
-        this.add(btnReset);
-
-        // Sincronización inicial
         actualizarGUI();
     }
 

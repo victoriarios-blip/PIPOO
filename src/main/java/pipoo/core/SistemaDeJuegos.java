@@ -16,14 +16,13 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     private JButton btnPong, btnConfigP, btnRankingP;
     private JButton btnLodeRunner, btnConfigLR, btnRankingLR;
     private JButton btnSpaceInvaders, btnConfigSI, btnRankingSI;
-    private JButton btnConfigGeneral;
+    private JTextField txtNombreUsuario;
 
     private CardLayout cardLayout;
 
     private ConfiguracionPong configPong = new ConfiguracionPong();
     private ConfiguracionSI configSI = new ConfiguracionSI();
     private ConfiguracionLR configLR = new ConfiguracionLR();
-    private ConfiguracionGeneral configGeneral = new ConfiguracionGeneral();
 
 
     private JPanel panelInicio, panelJuegos,
@@ -40,25 +39,18 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         panelInicio = new JPanel();
         panelInicio.setLayout(new BorderLayout());
 
-        // panel con titulo y configuracion general
+        // panel con titulo
         JPanel panelNorte = new JPanel();
         JLabel lblTitulo = new JLabel("PIPOO ARCADE", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 24));
-        btnConfigGeneral = new JButton("Configuración General");
-        btnConfigGeneral.addActionListener(this);
-
         panelNorte.add(lblTitulo);
-        panelNorte.add(btnConfigGeneral);
         panelInicio.add(panelNorte, BorderLayout.NORTH);
+
+        JPanel panelCentralContenedor = new JPanel(new BorderLayout(0, 15));
 
         // panel con los 3 juegos
         panelJuegos = new JPanel();
         panelJuegos.setLayout(new GridLayout(1, 3, 15, 0));
-
-        //panel configuracion general
-        PanelConfiguracionGeneral guiGeneral = new PanelConfiguracionGeneral(configGeneral, this, cardLayout);
-
-
 
         // panel pong
         panelPong = crearPanelJuego("PONG");
@@ -66,10 +58,8 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         btnConfigP = new JButton("Configuración");
         btnRankingP = new JButton("Ranking");
         registrarBotones(panelPong, btnPong, btnConfigP, btnRankingP);
-
         //panel configuracion PONG
         PanelConfiguracionPong guiPong = new PanelConfiguracionPong(configPong, this, cardLayout);
-
 
         // panel lode runner
         panelLodeRunner = crearPanelJuego("LODE RUNNER");
@@ -100,13 +90,28 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
 
         panelInicio.add(panelJuegos, BorderLayout.CENTER);
 
+        txtNombreUsuario = new JTextField("Jugador 1", 15);
+
+        // Panel para el nombre
+        JPanel panelNombre = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel lblIdentificacion = new JLabel("Ingresa tu Nombre: ");
+        lblIdentificacion.setFont(new Font("SansSerif", Font.BOLD, 14));
+        panelNombre.add(lblIdentificacion);
+        panelNombre.add(txtNombreUsuario);
+
+        // Centro
+        panelCentralContenedor.add(panelJuegos, BorderLayout.CENTER);
+        panelCentralContenedor.add(panelNombre, BorderLayout.SOUTH);
+
+        // Contenedor central al panel de inicio principal
+        panelInicio.add(panelCentralContenedor, BorderLayout.CENTER);
+
         //card layout
         this.add(panelInicio, "INICIO");
         this.add(guiPong, "CONFIG_PONG");
         this.add(guiSI, "CONFIG_SPACE");
         this.add(guiLR, "CONFIG_LODE");
-        this.add(guiGeneral, "CONFIG_GENERAL");
-        
+
 
         /*this.add(panelConfigGeneral, "CONFIG_GENERAL");
         this.add(panelConfigP, "CONFIG_PONG");
@@ -116,7 +121,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         this.add(panelRankingP, "RANKING_PONG");
         this.add(panelRankingSI, "RANKING_SPACE_INV");
         this.add(panelRankingLR, "RANKING_LODE_R");
-
          */
     }
 
@@ -141,20 +145,31 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         panel.add(btnRanking);
     }
 
+    private void prepararJuego(Juego juego, Configuracion config) {
+        if (config != null) {
+            juego.setConfiguracion(config);
+            System.out.println("DEBUG: ¿Pantalla completa activa?: " + config.isPantallaCompleta());
+            juego.aplicarModoPantalla(config.isPantallaCompleta());
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object origen = e.getSource();
         boolean esLanzamientoDeJuego = false; // Bandera para controlar el hilo
-
+        //lanzamiento de juegos
         if (origen == btnPong) {
+            String nombreUsuario = txtNombreUsuario.getText();
+            configPong.setNombreJ1(nombreUsuario);
             juegoActual = new Pong();
+            prepararJuego(juegoActual, configPong);
+            esLanzamientoDeJuego = true;
         } else if (origen == btnLodeRunner) {
             juegoActual = new LodeRunner();
+            esLanzamientoDeJuego = true;
         } else if (origen == btnSpaceInvaders) {
             juegoActual = new SpaceInvaders();
-        }
-        else if (origen == btnConfigGeneral) {
-            cardLayout.show(this, "CONFIG_GENERAL"); // Cambia la pantalla usando CardLayout
+            esLanzamientoDeJuego = true;
         } else if (origen == btnConfigP) {
             cardLayout.show(this, "CONFIG_PONG");
         } else if (origen == btnConfigSI) {

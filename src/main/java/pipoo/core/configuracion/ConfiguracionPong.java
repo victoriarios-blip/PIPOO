@@ -1,6 +1,7 @@
 package pipoo.core.configuracion;
 
 
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Files; //api nio
 import java.nio.file.Paths; //api nio
@@ -11,6 +12,10 @@ public class ConfiguracionPong extends Configuracion {
     private String skinPaletas, skinCancha, skinPelota;
     private int puntosParaGanar;
     private int teclaUpJ1, teclaDownJ1, teclaUpJ2, teclaDownJ2;
+
+    private String nombreJ1 = "Jugador 1";
+    private String nombreJ2 = "Jugador 2";
+    private boolean contraBot = true;
 
     //constructor config pong
     public ConfiguracionPong() {
@@ -41,7 +46,7 @@ public class ConfiguracionPong extends Configuracion {
         Properties prop = new Properties();
 
         // guardar parametros de la clase abstracta (comunes)
-        prop.setProperty("pantallaCompleta", String.valueOf(this.pantallaCompleta));
+        prop.setProperty("fullScreen", String.valueOf(this.isPantallaCompleta()));
         prop.setProperty("sonidoActivado", String.valueOf(this.sonidoActivado));
         prop.setProperty("pistaMusical", this.pistaMusical);
 
@@ -54,7 +59,26 @@ public class ConfiguracionPong extends Configuracion {
         prop.setProperty("teclaDownJ2", String.valueOf(this.teclaDownJ2));
         prop.setProperty("skinPaletas", String.valueOf(this.skinPaletas));
         prop.setProperty("skinCancha", String.valueOf(this.skinCancha));
+        prop.setProperty("nombreJ1", this.nombreJ1);
+        prop.setProperty("nombreJ2", this.nombreJ2);
+        prop.setProperty("contraBot", String.valueOf(this.contraBot));
         persistirEnArchivo(prop, "config_pong.properties");
+
+        try (FileOutputStream out = new FileOutputStream("jgame.properties")) {
+            prop.store(out, "Configuracion PIPOO");
+        } catch (IOException e) {
+            System.err.println("Error al crear jgame.properties: " + e.getMessage());
+        }
+
+        String rutaBuild = "build/classes/java/main/jgame.properties";
+        try (FileOutputStream outBuild = new FileOutputStream(rutaBuild)) {
+            prop.store(outBuild, "Sincronizado con el motor");
+            System.out.println("DEBUG: Archivo actualizado en carpeta build.");
+        } catch (IOException e) {
+            System.out.println("Aviso: No se pudo escribir en build, solo en raiz");
+        }
+
+
     }
 
     // Getters y Setters específicos de Pong para la GUI
@@ -67,6 +91,16 @@ public class ConfiguracionPong extends Configuracion {
     // Getters y Setters específicos de Pong para la GUI
     public String getSkinPaletas() { return skinPaletas; }
     public void setSkinPaletas(String skin_pa) { this.skinPaletas = skinPaletas; }
+
+    public String getNombreJ1() { return nombreJ1;}
+    public void setNombreJ1(String nombreJ1) { this.nombreJ1 = nombreJ1; }
+
+    public String getNombreJ2() { return nombreJ2;}
+    public void setNombreJ2(String nombreJ2) { this.nombreJ1 = nombreJ2; }
+
+    public boolean getContraBot() { return contraBot; }
+    public void setContraBot(boolean contraBot) { this.contraBot = contraBot;}
+
 
     public String getSkinCancha() { return skinPelota; }
     public void setSkinCancha(String skin_can) { this.skinPelota = skinCancha; }

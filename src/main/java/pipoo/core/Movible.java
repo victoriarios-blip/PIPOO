@@ -8,10 +8,16 @@ public abstract class Movible extends ElementoGrafico {
 
         public Movible(double x, double y, double width, double height) {
             super(x, y, width, height);
-
             this.velocidadX = 0;
             this.velocidadY = 0;
         }
+
+    // setters
+    public void setVelocidadX(double vx) { this.velocidadX = vx; }
+    public void setVelocidadY(double vy) { this.velocidadY = vy; }
+
+    public double getVelocidadX() {return velocidadX;}
+    public double getVelocidadY() {return velocidadY;}
 
     public abstract void mover(double delta);
 }

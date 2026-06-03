@@ -13,21 +13,21 @@ public class PanelConfiguracionSI extends JPanel {
         this.config = config;
         this.setLayout(new GridLayout(0, 2, 10, 10)); // Grilla para etiquetas y componentes
 
-        // --- Inicialización de Componentes ---
+        // Inicializacion de componentes
         chkSonido = new JCheckBox("Sonido Activado", config.isSonidoActivado());
         chkPantalla = new JCheckBox("Pantalla Completa", config.isPantallaCompleta());
 
         comboSkinsNave = new JComboBox<>(new String[]{"Original", "Galactica", "Retro"});
         comboSkinsAliens = new JComboBox<>(new String[]{"Original", "Pixel Art", "Monstruos"});
 
-        // REQUERIMIENTO: Velocidad de los invasores
+        // Velocidad de los invasores
         comboVelocidad = new JComboBox<>(new String[]{"Lenta", "Media", "Rápida"});
 
         comboMusica = new JComboBox<>(new String[]{"Tema SI Original", "Remix 8-bit", "Synthwave"});
 
         btnVolver = new JButton("Volver al Menú");
 
-        // --- Agregar al Panel ---
+        // Agregamos al panel
         this.add(new JLabel("Ajustes de Audio:")); this.add(chkSonido);
         this.add(new JLabel("Modo de Pantalla:")); this.add(chkPantalla);
         this.add(new JLabel("Skin de Nave:"));    this.add(comboSkinsNave);
@@ -36,14 +36,13 @@ public class PanelConfiguracionSI extends JPanel {
         this.add(new JLabel("Pista Musical:"));   this.add(comboMusica);
         this.add(btnVolver);
 
-
-        // Información de Controles (puedes hacerlos editables como vimos antes)
+        //controles
         this.add(new JLabel("Disparo:"));
         this.add(new JLabel("Espacio"));
         this.add(new JLabel("Movimiento:"));
         this.add(new JLabel("Flechas Derecha/Izquierda"));
 
-        // --- Botones ---
+        // Botones
         btnGuardar = new JButton("Guardar");
         btnReset = new JButton("Reset");
 

@@ -15,24 +15,24 @@ public class PanelConfiguracionLR extends JPanel {
         this.config = config;
         this.setLayout(new GridLayout(0, 2, 10, 10));
 
-        // --- 1. Inicialización de Componentes ---
+        // Inicializacion de componentes
         chkSonido = new JCheckBox("Sonido General", config.isSonidoActivado());
         chkPantalla = new JCheckBox("Pantalla Completa", config.isPantallaCompleta());
 
-        // REQUERIMIENTO: Selección de skins y música [2]
+        // Selección de skins y música
         String[] skins = {"Original", "Explorador", "Robot"};
         comboSkinsPersonaje = new JComboBox<>(skins);
 
         String[] pistas = {"Tema LR Original", "Remix Retro", "Aventura"};
         comboMusica = new JComboBox<>(pistas);
 
-        // --- 2. Agregar al Panel ---
+        // agregar al panel
         this.add(new JLabel("Audio:"));         this.add(chkSonido);
         this.add(new JLabel("Modo de Pantalla:")); this.add(chkPantalla);
         this.add(new JLabel("Skin Personaje:"));  this.add(comboSkinsPersonaje);
         this.add(new JLabel("Pista Musical:"));    this.add(comboMusica);
 
-        // --- 3. Sección de Teclas (Texto Fijo según consigna [2]) ---
+        //controles
         this.add(new JLabel("CONTROLES (Fijos):")); this.add(new JLabel("Flechas: Mover"));
         this.add(new JLabel("Cavar Pozo:"));        this.add(new JLabel("Barra Espaciadora"));
         this.add(new JLabel("Audio (Efectos/Música):")); this.add(new JLabel("Q / W"));

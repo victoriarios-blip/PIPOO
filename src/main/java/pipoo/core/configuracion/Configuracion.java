@@ -10,8 +10,8 @@ import java.nio.file.Paths;
 //de aca se desprenden las clases hijas: ConfiguracionGeneral, ConfiguracionPong, ConfiguracionSI, ConfiguracionLD
 public abstract class Configuracion {
     // atributos protegidos para que las clases hijas los hereden directamente
-    protected boolean pantallaCompleta;
-    protected boolean sonidoActivado;
+    protected boolean pantallaCompleta = false;
+    protected boolean sonidoActivado = true;
     protected String pistaMusical, nombreArchivo;
     protected Properties propiedades;
 
