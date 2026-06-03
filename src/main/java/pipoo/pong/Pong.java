@@ -21,6 +21,10 @@ public class Pong extends Juego {
     private int puntosJ1=0, puntosJ2=0;
     private boolean juegoFinalizado = false;
     private Jugador jugador1, jugador2;
+    private int puntosLimite;
+    private boolean sonidoActivado;
+    private String nombreJ1;
+    private String nombreJ2;
 
     //imagenes
     private BufferedImage[] imgNumeros;
@@ -73,6 +77,28 @@ public class Pong extends Juego {
             paleta1.setVelocidadY(350.0);
             paleta2.setVelocidadY(350.0);
 
+            //nombres de j1 y el j2/bot en el juego
+            this.nombreJ1 = config.getNombreJ1();
+            if (config.getContraBot()) {
+                this.nombreJ2 = "PIPOO BOT";
+            } else {
+                this.nombreJ2 = config.getNombreJ2();
+            }
+
+            //obtenemos los puntos y si el sonido esta activado o no para guardar la configuracion
+            this.puntosLimite = config.getPuntosParaGanar();
+            sonidoActivado = config.isSonidoActivado();
+            if (!sonidoActivado) {
+                gestorAudio.detenerMusica();
+            } else {
+                gestorAudio.reproducirMusica(getClass().getResource("sonidos/jeffthebat.wav"));
+                gestorAudio.precargarEfecto("rebote_borde", getClass().getResource("sonidos/pelota_rebota_borde.wav"));
+                gestorAudio.precargarEfecto("rebote_paleta", getClass().getResource("sonidos/pelota_rebota_paleta.wav"));
+                gestorAudio.precargarEfecto("punto", getClass().getResource("sonidos/anotacion.wav"));
+            }
+
+
+
             //cargamos los assets (DEFAULT)
 
             BufferedImage imgPelota = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/pelota_default.png"));
@@ -89,18 +115,9 @@ public class Pong extends Juego {
             this.imgDivisor = ImageIO.read(getClass().getResource("/pipoo/pong/neon/barra_del_medio.png"));
 
  */
-
-            //cargamos los sonidos
-            gestorAudio.precargarEfecto("rebote_borde", getClass().getResource("sonidos/pelota_rebota_borde.wav"));
-            gestorAudio.precargarEfecto("rebote_paleta", getClass().getResource("sonidos/pelota_rebota_paleta.wav"));
-            gestorAudio.precargarEfecto("punto", getClass().getResource("sonidos/anotacion.wav"));
-            gestorAudio.reproducirMusica(getClass().getResource("sonidos/jeffthebat.wav"));
-
-
             //puntos estilo default
-
-            imgNumeros = new BufferedImage[12];
-            for (int i = 0; i <= 11; i++) {
+            imgNumeros = new BufferedImage[16];
+            for (int i = 0; i <= 15; i++) {
                 imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/" + i + ".png"));
             }
 
@@ -120,6 +137,12 @@ public class Pong extends Juego {
             System.err.println("Error cargando assets de Pong " +e.getMessage());
 
         }
+        this.getFrame().addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                stop();
+            }
+        });
     }
 
     @Override
@@ -153,6 +176,7 @@ public class Pong extends Juego {
 
     @Override
     public void gameDraw(Graphics2D g) {
+        //dibujamos el fondo
         if (imgCancha != null) {
             g.drawImage(imgCancha, 0, 0, getWidth(), getHeight(), null);
         }
@@ -175,19 +199,29 @@ public class Pong extends Juego {
             g.fill(bordeInferior);
         }
 
-        //usa puntosj1 y puntosj2 como indice entonces muestra la imagen indice[imagen]
+        //usa puntosj1 y puntosj2 como indice
         if (imgNumeros[puntosJ1] != null) {
-            g.drawImage(imgNumeros[puntosJ1], getWidth() / 4, 50, null);
+            g.drawImage(imgNumeros[puntosJ1], getWidth() / 4, 90, null);
         }
         if (imgNumeros[puntosJ2] != null) {
             // Posicionamos la imagen del número actual del J2
-            g.drawImage(imgNumeros[puntosJ2], (getWidth() / 4) * 3, 50, null);
+            g.drawImage(imgNumeros[puntosJ2], (getWidth() / 4) * 3, 90, null);
         }
 
         pelota.dibujar(g);
         paleta1.dibujar(g);
         paleta2.dibujar(g);
-        //marcador.dibujar(g);
+
+        //dibujamos los nombres de los jugadores
+        g.setFont(new Font("Monospaced", Font.BOLD, 20));
+        g.setColor(Color.WHITE);
+        if (this.nombreJ1 != null){
+            g.drawString(this.nombreJ1, getWidth()/4, 40);
+        }
+        if (this.nombreJ2 != null) {
+            g.drawString(this.nombreJ2, (getWidth()/4)*3, 40);
+        }
+
     }
 
     @Override
@@ -283,9 +317,8 @@ public class Pong extends Juego {
 
     //verifica si alguien gano
     private boolean verificarFinDeJuego() {
-        int limite = 11;
         boolean fin = false;
-        if (puntosJ1 == limite || puntosJ2 == limite) {
+        if (puntosJ1 == this.puntosLimite || puntosJ2 == this.puntosLimite) {
             fin=true;
         }
         return fin;
