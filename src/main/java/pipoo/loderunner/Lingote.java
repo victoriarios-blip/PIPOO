@@ -13,4 +13,9 @@ public class Lingote extends ElementoGrafico {
     public void reaccionarAColision(ElementoGrafico otro) {
 
     }
+
+    @Override
+    public boolean colisionaCon(ElementoGrafico otro) {
+        return false;
+    }
 }
