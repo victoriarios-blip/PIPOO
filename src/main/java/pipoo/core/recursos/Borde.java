@@ -8,11 +8,6 @@ public class Borde extends ElementoGrafico {
     }
 
     @Override
-    public boolean colisionaCon(ElementoGrafico otro) {
-        return false;
-    }
-
-    @Override
     public void reaccionarAColision(ElementoGrafico otro) {
 
     }

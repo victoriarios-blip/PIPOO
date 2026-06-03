@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-import pipoo.spaceinvaders.assets;
 
 public class SpaceInvaders extends Juego {
     private NaveHeroe jugador;

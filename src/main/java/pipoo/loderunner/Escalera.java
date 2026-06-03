@@ -31,17 +31,6 @@ public class Escalera extends ElementoGrafico {
         this.salidaFinal = salidaFinal;
     }
 
-    @Override
-    public void dibujar(Graphics2D g) {
-        if (visible) {
-            // dibuja la escalera
-        }
-    }
-
-    @Override
-    public boolean colisionaCon(ElementoGrafico otro) {
-        return false;
-    }
 
     @Override
     public void reaccionarAColision(ElementoGrafico otro) {
