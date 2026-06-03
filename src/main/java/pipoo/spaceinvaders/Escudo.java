@@ -13,7 +13,7 @@ public class Escudo extends ElementoGrafico {
     private BufferedImage escudo4daño;
 
     public Escudo(double x, double y) {
-        super(x, y, 60, 40); // dimensiones reales del escudo
+        super(x, y, 72, 48); // dimensiones reales del escudo
         this.resistencia = 4;
     }
 

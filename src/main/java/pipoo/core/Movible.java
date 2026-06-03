@@ -2,6 +2,8 @@ package pipoo.core;
 
 import pipoo.core.ElementoGrafico;
 
+import java.awt.*;
+
 public abstract class Movible extends ElementoGrafico {
         protected double velocidadX;
         protected double velocidadY;
@@ -20,6 +22,8 @@ public abstract class Movible extends ElementoGrafico {
     public double getVelocidadY() {return velocidadY;}
 
     public abstract void mover(double delta);
+
+    public abstract void dibujar(Graphics2D g);
 }
 
 

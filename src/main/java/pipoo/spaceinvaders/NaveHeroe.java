@@ -12,7 +12,7 @@ public class NaveHeroe extends Movible implements Disparador {
     private BufferedImage imagenExplosion2;
 
     public NaveHeroe(double x, double y) {
-        super(x, y, 40, 20);
+        super(x, y, 48, 24);
         this.velocidadX = 0;
     }
 

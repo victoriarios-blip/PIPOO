@@ -4,7 +4,7 @@ import pipoo.core.ElementoGrafico;
 
 public class Pulpo extends Enemigo{
     public Pulpo(double x, double y) {
-        super(x, y, 30, 30);
+        super(x, y, 48, 24);
         this.valorPuntaje = 30;
         //velocidades
     }

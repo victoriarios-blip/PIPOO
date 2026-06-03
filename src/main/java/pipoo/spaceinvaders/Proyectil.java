@@ -3,8 +3,11 @@ import pipoo.core.ElementoGrafico;
 import pipoo.core.Movible;
 import pipoo.core.recursos.Borde;
 
+import java.awt.*;
+
 public class Proyectil extends Movible {
-    public enum Origen { HEROE, ENEMIGO }
+    public enum Origen {HEROE, ENEMIGO}
+
     private Origen origen;
     private static final double VELOCIDAD = 300;
 
@@ -26,13 +29,34 @@ public class Proyectil extends Movible {
 
     @Override
     public void reaccionarAColision(ElementoGrafico c) {
-        if (c instanceof NaveHeroe && origen == Origen.ENEMIGO)   { this.visible = false; }
-        if (c instanceof NaveNodriza && origen == Origen.HEROE)   { this.visible = false; }
-        if (c instanceof Borde)                                    { this.visible = false; }
-        if (c instanceof Escudo)                                   { this.visible = false; }
-        if (c instanceof Enemigo && origen == Origen.HEROE)       { this.visible = false; }
-        if (c instanceof Proyectil)                                { this.visible = false; }
+        if (c instanceof NaveHeroe && origen == Origen.ENEMIGO) {
+            this.visible = false;
+        }
+        if (c instanceof NaveNodriza && origen == Origen.HEROE) {
+            this.visible = false;
+        }
+        if (c instanceof Borde) {
+            this.visible = false;
+        }
+        if (c instanceof Escudo) {
+            this.visible = false;
+        }
+        if (c instanceof Enemigo && origen == Origen.HEROE) {
+            this.visible = false;
+        }
+        if (c instanceof Proyectil) {
+            this.visible = false;
+        }
     }
 
-    public Origen getOrigen() { return origen; }
+    public Origen getOrigen() {
+        return origen;
+    }
+
+    @Override
+    public void dibujar(Graphics2D g) {
+        if (visible && bufferImage != null) {
+            g.drawImage(bufferImage, (int) this.x, (int) this.y, (int) this.width, (int) this.height, null);
+        }
+    }
 }

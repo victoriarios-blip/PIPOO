@@ -18,12 +18,18 @@ public class SpaceInvaders extends Juego {
     private List<Proyectil> proyectilesEnemigos;
     private List<Proyectil> proyectilesHeroe;
 
+    private BufferedImage imgProyectilHeroe;
+    private BufferedImage imgProyectilEnemigo;
+
     public SpaceInvaders() {
         super("Retro Space Invaders", 800, 600);
     }
 
     @Override
     public void gameStartup() {
+        java.net.URL test = this.getClass().getResource("/pipoo/spaceinvaders/imagenes/pulpo1.png");
+        System.out.println("PATH TEST: " + test);
+
         System.out.println("Iniciando Space Invaders...");
 
         oleada = new ArrayList<>();
@@ -31,51 +37,60 @@ public class SpaceInvaders extends Juego {
         proyectilesEnemigos = new ArrayList<>();
         proyectilesHeroe = new ArrayList<>();
 
-        jugador = new NaveHeroe(380, 520);
+        jugador = new NaveHeroe(380, 540);
 
-        int[] posicionesEscudosX = {100, 280, 460, 640};
+        int[] posicionesEscudosX = {104, 272, 440, 608};
         for (int x : posicionesEscudosX) {
             escudos.add(new Escudo(x, 450));
         }
 
         // oleada enemiga (5 filas x 11 columnas)
-        int inicioX = 150;
+        int inicioX = (800 - 638) / 2;
         int inicioY = 50;
 
         for (int fila = 0; fila < 5; fila++) {
             for (int col = 0; col < 11; col++) {
-                double x = inicioX + (col * 40);
-                double y = inicioY + (fila * 40);
-
-                if (fila == 0) oleada.add(new Pulpo(x, y));         // superior 30 pts
-                else if (fila < 3) oleada.add(new Cangrejo(x, y));  // medio 20 pts
-                else oleada.add(new Calamar(x, y));                 // inferior 10 pts
+                double x = inicioX + (col * 58); // 48px sprite + 10px separación
+                double y = inicioY + (fila * 34); // 24px sprite + 10px separación
+                // ← acá falta agregar el enemigo!
+                if (fila == 0) oleada.add(new Pulpo(x, y));
+                else if (fila < 3) oleada.add(new Cangrejo(x, y));
+                else oleada.add(new Calamar(x, y));
             }
         }
 
         // carga de assets
         try {
-            BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/naveHeroe.png"));
-            BufferedImage naveNodriza = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/naveNodriza.png"));
+            BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeIntacta.png"));
+            BufferedImage naveNodriza = ImageIO.read(this.getClass().getResource("imagenes/naveNodriza.png"));
 
             // enemigos (2 frames cada uno)
-            BufferedImage pulpo1 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/pulpo1.png"));
-            BufferedImage pulpo2 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/pulpo2.png"));
+            BufferedImage pulpo1 = ImageIO.read(this.getClass().getResource("imagenes/pulpo1.png"));
+            BufferedImage pulpo2 = ImageIO.read(this.getClass().getResource("imagenes/pulpo2.png"));
 
-            BufferedImage cangrejo1 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/cangrejo1.png"));
-            BufferedImage cangrejo2 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/cangrejo2.png"));
+            BufferedImage cangrejo1 = ImageIO.read(this.getClass().getResource("imagenes/cangrejo1.png"));
+            BufferedImage cangrejo2 = ImageIO.read(this.getClass().getResource("imagenes/cangrejo2.png"));
 
-            BufferedImage calamar1 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/calamar1.png"));
-            BufferedImage calamar2 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/calamar2.png"));
+            BufferedImage calamar1 = ImageIO.read(this.getClass().getResource("imagenes/calamar1.png"));
+            BufferedImage calamar2 = ImageIO.read(this.getClass().getResource("imagenes/calamar2.png"));
 
-            BufferedImage proyectilHeroe = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/proyectilHeroe.png"));
-            BufferedImage proyectilEnemigo = ImageIO.read(this.getClass().getResource("/pipoo/core/spaceinvaders/imagenes/proyectilEnemigo.png"));
+            BufferedImage proyectilHeroe = ImageIO.read(this.getClass().getResource("imagenes/proyectilHeroe.png"));
+            BufferedImage proyectilEnemigo = ImageIO.read(this.getClass().getResource("imagenes/proyectilEnemigo.png"));
 
-            BufferedImage escudoIntacto = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudoIntacto.png"));
-            BufferedImage escudo1daño = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudo1daño.png"));
-            BufferedImage escudo2daño = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudo2daño.png"));
-            BufferedImage escudo3daño = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudo3daño.png"));
-            BufferedImage escudo4daño = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudo4daño.png"));
+            BufferedImage escudoIntacto = ImageIO.read(this.getClass().getResource("imagenes/escudoIntacto.png"));
+            BufferedImage escudo1daño = ImageIO.read(this.getClass().getResource("imagenes/escudo1daño.png"));
+            BufferedImage escudo2daño = ImageIO.read(this.getClass().getResource("imagenes/escudo2daño.png"));
+            BufferedImage escudo3daño = ImageIO.read(this.getClass().getResource("imagenes/escudo3daño.png"));
+            BufferedImage escudo4daño = ImageIO.read(this.getClass().getResource("imagenes/escudo4daño.png"));
+
+            imgProyectilHeroe   = ImageIO.read(this.getClass().getResource("imagenes/proyectilHeroe.png"));
+            imgProyectilEnemigo = ImageIO.read(this.getClass().getResource("imagenes/proyectilEnemigo.png"));
+
+            System.out.println("pulpo1 tamaño: " + pulpo1.getWidth() + "x" + pulpo1.getHeight());
+            System.out.println("cangrejo1 tamaño: " + cangrejo1.getWidth() + "x" + cangrejo1.getHeight());
+            System.out.println("calamar1 tamaño: " + calamar1.getWidth() + "x" + calamar1.getHeight());
+            System.out.println("naveHeroe tamaño: " + naveHeroe.getWidth() + "x" + naveHeroe.getHeight());
+            System.out.println("escudo tamaño: " + escudoIntacto.getWidth() + "x" + escudoIntacto.getHeight());
 
             for (Escudo escudo : escudos) {
                 escudo.setImgIntacto(escudoIntacto);
@@ -110,8 +125,6 @@ public class SpaceInvaders extends Juego {
 
     @Override
     public void gameUpdate(double delta) {
-        jugador.mover(delta);
-
         Keyboard teclado = this.getKeyboard();
 
         if (teclado.isKeyPressed(KeyEvent.VK_LEFT))  jugador.moverIzquierda();
@@ -120,17 +133,24 @@ public class SpaceInvaders extends Juego {
 
         if (teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
             Proyectil p = jugador.disparar();
-            if (p != null) proyectilesHeroe.add(p);
+            if (p != null) {
+                p.setImagen(imgProyectilHeroe);
+                proyectilesHeroe.add(p);
+            }
         }
+
+        jugador.mover(delta);
 
         for (Enemigo enemigo : oleada) {
             enemigo.mover(delta);
             enemigo.actualizarFrame(delta);
             Proyectil p = enemigo.disparar();
             if (p != null) {
-                proyectilesEnemigos.add(p); // ← lista correcta
+                p.setImagen(imgProyectilEnemigo);
+                proyectilesEnemigos.add(p);
             }
         }
+
         for (Proyectil p : proyectilesEnemigos) { p.mover(delta); }
         for (Proyectil p : proyectilesHeroe)    { p.mover(delta); }
 

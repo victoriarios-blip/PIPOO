@@ -4,7 +4,7 @@ import pipoo.core.ElementoGrafico;
 
 public class Calamar extends Enemigo{
     public Calamar(double x, double y) {
-        super(x, y, 30, 30);
+        super(x, y, 45, 24);
         this.valorPuntaje = 10;
         //velocidades
     }
