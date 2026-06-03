@@ -27,17 +27,25 @@ public class LodeRunner extends Juego {
     // victoria - tiempo
     private double tiempoRestante = 150.0;
     private boolean escaleraSalidaCreada = false;
+    private boolean juegoTerminado = false;
     private Escalera escaleraDeSalida = null;
     private BufferedImage imgEscaleraSalida;
 
+    private boolean pantallaVictoria = false;
+    private int highscore = 10000; // Arranca con un puntaje retro por defecto
+    private int vidasFinales = 0;
+    private int tiempoFinal = 0;
+
     // ATRIBUTOS DEL HUD
-    private BufferedImage imgScore, imgLevel, imgTitulo, imgLives, imgPozo, imgFragmentoPozo, imgBloque, imgLadrilloInferior, imgParedLimite ;
+    private BufferedImage imgScore, imgLevel, imgTitulo, imgLives, imgPozo, imgFragmentoPozo, imgBloque, imgLadrilloInferior, imgParedLimite,imgGameOver;
     private BufferedImage[] numeros;
     private BufferedImage imgHighscore;
 
     private int score = 0;
     private int vidas = 5;
     private int nivel = 1;
+
+
 
     // AUDIO
     private GestorAudio audio = new GestorAudio();
@@ -71,7 +79,7 @@ public class LodeRunner extends Juego {
             imgTitulo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/titulo lode runner.png"));
             imgLives = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/lives.png"));
             imgHighscore = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/24138.png"));
-
+            imgGameOver = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/game_over.png"));
             numeros = new BufferedImage[10];
             for (int i = 0; i <= 9; i++) {
                 numeros[i] = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + i + ".png"));
@@ -272,6 +280,22 @@ public class LodeRunner extends Juego {
     public void gameUpdate(double delta) {
         Keyboard teclado = this.getKeyboard();
 
+        if (juegoTerminado) {
+            if (teclado.isKeyPressed(KeyEvent.VK_ENTER) || teclado.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+                System.exit(0);
+            }
+            return; // Corta el update acá, nadie se mueve
+        }
+
+        // NUEVO: Si completó el nivel, esperamos que presione ENTER para cambiar de mapa
+        if (pantallaVictoria) {
+            if (teclado.isKeyPressed(KeyEvent.VK_ENTER)) {
+                pantallaVictoria = false;
+                avanzarSiguienteNivel(); // Método nuevo que crearemos en el Paso 4
+            }
+            return; // Corta el update, congela enemigos y reloj
+        }
+
         if (heroe.isEstaMuriendo()) {
             boolean animacionTerminada = heroe.actualizarAnimacionMuerte(delta);
             if (animacionTerminada) {
@@ -295,7 +319,12 @@ public class LodeRunner extends Juego {
         if (lingotes.isEmpty() && !escaleraSalidaCreada) {
             System.out.println("¡Todo el oro recolectado! Aparece la escalera de salida.");
 
-            escaleraDeSalida = new Escalera(600, 0, 30, 210, false);
+            // FIX DEFINITIVO:
+            // X = 1140 (Justo al lado de la pared de X=1170)
+            // Y = 0 (Arranca en el techo absoluto)
+            // Alto = 180 (Llega justo hasta la plataforma de Y=150 para que el héroe pueda subir)
+            escaleraDeSalida = new Escalera(1140, 0, 30, 180, false);
+
             if (imgEscaleraSalida != null) {
                 escaleraDeSalida.setImagen(imgEscaleraSalida);
             }
@@ -303,6 +332,7 @@ public class LodeRunner extends Juego {
             escaleras.add(escaleraDeSalida);
             escaleraSalidaCreada = true;
 
+            // Notificar a los guardias para que actualicen su mapa de rutas
             for (Guardia guardia : guardias) {
                 guardia.setMapa(escaleras, plataformas, barras, pozos);
             }
@@ -532,7 +562,76 @@ public class LodeRunner extends Juego {
 
         double escalaTime = 1.2;
         dibujarNumero(g, String.format("%03d", (int) tiempoRestante), 740, hudY + 24, escalaTime);
+        // GAME OVER
+        if (juegoTerminado && imgGameOver != null) {
+            g.setColor(new Color(0, 0, 0, 195));
+            g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
+            // NUEVO TAMAÑO: Lo escalamos a 580px de ancho (un tamaño ideal y nítido)
+            int nuevoAncho = 580;
+            int nuevoAlto = (nuevoAncho * imgGameOver.getHeight()) / imgGameOver.getWidth();
+
+            // CENTRADO Y POSICIÓN: Quitamos el descuento negativo y le sumamos +20
+            // para desplazar el cartel sutilmente hacia abajo, dándole un encuadre perfecto
+            int x = (800 - nuevoAncho) / 2;
+            int y = (630 - nuevoAlto) / 2 + 20;
+
+            // Dibujamos la imagen con el nuevo escalado robusto
+            g.drawImage(imgGameOver, x, y, nuevoAncho, nuevoAlto, null);
+        }
+
+        // ── OVERLAY DE PANTALLA DE VICTORIA INTERMEDIA (CORREGIDO) ──────
+        if (pantallaVictoria) {
+            // Fondo COMPLETAMENTE negro como pediste
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, this.getWidth(), this.getHeight());
+
+            // Título principal en BLANCO (eliminamos el verde), más grande y centrado
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Monospaced", Font.BOLD, 42));
+            g.drawString("STAGE CLEAR", 265, 140);
+
+            // Mensaje de guía inferior en gris retro
+            g.setColor(Color.LIGHT_GRAY);
+            g.setFont(new Font("Monospaced", Font.BOLD, 16));
+            g.drawString("PRESS ENTER TO NEXT STAGE", 280, 520);
+
+            // Coordenadas de alineación de las filas de estadísticas
+            int startX = 240; // Un toque más a la izquierda para dar aire
+            int numX = 490;   // Alineación perfecta para la columna de números
+            int startY = 230; // Bajamos el bloque completo de datos
+            int espaciado = 65; // Más separación entre filas
+            double escalaItems = 2.0;
+
+            // 1. Dibujar VIDAS (Copiamos la lógica de ancho fijo del HUD para que aparezca sí o sí)
+            if (imgLives != null) {
+                int wLives = 120; // Forzamos ancho base para que Java lo renderice impecable
+                int hLives = wLives * imgLives.getHeight() / imgLives.getWidth();
+                g.drawImage(imgLives, startX, startY, wLives, hLives, null);
+                // Centramos los números verticalmente con el sprite
+                dibujarNumero(g, String.format("%03d", vidasFinales), numX, startY + (hLives / 2) - 12, escalaItems);
+            }
+
+            // 2. Dibujar TIEMPO SOBRANTE
+            g.setColor(Color.YELLOW);
+            g.setFont(new Font("Monospaced", Font.BOLD, 18));
+            g.drawString("TIME BONUS", startX, startY + espaciado + 22);
+            dibujarNumero(g, String.format("%03d", tiempoFinal), numX, startY + espaciado, escalaItems);
+
+            // 3. Dibujar TOTAL SCORE
+            if (imgScore != null) {
+                int wScore = (int) (imgScore.getWidth() * escalaItems);
+                int hScore = (int) (imgScore.getHeight() * escalaItems);
+                g.drawImage(imgScore, startX, startY + (espaciado * 2), wScore, hScore, null);
+                dibujarNumero(g, String.format("%06d", score), numX, startY + (espaciado * 2), escalaItems);
+            }
+
+            // 4. Dibujar HI-SCORE de la sesión
+            g.setColor(Color.RED);
+            g.setFont(new Font("Monospaced", Font.BOLD, 18));
+            g.drawString("HI-SCORE", startX, startY + (espaciado * 3) + 22);
+            dibujarNumero(g, String.format("%06d", highscore), numX, startY + (espaciado * 3), escalaItems);
+        }
     }
 
     // COLISIONES
@@ -543,9 +642,11 @@ public class LodeRunner extends Juego {
         boolean heroeEnBarra = false;
         boolean heroeEnPozo = false;
 
-        //  COLISIONES HEROE
+        Keyboard teclado = this.getKeyboard();
 
-        //heroe con oro
+        // ── 1. COLISIONES HÉROE ──────────────────────────────────────────
+
+        // Héroe con oro
         Iterator<Lingote> itOro = lingotes.iterator();
         while (itOro.hasNext()) {
             Lingote oro = itOro.next();
@@ -556,25 +657,16 @@ public class LodeRunner extends Juego {
                 audio.reproducirEfecto("oro");
             }
         }
-        //heroe atrapado pozo
-        for (Pozo pozo : pozos) {
-            if (heroe.intersects(pozo) && pozo.getEstado() == 0) {
-                if (heroe.y >= pozo.y - 10) {
-                    heroeEnPozo = true;
-                    heroeSoportado = true;
-                    heroe.x = pozo.x;
-                    heroe.setVelocidadX(0);
-                }
-            }
-        }
-        // heroe con escalera
+
+        // Héroe con escalera
         for (Escalera escalera : escaleras) {
             if (heroe.intersects(escalera)) {
                 heroeSoportado = true;
                 heroeEnEscalera = true;
             }
         }
-        //heroe con plataforma
+
+        // Héroe con plataforma sólida
         for (Plataforma plataforma : plataformas) {
             if (heroe.intersects(plataforma)) {
                 if (heroe.x + heroe.width > plataforma.x + 8 &&
@@ -587,18 +679,8 @@ public class LodeRunner extends Juego {
                 }
             }
         }
-        //heroe con pozo
-        for (Pozo pozo : pozos) {
-            if (heroe.intersects(pozo) && pozo.getEstado() == -1) {
-                if (heroe.x + heroe.width > pozo.x + 8 &&
-                        heroe.x < pozo.x + pozo.width - 8) {
-                    heroeSoportado = true;
-                    if (!heroe.isEnEscalera())
-                        heroe.y = pozo.y - heroe.height + 1;
-                }
-            }
-        }
-        //heroe con barrademanos
+
+        // Héroe con barra de manos
         for (BarraDeManos barra : barras) {
             if (heroe.intersects(barra) && !heroeEnPozo) {
                 heroeSoportado = true;
@@ -608,11 +690,46 @@ public class LodeRunner extends Juego {
             }
         }
 
+        // Héroe con Pozos (Abiertos y Cerrándose)
+        for (Pozo pozo : pozos) {
+            if (heroe.intersects(pozo)) {
+                if (pozo.getEstado() == 0) { // Pozo abierto
+
+                    // Verificamos si hay un bloque real de soporte abajo
+                    boolean tieneSueloAbajo = false;
+                    for (Plataforma plat : plataformas) {
+                        if (Math.abs(plat.x - pozo.x) < 5 && Math.abs(plat.y - (pozo.y + 30)) < 5) {
+                            tieneSueloAbajo = true;
+                            break;
+                        }
+                    }
+
+                    if (tieneSueloAbajo && heroe.y >= pozo.y - 10) {
+                        heroeEnPozo = true;
+                        heroeSoportado = true;
+                        heroe.x = pozo.x;
+                        heroe.setVelocidadX(0);
+                    }
+
+                } else if (pozo.getEstado() == -1) { // Pozo cerrándose (pisable)
+                    // ANTI-LEVITACIÓN: Solo da soporte si el héroe viene caminando desde ARRIBA de la superficie
+                    boolean vieneDesdeArriba = (heroe.y + heroe.height <= pozo.y + 5);
+
+                    if (vieneDesdeArriba && heroe.x + heroe.width > pozo.x + 8 && heroe.x < pozo.x + pozo.width - 8) {
+                        heroeSoportado = true;
+                        if (!heroe.isEnEscalera())
+                            heroe.y = pozo.y - heroe.height + 1;
+                    }
+                }
+            }
+        }
+
         heroe.setEnBarra(heroeEnBarra);
         heroe.setEstaCayendo(!heroeSoportado);
         heroe.setEnEscalera(heroeEnEscalera);
 
-        // COLISIONES GUARDIAS
+
+        // ── 2. COLISIONES GUARDIAS ───────────────────────────────────────
 
         for (Guardia guardia : guardias) {
             boolean guardiaSoportado = false;
@@ -621,12 +738,11 @@ public class LodeRunner extends Juego {
             boolean guardiaEnPozo = false;
             boolean estabaCayendo = (guardia.getEstado() == Guardia.Estado.CAYENDO);
 
-            // guardia con escalera
+            // Guardia con escalera
             for (Escalera escalera : escaleras) {
                 double pieX = guardia.x + guardia.width / 2.0;
                 double pieY = guardia.y + guardia.height;
 
-                // trepar
                 boolean alineadoX = Math.abs(pieX - (escalera.x + escalera.width / 2.0)) <= 5;
                 boolean dentroY = pieY >= escalera.y - 5 && guardia.y <= (escalera.y + escalera.height) + 5;
 
@@ -647,7 +763,7 @@ public class LodeRunner extends Juego {
                 }
             }
 
-            // guardia con plataforma
+            // Guardia con plataforma
             for (Plataforma plataforma : plataformas) {
                 if (guardia.intersects(plataforma)) {
                     if (guardia.x + guardia.width > plataforma.x + 8 &&
@@ -663,7 +779,17 @@ public class LodeRunner extends Juego {
                 }
             }
 
-            //  guardia con pozo
+            // Guardia con barra de manos
+            for (BarraDeManos barra : barras) {
+                if (guardia.intersects(barra) && !guardiaEnPozo) {
+                    guardiaSoportado = true;
+                    guardiaEnBarra = true;
+                    if (!guardiaEnEscalera)
+                        guardia.y = barra.y;
+                }
+            }
+
+            // Guardia con Pozos (Abiertos y Cerrándose)
             for (Pozo pozo : pozos) {
                 if (guardia.intersects(pozo)) {
                     if (pozo.getEstado() == 0) { // Pozo abierto
@@ -676,9 +802,8 @@ public class LodeRunner extends Juego {
                                 guardia.y = pozo.y - guardia.height;
                                 guardia.notificarSalidaPozo();
 
-                                //escapa del pozo
                                 double nuevaX = guardia.x + ((heroe.x > guardia.x) ? 16 : -16);
-                                guardia.x = Math.max(0, Math.min(1200 - guardia.width, nuevaX));
+                                guardia.x = Math.max(30, Math.min(1170 - guardia.width, nuevaX));
                             }
                         }
                         else if (guardia.getEstado() == Guardia.Estado.ATRAPADO_POZO) {
@@ -687,36 +812,37 @@ public class LodeRunner extends Juego {
                             guardia.x = pozo.x;
                         }
                         else {
-                            if (guardia.y >= pozo.y - 10) {
+                            // Escaneamos si el pozo tiene un suelo sólido abajo
+                            boolean tieneSueloAbajo = false;
+                            for (Plataforma plat : plataformas) {
+                                if (Math.abs(plat.x - pozo.x) < 5 && Math.abs(plat.y - (pozo.y + 30)) < 5) {
+                                    tieneSueloAbajo = true;
+                                    break;
+                                }
+                            }
+
+                            if (tieneSueloAbajo && guardia.y >= pozo.y - 10) {
                                 guardiaEnPozo = true;
                                 guardiaSoportado = true;
                                 guardia.x = pozo.x;
                                 guardia.y = pozo.y;
-                                //puntos para el heroe si queda el guardia atrapado
                                 guardia.notificarEntradaPozo();
                                 score += 75;
                                 System.out.println("¡Guardia atrapado! +75 pts");
                             }
                         }
 
-                    } else if (pozo.getEstado() == -1) { // pozo cerrandose
-                        if (guardia.x + guardia.width > pozo.x + 8 &&
+                    } else if (pozo.getEstado() == -1) { // Pozo cerrándose
+                        // ANTI-LEVITACIÓN: Solo da soporte si el guardia viene caminando desde ARRIBA de la superficie
+                        boolean vieneDesdeArriba = (guardia.y + guardia.height <= pozo.y + 5);
+
+                        if (vieneDesdeArriba && guardia.x + guardia.width > pozo.x + 8 &&
                                 guardia.x < pozo.x + pozo.width - 8) {
                             guardiaSoportado = true;
                             if (!guardiaEnEscalera)
                                 guardia.y = pozo.y - guardia.height + 1;
                         }
                     }
-                }
-            }
-
-            // guardia con barrademanos
-            for (BarraDeManos barra : barras) {
-                if (guardia.intersects(barra) && !guardiaEnPozo) {
-                    guardiaSoportado = true;
-                    guardiaEnBarra = true;
-                    if (!guardiaEnEscalera)
-                        guardia.y = barra.y;
                 }
             }
 
@@ -730,18 +856,16 @@ public class LodeRunner extends Juego {
             if (guardiaEnEscalera) {
                 for (Escalera e : escaleras) {
                     if (guardia.intersects(e)) {
-
-                        if (guardia.getEstado() == Guardia.Estado.SUBIENDO_ESCALERA
-                                && guardia.y + guardia.height <= e.y + 2) {
+                        if (guardia.getVelocidadY() < 0 && guardia.y + guardia.height <= e.y + 2) {
                             guardia.notificarFinEscalera();
                         }
-                        if (guardia.getEstado() == Guardia.Estado.BAJANDO_ESCALERA
-                                && guardia.y + guardia.height >= e.y + e.height - 2) {
+                        if (guardia.getVelocidadY() > 0 && guardia.y + guardia.height >= e.y + e.height - 2) {
                             guardia.notificarFinEscalera();
                         }
                     }
                 }
             }
+
             if (!guardiaSoportado
                     && guardia.getEstado() != Guardia.Estado.ATRAPADO_POZO
                     && guardia.getEstado() != Guardia.Estado.ESCAPANDO_POZO
@@ -751,19 +875,14 @@ public class LodeRunner extends Juego {
             }
         }
 
-        // COLISION HEROE vs GUARDIA
+        // ── 3. COLISIÓN HÉROE vs GUARDIA ─────────────────────────────────
 
         boolean atrapado = false;
-        Keyboard teclado = this.getKeyboard();
-
         for (Guardia guardia : guardias) {
             if (heroe.intersects(guardia)) {
-
-                //le pisa la cabeza
                 boolean pisandoCabeza = (heroe.y + heroe.height <= guardia.y + 15);
 
                 if (pisandoCabeza) {
-
                     if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
                         atrapado = true;
                     } else {
@@ -771,20 +890,16 @@ public class LodeRunner extends Juego {
                         heroe.y = guardia.y - heroe.height + 1;
                         heroe.setEstaCayendo(false);
                     }
-
                 } else {
-                    // si el guardia esta atrapado en el pozo, es inofensivo
                     if (guardia.getEstado() == Guardia.Estado.ATRAPADO_POZO) {
                         continue;
                     } else {
-                        // si esta libre caminando o en escalera, es letal
                         atrapado = true;
                     }
                 }
             }
         }
 
-        // ejecutar Muerte
         if (atrapado) {
             System.out.println("¡El guardia atrapó al héroe! Pierdes una vida.");
             audio.reproducirEfecto("miss");
@@ -799,11 +914,10 @@ public class LodeRunner extends Juego {
             System.out.println("¡GAME OVER! Te quedaste sin vidas.");
             audio.detenerMusica();
             audio.reproducirEfecto("game_over");
-            try {
-                Thread.sleep(3000);
-            } catch (Exception e) {
-            }
-            System.exit(0);
+
+            // FIX: Activamos las banderas sin congelar el renderizado
+            juegoTerminado = true;
+            vidas = 0; // Para que el HUD quede estéticamente en 000
         } else {
             System.out.println("Vidas restantes: " + vidas);
 
@@ -850,31 +964,40 @@ public class LodeRunner extends Juego {
     private void completarNivel() {
         System.out.println("¡NIVEL COMPLETADO!");
 
-        // bonificacion base por completar nivel
+        // 1. Congelamos las estadísticas exactas de este nivel para mostrarlas
+        vidasFinales = vidas;
+        tiempoFinal = (int) tiempoRestante;
+
+        // 2. Sumamos las bonificaciones al score
         int bonusNivel = 1500;
         score += bonusNivel;
 
-        // bonificación por tiempo sobrante
-        int puntosTiempo = (int) (tiempoRestante * 10);
+        int puntosTiempo = tiempoFinal * 10;
         score += puntosTiempo;
 
-        System.out.println("Bonus Nivel: +" + bonusNivel + " pts");
-        System.out.println("Bonus Tiempo (" + (int)tiempoRestante + "s): +" + puntosTiempo + " pts");
+        // 3. Comprobamos si hay nuevo récord histórico
+        if (score > highscore) {
+            highscore = score;
+            System.out.println("¡NUEVO HI-SCORE LOGRADO!: " + highscore);
+        }
 
-        // pausa de victoria
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {}
+        // 4. Activamos la pantalla intermedia de victoria
+        pantallaVictoria = true;
+    }
 
-        // pasar al siguiente nivel y resetear condiciones
+    private void avanzarSiguienteNivel() {
+        // Pasar al siguiente nivel y dar la vida de recompensa clásica
         nivel++;
         vidas++;
 
-        // reseteamos el juego para el nivel nuevo
+        // Resetear condiciones de la escalera de escape
         escaleraSalidaCreada = false;
-        escaleras.remove(escaleraDeSalida); // Limpiamos la escalera de salida anterior
+        if (escaleraDeSalida != null) {
+            escaleras.remove(escaleraDeSalida);
+        }
         escaleraDeSalida = null;
 
+        // Volver a generar el mapa limpio
         gameStartup();
     }
 
