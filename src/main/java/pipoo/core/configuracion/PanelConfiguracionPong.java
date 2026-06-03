@@ -29,12 +29,12 @@ public class PanelConfiguracionPong extends JPanel {
         //para que habilite escribir un nombre si no jugamos contra bot
         txtNombreJ2.setEnabled(!chkContraBot.isSelected());
 
-        String[] skins = {"Original", "Neon", "Retro"};
+        String[] skins = {"Original", "Neon"};
         comboSkinsPaleta = new JComboBox<>(skins);
         comboSkinsPelota = new JComboBox<>(skins);
         comboSkinsCancha = new JComboBox<>(skins);
 
-        String[] canciones = {"Pong Arcade", "Electronic", "None"};
+        String[] canciones = {"Ninguna", "Jeff The Bat", "Arcade Puzzler"};
         comboMusica = new JComboBox<>(canciones);
 
         //11 o 15 puntos
@@ -104,6 +104,9 @@ public class PanelConfiguracionPong extends JPanel {
 
         // Lógica Guardar
         btnGuardar.addActionListener(e -> {
+            String seleccionado = comboPuntos.getSelectedItem().toString();
+            int puntos = Integer.parseInt(seleccionado);
+
             config.setNombreJ1(txtNombreJ1.getText());
             config.setNombreJ2(txtNombreJ2.getText());
             config.setContraBot(chkContraBot.isSelected());
@@ -112,9 +115,10 @@ public class PanelConfiguracionPong extends JPanel {
             config.setSkinPaletas((String) comboSkinsPaleta.getSelectedItem());
             config.setSkinPelota((String) comboSkinsPelota.getSelectedItem());
             config.setPistaMusical((String) comboMusica.getSelectedItem());
-            config.setPuntosParaGanar((Integer) comboPuntos.getSelectedItem());
+            config.setPuntosParaGanar(puntos);
 
             config.guardar();
+
             JOptionPane.showMessageDialog(this, "Configuración guardada correctamente");
         });
 
