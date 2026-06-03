@@ -2,8 +2,6 @@ package pipoo.core;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-
 
 public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double implements Colisionable {
     protected BufferedImage bufferImage = null;
@@ -28,11 +26,18 @@ public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double i
     }
 
     @Override
-    public Shape getLimites() {
-        return this;
+    public void reaccionarAColision() {
     }
 
     @Override
-    public void reaccionarAColision() {
+    public boolean colisionaCon(ElementoGrafico otro) {
+        if (otro == null) return false;
+        // Al heredar de Rectangle2D, 'this' se puede pasar a intersects
+        return this.intersects(otro.getBounds());
+    }
+
+    @Override
+    public Rectangle2D getLimites() {
+        return this.getBounds();
     }
 }
