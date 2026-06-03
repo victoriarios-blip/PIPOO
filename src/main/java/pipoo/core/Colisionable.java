@@ -7,5 +7,8 @@ public interface Colisionable {
     // Comportamiento vacío por defecto (para el Fondo, etc.)
     void reaccionarAColision();
     void reaccionarAColision(ElementoGrafico otro);
+
+    boolean colisionaCon(ElementoGrafico otro) // de Colisionable
+    ;
 }
 
