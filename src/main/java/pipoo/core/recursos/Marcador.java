@@ -12,12 +12,13 @@ public class Marcador extends ElementoGrafico {
 
     public void dibujar(Graphics2D g) { } // muestra el score en pantalla
 
-    @Override
-    public boolean colisionaCon(ElementoGrafico otro) {
-        return false;
-    }
 
     @Override
     public void reaccionarAColision(ElementoGrafico otro) {
+    }
+
+    @Override
+    public boolean colisionaCon(ElementoGrafico otro) {
+        return false;
     }
 }

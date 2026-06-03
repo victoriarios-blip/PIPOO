@@ -10,16 +10,6 @@ public class Lingote extends ElementoGrafico {
     }
 
     @Override
-    public void dibujar(Graphics2D g) {
-        // TODO: Dibuja el oro. Recuerda que si el Héroe lo toca, debe sumar puntos
-    }
-
-    @Override
-    public boolean colisionaCon(ElementoGrafico otro) {
-        return false;
-    }
-
-    @Override
     public void reaccionarAColision(ElementoGrafico otro) {
 
     }
