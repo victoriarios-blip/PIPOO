@@ -7,15 +7,39 @@ import java.awt.image.BufferedImage;
 
 public abstract class Enemigo extends Movible implements Disparador{
     protected int valorPuntaje;
-    protected BufferedImage imagenFrame1;
-    protected BufferedImage imagenFrame2;
-    protected boolean mostrandoFrame1 = true;
-    private double tiempoAnimacion = 0;
+    protected BufferedImage frame1;
+    protected BufferedImage frame2;
+    protected BufferedImage imagenMuerte;
+    private boolean frameActual = true;
+    private double tiempoFrame = 0;
+    private static final double INTERVALO_FRAME = 0.5;
+    private boolean muriendo = false;
+    private double tiempoMuerte = 0;
+    private static final double DURACION_MUERTE = 0.4;
+
+    public void setFrame1(BufferedImage img) { this.frame1 = img; this.bufferImage = img; } // frame1 Y imagen inicial
+    public void setFrame2(BufferedImage img) { this.frame2 = img; }
+    public void setImagenMuerte(BufferedImage img) { this.imagenMuerte = img; }
+
+    public void actualizarFrame(double delta) {
+        if (muriendo) {
+            tiempoMuerte += delta;
+            if (tiempoMuerte >= DURACION_MUERTE) {
+                this.visible = false; // recién acá desaparece
+            }
+            return; // no alterna frames mientras muere
+        }
+        tiempoFrame += delta;
+        if (tiempoFrame >= INTERVALO_FRAME) {
+            frameActual = !frameActual;
+            tiempoFrame = 0;
+            this.bufferImage = frameActual ? frame1 : frame2;
+        }
+    }
 
     public void setImagenes(BufferedImage img1, BufferedImage img2) {
-        this.imagenFrame1 = img1;
-        this.imagenFrame2 = img2;
-        this.bufferImage = img1;
+        setFrame1(img1);
+        setFrame2(img2);
     }
 
     public Enemigo(double x, double y, double width, double height) {
@@ -50,8 +74,9 @@ public abstract class Enemigo extends Movible implements Disparador{
     @Override
     public void reaccionarAColision(ElementoGrafico c) {
         if (c instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.HEROE) {
-            this.visible = false;
-            // NOTA DE DISEÑO
+            this.bufferImage = imagenMuerte; // mostrar explosión
+            this.muriendo = true;
+            // visible sigue true hasta que el timer lo apague en actualizarFrame
         }
     }
 

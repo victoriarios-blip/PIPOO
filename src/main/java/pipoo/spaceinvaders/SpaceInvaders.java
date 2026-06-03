@@ -1,13 +1,14 @@
 package pipoo.spaceinvaders;
 
-import pipoo.core.Juego;
+import com.entropyinteractive.Keyboard;
+import pipoo.core.*;
 import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
 
 public class SpaceInvaders extends Juego {
     private NaveHeroe jugador;
@@ -28,6 +29,7 @@ public class SpaceInvaders extends Juego {
         oleada = new ArrayList<>();
         escudos = new ArrayList<>();
         proyectilesEnemigos = new ArrayList<>();
+        proyectilesHeroe = new ArrayList<>();
 
         jugador = new NaveHeroe(380, 520);
 
@@ -53,39 +55,51 @@ public class SpaceInvaders extends Juego {
 
         // carga de assets
         try {
-            BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("assets/naveHeroe.png"));
-            BufferedImage naveNodriza = ImageIO.read(this.getClass().getResource("assets/naveNodriza.png"));
-            BufferedImage escudoIntacto = ImageIO.read(this.getClass().getResource("assets/escudoIntacto.png"));
+            BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/naveHeroe.png"));
+            BufferedImage naveNodriza = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/naveNodriza.png"));
 
             // enemigos (2 frames cada uno)
-            BufferedImage pulpo1 = ImageIO.read(this.getClass().getResource("assets/pulpo1.png"));
-            BufferedImage pulpo2 = ImageIO.read(this.getClass().getResource("assets/pulpo2.png"));
+            BufferedImage pulpo1 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/pulpo1.png"));
+            BufferedImage pulpo2 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/pulpo2.png"));
 
-            BufferedImage cangrejo1 = ImageIO.read(this.getClass().getResource("assets/cangrejo1.png"));
-            BufferedImage cangrejo2 = ImageIO.read(this.getClass().getResource("assets/cangrejo2.png"));
+            BufferedImage cangrejo1 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/cangrejo1.png"));
+            BufferedImage cangrejo2 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/cangrejo2.png"));
 
-            BufferedImage calamar1 = ImageIO.read(this.getClass().getResource("assets/calamar1.png"));
-            BufferedImage calamar2 = ImageIO.read(this.getClass().getResource("assets/calamar2.png"));
+            BufferedImage calamar1 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/calamar1.png"));
+            BufferedImage calamar2 = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/calamar2.png"));
 
-            BufferedImage proyectilHeroe = ImageIO.read(this.getClass().getResource("assets/proyectilHeroe.png"));
-            BufferedImage proyectilEnemigo = ImageIO.read(this.getClass().getResource("assets/proyectilEnemigo.png"));
+            BufferedImage proyectilHeroe = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/proyectilHeroe.png"));
+            BufferedImage proyectilEnemigo = ImageIO.read(this.getClass().getResource("/pipoo/core/spaceinvaders/imagenes/proyectilEnemigo.png"));
 
-
-            jugador.setImagen(naveHeroe);
-            if (ufo != null) ufo.setImagen(imgUFO); // Si instanciaron la Nave Nodriza
+            BufferedImage escudoIntacto = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudoIntacto.png"));
+            BufferedImage escudo1daño = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudo1daño.png"));
+            BufferedImage escudo2daño = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudo2daño.png"));
+            BufferedImage escudo3daño = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudo3daño.png"));
+            BufferedImage escudo4daño = ImageIO.read(this.getClass().getResource("/pipoo/spaceinvaders/imagenes/escudo4daño.png"));
 
             for (Escudo escudo : escudos) {
-                escudo.setImagen(imgEscudo);
+                escudo.setImgIntacto(escudoIntacto);
+                escudo.setEscudo1daño(escudo1daño);
+                escudo.setEscudo2daño(escudo2daño);
+                escudo.setEscudo3daño(escudo3daño);
+                escudo.setEscudo4daño(escudo4daño);
+            }
+
+            jugador.setImagen(naveHeroe);
+            //if (naveNodriza != null) naveNodriza.setImagen(naveNodriza); // Si instanciaron la Nave Nodriza
+
+            for (Escudo escudo : escudos) {
+                escudo.setImagen(escudoIntacto);
             }
 
             // 3. Asignación de ambos frames a los enemigos usando el nuevo método
             for (Enemigo e : oleada) {
                 if (e instanceof Pulpo) {
-                    e.setImagenes(imgPulpo1, imgPulpo2);
+                    e.setImagenes(pulpo1, pulpo2);
                 } else if (e instanceof Cangrejo) {
-                    e.setImagenes(imgCangrejo1, imgCangrejo2);
+                    e.setImagenes(cangrejo1, cangrejo2);
                 } else if (e instanceof Calamar) {
-                    e.setImagenes(imgCalamar1, imgCalamar2);
+                    e.setImagenes(calamar1, calamar2);
                 }
             }
 
@@ -97,20 +111,37 @@ public class SpaceInvaders extends Juego {
     @Override
     public void gameUpdate(double delta) {
         jugador.mover(delta);
+
+        Keyboard teclado = this.getKeyboard();
+
+        if (teclado.isKeyPressed(KeyEvent.VK_LEFT))  jugador.moverIzquierda();
+        else if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) jugador.moverDerecha();
+        else jugador.detener();
+
+        if (teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
+            Proyectil p = jugador.disparar();
+            if (p != null) proyectilesHeroe.add(p);
+        }
+
         for (Enemigo enemigo : oleada) {
             enemigo.mover(delta);
+            enemigo.actualizarFrame(delta);
             Proyectil p = enemigo.disparar();
             if (p != null) {
-                proyectiles.add(p);}}
-        for (Proyectil p : proyectiles) {
-            p.mover(delta);
+                proyectilesEnemigos.add(p); // ← lista correcta
+            }
         }
+        for (Proyectil p : proyectilesEnemigos) { p.mover(delta); }
+        for (Proyectil p : proyectilesHeroe)    { p.mover(delta); }
+
         detectarColisiones();
         actualizarPuntaje();
+        limpiarNoVisibles();
     }
 
     void limpiarNoVisibles(){
-        proyectiles.removeIf(p -> !p.isVisible());
+        proyectilesEnemigos.removeIf(p -> !p.isVisible());
+        proyectilesHeroe.removeIf(p -> !p.isVisible());
         oleada.removeIf(e -> !e.isVisible());
     }
 
@@ -119,8 +150,23 @@ public class SpaceInvaders extends Juego {
         // Limpiar pantalla
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
-
-        // Iterar sobre tus listas e invocar objeto.dibujar(g);
+        // Enemigos
+        for (Enemigo e : oleada) {
+            e.dibujar(g);
+        }
+        // Escudos
+        for (Escudo escudo : escudos) {
+            escudo.dibujar(g);
+        }
+        // Proyectiles
+        for (Proyectil p : proyectilesHeroe) {
+            p.dibujar(g);
+        }
+        for (Proyectil p : proyectilesEnemigos) {
+            p.dibujar(g);
+        }
+        // Jugador
+        jugador.dibujar(g);
     }
 
     @Override
