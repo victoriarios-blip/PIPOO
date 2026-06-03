@@ -15,14 +15,12 @@ public class Heroe extends Runner{
     private BufferedImage imagenEscalera;
     private BufferedImage imagenColgado;
 
-    // --- VARIABLES PARA LA ANIMACIÓN DE MUERTE ---
+    // ATRIBUTOS ANIMACION DE MUERTE
     private BufferedImage[] imagenesMuerte = new BufferedImage[7];
     private boolean estaMuriendo = false;
     private int frameMuerteActual = 0;
     private double tiempoAnimacionMuerte = 0;
-    private static final double TIEMPO_POR_FRAME = 0.15; // 0.15 segundos por cada frame (ajustable)
-
-
+    private static final double TIEMPO_POR_FRAME = 0.15;
 
     // SETTERS ANIMACIONES
     public void setImagenDer(BufferedImage img) { this.imagenDer = img; }
@@ -45,7 +43,6 @@ public class Heroe extends Runner{
     public void setEnBarra(boolean enBarra) {
         this.enBarra = enBarra;
     }
-
     public boolean isEnBarra() {
         return this.enBarra;
     }
@@ -99,30 +96,23 @@ public class Heroe extends Runner{
     public void setVelocidadX(double velocidadX) {
         this.velocidadX = velocidadX;
     }
-
     public void setVelocidadY(double velocidadY) {
         this.velocidadY = velocidadY;
     }
-
     public double getVelocidadY() {
         return this.velocidadY;
     }
-
     public double getVelocidadX() {
         return this.velocidadX;
     }
 
     public void cavar() {
         System.out.println("Héroe cavando...");
-
     }
-
 
     public void recolectarOro() {
         this.cantOro++;
     }
-
-
     public int getCantOro() { return cantOro; }
 
 
@@ -133,29 +123,24 @@ public class Heroe extends Runner{
             this.velocidadY = 5;
         }
 
-        // 1. Aplicamos el movimiento matemático primero
         this.x += (this.velocidadX * delta * 60);
         this.y += (this.velocidadY * delta * 60);
 
-        // 2. Lógica ÚNICA de cambio de sprite (animación)
+        // cambio de sprite
         if (this.isEnBarra() && imagenColgado != null) {
-            super.setImagen(imagenColgado); // Prioridad 1: Colgado
+            super.setImagen(imagenColgado); // colgado
         } else if (this.velocidadX > 0 && imagenDer != null) {
-            super.setImagen(imagenDer); // Mira a la derecha
+            super.setImagen(imagenDer); // mira a la derecha
         } else if (this.velocidadX < 0 && imagenIzq != null) {
-            super.setImagen(imagenIzq); // Mira a la izquierda
+            super.setImagen(imagenIzq); // mira a la izquierda
         } else if (this.velocidadY != 0 && isEnEscalera() && imagenEscalera != null) {
-            super.setImagen(imagenEscalera); // Trepando
+            super.setImagen(imagenEscalera); // trepando
         }
     }
-
-
-
 
     public boolean isEnEscalera() {
         return enEscalera;
     }
-
     public void setEnEscalera(boolean enEscalera) {
         this.enEscalera = enEscalera;
     }
@@ -164,7 +149,6 @@ public class Heroe extends Runner{
     public boolean colisionaCon(ElementoGrafico otro) {
         return false;
     }
-
     @Override
     public void reaccionarAColision(ElementoGrafico otro) {}
 }
