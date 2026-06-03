@@ -81,17 +81,12 @@ public class Guardia extends Runner {
         }
     }
 
-    // =========================================================
-    //  NUEVA LÓGICA HORIZONTAL (SIN PISOS FIJOS)
-    // =========================================================
+    //  LOGICA HORIZONTAL
     private void decidirMovimientoHorizontal() {
         boolean estabaEnBarra = isEnBarra();
-
-        // REGLA DE ORO: Comparamos altura real.
-        // Si hay menos de 15px de diferencia, estamos en el "mismo nivel" (piso o barra).
         boolean mismoNivel = Math.abs(this.y - heroe.y) <= 15;
 
-        // 1. Mismo nivel: ir directo al héroe sin buscar escaleras
+        // mismo nivel: ir directo al heroe sin buscar escaleras
         if (mismoNivel) {
             escaleraObjetivo = null;
             double diffX = heroe.x - this.x;
@@ -104,14 +99,14 @@ public class Guardia extends Runner {
             return;
         }
 
-        // 2. Distinto nivel: Evaluar escaleras (Subir o Bajar)
+        // distinto nivel: evaluar escaleras (subir o bajar)
         boolean necesitaSubir = (heroe.y < this.y);
 
         if (escaleraObjetivo == null || !esEscaleraValida(escaleraObjetivo, necesitaSubir)) {
             escaleraObjetivo = buscarMejorEscalera(necesitaSubir);
         }
 
-        // 3. Moverse hacia la escalera objetivo
+        // moverse hacia la escalera objetivo
         if (escaleraObjetivo != null) {
             double distX = escaleraObjetivo.x - this.x;
             if (Math.abs(distX) <= TOLERANCIA_X) {
@@ -123,7 +118,7 @@ public class Guardia extends Runner {
                 velocidadX = signo(distX) * VELOCIDAD;
             }
         } else {
-            // Sin escalera válida: patrullar
+            // sin escalera vslida: patrullar
             estado = estabaEnBarra ? Estado.EN_BARRA : Estado.PATRULLANDO;
             double diffX = heroe.x - this.x;
             if (Math.abs(diffX) <= 2.0) {
@@ -249,16 +244,11 @@ public class Guardia extends Runner {
     public boolean isEnEscalera()          { return estado == Estado.SUBIENDO_ESCALERA || estado == Estado.BAJANDO_ESCALERA; }
     public boolean isEnBarra()             { return estado == Estado.EN_BARRA; }
 
-    // =========================================================
-    //  NUEVO: LÓGICA DE AGARRE MID-CLIMB (Transición de Escalera a Barra)
-    // =========================================================
+    //  transicion de escalera a barra)
     public void setEnBarra(boolean v) {
         if (v) {
             if (estado == Estado.ATRAPADO_POZO || estado == Estado.ESCAPANDO_POZO) return;
-
             if (estado == Estado.SUBIENDO_ESCALERA || estado == Estado.BAJANDO_ESCALERA) {
-                // Si el guardia está en la escalera cruzando por una barra,
-                // SOLO se bajará a la barra si el héroe está en esa misma altura.
                 if (Math.abs(heroe.y - this.y) <= 15) {
                     estado = Estado.EN_BARRA;
                     escaleraObjetivo = null;
@@ -277,12 +267,10 @@ public class Guardia extends Runner {
     public void setEnEscalera(boolean v) {
         if (!v && isEnEscalera()) estado = Estado.CAMINANDO;
     }
-
-    public boolean isTieneOro()           { return tieneOro; }
+    public boolean isTieneOro(){ return tieneOro; }
     public void    setTieneOro(boolean v) { this.tieneOro = v; }
 
-    public void setMapa(ArrayList<Escalera> escaleras, ArrayList<Plataforma> plataformas,
-                        ArrayList<BarraDeManos> barras, ArrayList<Pozo> pozos) {
+    public void setMapa(ArrayList<Escalera> escaleras, ArrayList<Plataforma> plataformas, ArrayList<BarraDeManos> barras, ArrayList<Pozo> pozos) {
         this.escaleras = escaleras; this.plataformas = plataformas;
         this.barras = barras; this.pozos = pozos;
     }
