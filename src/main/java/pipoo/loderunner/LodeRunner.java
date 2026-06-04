@@ -82,7 +82,6 @@ public class LodeRunner extends Juego {
             imgTitulo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/titulo lode runner.png"));
             imgLives = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/lives.png"));
             imgTimeBonus = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/time_bonus.png")); // <-- NUEVA LÍNEA
-            imgHighscore = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/24138.png"));
             imgGameOver = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/game_over.png"));
             imgLevelCompleted = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level_completed.png"));
             numeros = new BufferedImage[10];
@@ -108,7 +107,8 @@ public class LodeRunner extends Juego {
             BufferedImage imgEscMediana = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera mediana.png"));
             BufferedImage imgEscLarga = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera larga.png"));
             BufferedImage imgBarra = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/barramanos.png"));
-            imgOro = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/oro.png"));            imgBloque = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/bloque.png"));
+            imgOro = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/oro.png"));
+            imgBloque = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/bloque.png"));
             imgPozo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/pozo.png"));
             imgFragmentoPozo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/fragmentos_pozo.png"));
             imgLadrilloInferior = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/ladrillo_plat_inferior.png"));
@@ -795,8 +795,16 @@ public class LodeRunner extends Juego {
             if (heroe.intersects(pozo)) {
                 if (pozo.getEstado() == 0) { // Pozo abierto
 
+                    // Verificamos si hay un bloque real de soporte abajo
+                    boolean tieneSueloAbajo = false;
+                    for (Plataforma plat : plataformas) {
+                        if (Math.abs(plat.x - pozo.x) < 5 && Math.abs(plat.y - (pozo.y + 30)) < 5) {
+                            tieneSueloAbajo = true;
+                            break;
+                        }
+                    }
 
-                    if (heroe.y >= pozo.y - 10) {
+                    if (tieneSueloAbajo && heroe.y >= pozo.y - 10) {
                         heroeEnPozo = true;
                         heroeSoportado = true;
                         heroe.x = pozo.x;
@@ -841,7 +849,6 @@ public class LodeRunner extends Juego {
                     if (mismoX && mismoY) {
                         guardia.setTieneOro(true);
                         itOroGuardia.remove(); // Lo saca del mapa porque lo lleva encima
-                        System.out.println("¡Guardia ID [" + System.identityHashCode(guardia) + "] acaba de robar un lingote!");                        break;
                     }
                 }
             }
@@ -935,6 +942,7 @@ public class LodeRunner extends Juego {
                             guardiaSoportado = true;
                             guardia.x = pozo.x;
                         } else {
+
                             if (guardia.y >= pozo.y - 10) {
                                 // Solo sumamos puntos si es la primera vez que cae
                                 if (guardia.getEstado() != Guardia.Estado.ATRAPADO_POZO &&
