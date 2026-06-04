@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.URL;
 
 public class Pong extends Juego {
 
@@ -25,6 +26,7 @@ public class Pong extends Juego {
     private boolean sonidoActivado;
     private String nombreJ1;
     private String nombreJ2;
+    private String pistaMusical;
 
     //imagenes
     private BufferedImage[] imgNumeros;
@@ -36,7 +38,7 @@ public class Pong extends Juego {
     private GestorAudio gestorAudio = new GestorAudio();
 
     public Pong() {
-        super("Retro Pong", 800, 600); // titulo y tamaño de ventana
+        super("PIPOO PONG", 800, 600); // titulo y tamaño de ventana
         System.out.println("Propiedades en memoria: " + this.appProperties.stringPropertyNames());
 
     }
@@ -45,14 +47,22 @@ public class Pong extends Juego {
     public void gameStartup() {
         try {
             ConfiguracionPong config = (ConfiguracionPong) this.getConfiguracion();
+            pistaMusical = config.getPistaMusical(); //pueden ser ninguna, jeff the bat o keyboard cat
+
             String skinPelota = config.getSkinPelota();
-            // pelota.setImagen(Cargar imagen según skinPelota);
+
+            //nombres de j1 y el j2/bot en el juego
+            this.nombreJ1 = config.getNombreJ1();
+            if (config.getContraBot()) {
+                this.nombreJ2 = "PIPOO BOT";
+            } else {
+                this.nombreJ2 = config.getNombreJ2();
+            }
 
             // Configurar Jugador 1
             this.jugador1 = new Humano(config.getNombreJ1());
 
             if (config.getContraBot()) {
-                // Usamos el constructor con parámetros si queremos setear el margen
                 this.jugador2 = new Bot("PIPOO-Bot", 20.0);
             } else {
                 this.jugador2 = new Humano(config.getNombreJ2());
@@ -77,21 +87,31 @@ public class Pong extends Juego {
             paleta1.setVelocidadY(350.0);
             paleta2.setVelocidadY(350.0);
 
-            //nombres de j1 y el j2/bot en el juego
-            this.nombreJ1 = config.getNombreJ1();
-            if (config.getContraBot()) {
-                this.nombreJ2 = "PIPOO BOT";
-            } else {
-                this.nombreJ2 = config.getNombreJ2();
-            }
-
             //obtenemos los puntos y si el sonido esta activado o no para guardar la configuracion
             this.puntosLimite = config.getPuntosParaGanar();
             sonidoActivado = config.isSonidoActivado();
             if (!sonidoActivado) {
                 gestorAudio.detenerMusica();
             } else {
-                gestorAudio.reproducirMusica(getClass().getResource("sonidos/jeffthebat.wav"));
+                String seleccion = config.getPistaMusical();
+                if (seleccion != null && !"Ninguna".equals(seleccion)) {
+                    String nombreArchivo = "";
+                    if ("Jeff The Bat".equals(seleccion)) {
+                        nombreArchivo = "sonidos/jeffthebat.wav";
+                    } else if ("Keyboard Cat".equals(seleccion)) {
+                        nombreArchivo = "sonidos/keyboard_cat.wav";
+                    }
+                    if (!nombreArchivo.isEmpty()) {
+                        URL urlMusica = getClass().getResource(nombreArchivo);
+                        if (urlMusica != null) {
+                            gestorAudio.reproducirMusica(urlMusica);
+                        } else {
+                            System.err.println("No se encontró el archivo: " + nombreArchivo);
+                        }
+                    }
+                }
+
+                // Efectos cortos
                 gestorAudio.precargarEfecto("rebote_borde", getClass().getResource("sonidos/pelota_rebota_borde.wav"));
                 gestorAudio.precargarEfecto("rebote_paleta", getClass().getResource("sonidos/pelota_rebota_paleta.wav"));
                 gestorAudio.precargarEfecto("punto", getClass().getResource("sonidos/anotacion.wav"));
@@ -216,10 +236,10 @@ public class Pong extends Juego {
         g.setFont(new Font("Monospaced", Font.BOLD, 20));
         g.setColor(Color.WHITE);
         if (this.nombreJ1 != null){
-            g.drawString(this.nombreJ1, getWidth()/4, 40);
+            g.drawString(this.nombreJ1, (getWidth()/4)-20, 75);
         }
         if (this.nombreJ2 != null) {
-            g.drawString(this.nombreJ2, (getWidth()/4)*3, 40);
+            g.drawString(this.nombreJ2, (getWidth()/4)*3-45, 75);
         }
 
     }
