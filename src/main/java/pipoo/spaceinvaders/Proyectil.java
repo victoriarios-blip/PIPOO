@@ -12,7 +12,7 @@ public class Proyectil extends Movible {
     private static final double VELOCIDAD = 300;
 
     public Proyectil(double x, double y, Origen origen) {
-        super(x, y, 4, 15);
+        super(x, y, 6, 20);
         this.origen = origen;
         this.velocidadY = (origen == Origen.HEROE) ? -VELOCIDAD : VELOCIDAD;
     }
