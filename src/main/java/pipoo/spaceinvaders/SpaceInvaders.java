@@ -18,8 +18,13 @@ public class SpaceInvaders extends Juego {
     private List<Proyectil> proyectilesEnemigos;
     private List<Proyectil> proyectilesHeroe;
 
+    //aparicion nave nodriza
     private double tiempoNodriza = 0;
     private static final double intervaloNodriza = 20; // aparece cada 20 segundos
+
+    // cooldown heroe
+    private double tiempoDisparo = 0;
+    private static final double COOLDOWN_DISPARO = 0.5; // segundos entre disparos
 
     // puntaje
     private int puntaje = 0;
@@ -93,11 +98,7 @@ public class SpaceInvaders extends Juego {
             imgProyectilHeroe   = ImageIO.read(this.getClass().getResource("imagenes/proyectilHeroe.png"));
             imgProyectilEnemigo = ImageIO.read(this.getClass().getResource("imagenes/proyectilEnemigo.png"));
 
-            System.out.println("pulpo1 tamaño: " + pulpo1.getWidth() + "x" + pulpo1.getHeight());
-            System.out.println("cangrejo1 tamaño: " + cangrejo1.getWidth() + "x" + cangrejo1.getHeight());
-            System.out.println("calamar1 tamaño: " + calamar1.getWidth() + "x" + calamar1.getHeight());
-            System.out.println("naveHeroe tamaño: " + naveHeroe.getWidth() + "x" + naveHeroe.getHeight());
-            System.out.println("escudo tamaño: " + escudoIntacto.getWidth() + "x" + escudoIntacto.getHeight());
+            BufferedImage muerteEnemigo = ImageIO.read(this.getClass().getResource("imagenes/muerte_enemigo.png"));
 
             for (Escudo escudo : escudos) {
                 escudo.setImgIntacto(escudoIntacto);
@@ -123,15 +124,15 @@ public class SpaceInvaders extends Juego {
                 } else if (e instanceof Calamar) {
                     e.setImagenes(calamar1, calamar2);
                 }
+                e.setImagenMuerte(muerteEnemigo);
             }
-
-            for (Enemigo e : oleada) {
-                e.setVelocidadX(40);
-            }
-
 
         } catch (Exception e) {
             System.out.println("Error cargando los assets: " + e.getMessage());
+        }
+
+       for (Enemigo e : oleada) {
+            e.setVelocidadX(40);
         }
     }
 
@@ -142,14 +143,6 @@ public class SpaceInvaders extends Juego {
         if (teclado.isKeyPressed(KeyEvent.VK_LEFT))  jugador.moverIzquierda();
         else if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) jugador.moverDerecha();
         else jugador.detener();
-
-        if (teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
-            Proyectil p = jugador.disparar();
-            if (p != null) {
-                p.setImagen(imgProyectilHeroe);
-                proyectilesHeroe.add(p);
-            }
-        }
 
         jugador.mover(delta);
 
@@ -186,6 +179,22 @@ public class SpaceInvaders extends Juego {
 
         for (Proyectil p : proyectilesEnemigos) { p.mover(delta); }
         for (Proyectil p : proyectilesHeroe)    { p.mover(delta); }
+
+        //cooldown escudos
+        for (Escudo escudo : escudos) {
+            escudo.resetFrame();
+        }
+
+        //cooldown disparos heroe
+        tiempoDisparo += delta;
+        if (teclado.isKeyPressed(KeyEvent.VK_SPACE) && tiempoDisparo >= COOLDOWN_DISPARO) {
+            Proyectil p = jugador.disparar();
+            if (p != null) {
+                p.setImagen(imgProyectilHeroe);
+                proyectilesHeroe.add(p);
+                tiempoDisparo = 0;
+            }
+        }
 
         detectarColisiones();
         actualizarPuntaje();
@@ -229,11 +238,14 @@ public class SpaceInvaders extends Juego {
         if (enemigoFinal != null && enemigoFinal.isVisible()) {
             enemigoFinal.mover(delta);
         }
+
+        // actualizar heroe
+        jugador.actualizar(delta);
     }
 
-    void limpiarNoVisibles(){
-        proyectilesEnemigos.removeIf(p -> !p.isVisible());
-        proyectilesHeroe.removeIf(p -> !p.isVisible());
+    void limpiarNoVisibles() {
+        proyectilesEnemigos.removeIf(p -> !p.isVisible() || p.y > 600);
+        proyectilesHeroe.removeIf(p -> !p.isVisible() || p.y < 0); // ← sale por arriba
         oleada.removeIf(e -> !e.isVisible());
     }
 
@@ -278,7 +290,7 @@ public class SpaceInvaders extends Juego {
             if (!proyectil.isVisible()) continue;
             for (Enemigo enemigo : oleada) {
                 if (!enemigo.isVisible()) continue;
-                if (proyectil.colisionaCon(enemigo)) {
+                if (enemigo.colisionaCon(proyectil)) { // ← enemigo llama colisionaCon, igual que escudo
                     proyectil.reaccionarAColision(enemigo);
                     enemigo.reaccionarAColision(proyectil);
                     puntaje += enemigo.getValorPuntaje();

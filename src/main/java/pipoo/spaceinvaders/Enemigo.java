@@ -25,10 +25,12 @@ public abstract class Enemigo extends Movible implements Disparador{
     public void actualizarFrame(double delta) {
         if (muriendo) {
             tiempoMuerte += delta;
+            System.out.println("tiempoMuerte: " + tiempoMuerte);
             if (tiempoMuerte >= DURACION_MUERTE) {
-                this.visible = false; // recién acá desaparece
+                System.out.println("Enemigo desapareciendo");
+                this.visible = false;
             }
-            return; // no alterna frames mientras muere
+            return;
         }
         tiempoFrame += delta;
         if (tiempoFrame >= INTERVALO_FRAME) {
@@ -86,17 +88,15 @@ public abstract class Enemigo extends Movible implements Disparador{
     @Override
     public void reaccionarAColision(ElementoGrafico c) {
         if (c instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.HEROE) {
-            this.bufferImage = imagenMuerte; // mostrar explosión
+            System.out.println("Enemigo impactado! muriendo = true");
+            this.bufferImage = imagenMuerte;
             this.muriendo = true;
-            // visible sigue true hasta que el timer lo apague en actualizarFrame
         }
     }
 
-    //public abstract boolean colosionaCon(ElementoGrafico otro);
-
     @Override
-    public boolean colisionaCon(ElementoGrafico otro){
-            return this.intersects(otro);
+    public boolean colisionaCon(ElementoGrafico otro) {
+        return this.intersects((java.awt.geom.Rectangle2D) otro);
     }
     }
 

@@ -12,6 +12,11 @@ public class NaveHeroe extends Movible implements Disparador {
     private BufferedImage imagenExplosion1;
     private BufferedImage imagenExplosion2;
 
+    // muerte
+    private boolean muriendo = false;
+    private double tiempoMuerte = 0;
+    private static final double DURACION_MUERTE = 1.0;
+
     // vidas
     private int vidas;
     public int getVidas() { return vidas; }
@@ -75,5 +80,30 @@ public class NaveHeroe extends Movible implements Disparador {
             if (this.velocidadX < 0) this.x = otro.x + otro.width;
             else                      this.x = otro.x - this.width;
             this.velocidadX = 0;
-        }}
+        }
+        if (otro instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.ENEMIGO) {
+            vidas--;
+            this.bufferImage = imagenExplosion1;
+            this.muriendo = true;
+            if (vidas <= 0) this.visible = false;
+        }
+    }
+
+    public void actualizar(double delta) {
+        if (muriendo) {
+            tiempoMuerte += delta;
+            if (tiempoMuerte >= DURACION_MUERTE) {
+                muriendo = false;
+                tiempoMuerte = 0;
+                if (vidas > 0) resetear();
+            }
+        }
+    }
+
+    public void resetear() {
+        this.x = 380;
+        this.y = 540;
+        this.visible = true;
+        this.bufferImage = imagenIntacta;
+    }
 }

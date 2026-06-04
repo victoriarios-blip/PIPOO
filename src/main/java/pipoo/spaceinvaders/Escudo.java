@@ -8,6 +8,9 @@ import java.awt.image.BufferedImage;
 public class Escudo extends ElementoGrafico {
     private int resistencia; // 4 = intacto, 0 = destruido
 
+    // daño
+    private boolean recibioDanioEsteFrame = false;
+
     private BufferedImage escudoIntacto;
     private BufferedImage escudo1daño;
     private BufferedImage escudo2daño;
@@ -26,9 +29,10 @@ public class Escudo extends ElementoGrafico {
     public void setEscudo4daño(BufferedImage img)  { this.escudo4daño = img; }
 
     public void recibirDanio() {
+        if (recibioDanioEsteFrame) return;
+        recibioDanioEsteFrame = true;
         if (resistencia <= 0) return;
         resistencia--;
-        // cambiar imagen según estado actual
         switch (resistencia) {
             case 3 -> this.bufferImage = escudo1daño;
             case 2 -> this.bufferImage = escudo2daño;
@@ -36,6 +40,8 @@ public class Escudo extends ElementoGrafico {
             case 0 -> { this.bufferImage = escudo4daño; this.visible = false; }
         }
     }
+
+    public void resetFrame() { recibioDanioEsteFrame = false; }
 
     @Override
     public boolean colisionaCon(ElementoGrafico otro) {
