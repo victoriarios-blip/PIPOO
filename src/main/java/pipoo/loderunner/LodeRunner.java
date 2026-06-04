@@ -46,7 +46,7 @@ public class LodeRunner extends Juego {
 
     private int score = 0;
     private int vidas = 5;
-    private int nivel = 2;
+    private int nivel = 1;
 
 
 
