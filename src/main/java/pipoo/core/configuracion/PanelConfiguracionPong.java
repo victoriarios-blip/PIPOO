@@ -34,7 +34,7 @@ public class PanelConfiguracionPong extends JPanel {
         comboSkinsPelota = new JComboBox<>(skins);
         comboSkinsCancha = new JComboBox<>(skins);
 
-        String[] canciones = {"Ninguna", "Jeff The Bat", "Arcade Puzzler"};
+        String[] canciones = {"Ninguna", "Jeff The Bat", "Bongo Cat"};
         comboMusica = new JComboBox<>(canciones);
 
         //11 o 15 puntos
@@ -45,8 +45,6 @@ public class PanelConfiguracionPong extends JPanel {
         JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
 
         //jugadores
-        panelFormulario.add(new JLabel("Nombre Jugador 1:"));
-        panelFormulario.add(txtNombreJ1);
         panelFormulario.add(chkContraBot);
         panelFormulario.add(new JLabel(""));
         panelFormulario.add(new JLabel("Nombre Jugador 2:"));

@@ -13,8 +13,8 @@ public class ConfiguracionPong extends Configuracion {
     private int puntosParaGanar;
     private int teclaUpJ1, teclaDownJ1, teclaUpJ2, teclaDownJ2;
 
-    private String nombreJ1 = "Jugador 1";
-    private String nombreJ2 = "Jugador 2";
+    private String nombreJ1;
+    private String nombreJ2;
     private boolean contraBot = true;
 
     //constructor config pong
@@ -27,11 +27,12 @@ public class ConfiguracionPong extends Configuracion {
     public void reset() {
         this.pantallaCompleta = false;
         this.sonidoActivado = true;
-        this.pistaMusical = "Pong Arcade";
+        this.pistaMusical = "Ninguna";
         this.skinPaletas = "Original";
         this.skinCancha = "Original";
         this.skinPelota = "Original";
         this.puntosParaGanar = 11; //11 o 15 puntos
+
 
 
         // Teclas por defecto
@@ -62,22 +63,14 @@ public class ConfiguracionPong extends Configuracion {
         prop.setProperty("nombreJ1", this.nombreJ1);
         prop.setProperty("nombreJ2", this.nombreJ2);
         prop.setProperty("contraBot", String.valueOf(this.contraBot));
-        persistirEnArchivo(prop, "config_pong.properties");
+        persistirEnArchivo(prop, "jgame.properties");
 
         try (FileOutputStream out = new FileOutputStream("jgame.properties")) {
             prop.store(out, "Configuracion PIPOO");
+            System.out.println("DEBUG: Configuración guardada.");
         } catch (IOException e) {
-            System.err.println("Error al crear jgame.properties: " + e.getMessage());
+            System.err.println("Error al guardar: " + e.getMessage());
         }
-
-        String rutaBuild = "build/classes/java/main/jgame.properties";
-        try (FileOutputStream outBuild = new FileOutputStream(rutaBuild)) {
-            prop.store(outBuild, "Sincronizado con el motor");
-            System.out.println("DEBUG: Archivo actualizado en carpeta build.");
-        } catch (IOException e) {
-            System.out.println("Aviso: No se pudo escribir en build, solo en raiz");
-        }
-
 
     }
 
@@ -86,24 +79,24 @@ public class ConfiguracionPong extends Configuracion {
     public void setPuntosParaGanar(int puntos) { this.puntosParaGanar = puntos; }
 
     public String getSkinPelota() { return skinPelota; }
-    public void setSkinPelota(String skin_p) { this.skinPelota = skinPelota; }
+    public void setSkinPelota(String skinPelota) { this.skinPelota = skinPelota; }
 
     // Getters y Setters específicos de Pong para la GUI
     public String getSkinPaletas() { return skinPaletas; }
-    public void setSkinPaletas(String skin_pa) { this.skinPaletas = skinPaletas; }
+    public void setSkinPaletas(String skinPaletas) { this.skinPaletas = skinPaletas; }
 
     public String getNombreJ1() { return nombreJ1;}
     public void setNombreJ1(String nombreJ1) { this.nombreJ1 = nombreJ1; }
 
     public String getNombreJ2() { return nombreJ2;}
-    public void setNombreJ2(String nombreJ2) { this.nombreJ1 = nombreJ2; }
+    public void setNombreJ2(String nombreJ2) { this.nombreJ2 = nombreJ2; }
 
     public boolean getContraBot() { return contraBot; }
     public void setContraBot(boolean contraBot) { this.contraBot = contraBot;}
 
 
     public String getSkinCancha() { return skinPelota; }
-    public void setSkinCancha(String skin_can) { this.skinPelota = skinCancha; }
+    public void setSkinCancha(String skinCancha) { this.skinPelota = skinCancha; }
 
     public int getTeclaUpJ1() { return teclaUpJ1; }
     public void setTeclaUpJ1(int teclaUpJ1) { this.teclaUpJ1 = teclaUpJ1; }
