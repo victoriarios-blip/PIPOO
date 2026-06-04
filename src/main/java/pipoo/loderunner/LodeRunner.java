@@ -40,13 +40,13 @@ public class LodeRunner extends Juego {
     private int tiempoFinal = 0;
 
     // ATRIBUTOS DEL HUD
-    private BufferedImage imgScore, imgLevel, imgTitulo, imgLives, imgOro, imgPozo, imgFragmentoPozo, imgBloque, imgLadrilloInferior, imgParedLimite,imgGameOver;
+    private BufferedImage imgScore, imgLevel,imgTimeBonus, imgTitulo, imgLives,imgLevelCompleted, imgOro, imgPozo, imgFragmentoPozo, imgBloque, imgLadrilloInferior, imgParedLimite,imgGameOver, imgBloqueRegenerandose;
     private BufferedImage[] numeros;
     private BufferedImage imgHighscore;
 
     private int score = 0;
     private int vidas = 5;
-    private int nivel = 1;
+    private int nivel = 2;
 
 
 
@@ -81,8 +81,10 @@ public class LodeRunner extends Juego {
             imgLevel = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level.png"));
             imgTitulo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/titulo lode runner.png"));
             imgLives = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/lives.png"));
+            imgTimeBonus = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/time_bonus.png")); // <-- NUEVA LÍNEA
             imgHighscore = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/24138.png"));
             imgGameOver = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/game_over.png"));
+            imgLevelCompleted = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level_completed.png"));
             numeros = new BufferedImage[10];
             for (int i = 0; i <= 9; i++) {
                 numeros[i] = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + i + ".png"));
@@ -111,11 +113,11 @@ public class LodeRunner extends Juego {
             imgFragmentoPozo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/fragmentos_pozo.png"));
             imgLadrilloInferior = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/ladrillo_plat_inferior.png"));
             imgParedLimite = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/ladrillo.png")); // CARGAR AQUÍ
+            imgBloqueRegenerandose = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/bloque_regenerandose.png")); // <-- NUEVA LÍNEA
 
+            // ESCENARIO NIVELES
 
-// ── MAPA NIVEL (DINÁMICO SEGÚN EL NIVEL) ──────────
-
-            // PISO BASE (Doble capa: Siempre está en todos los mapas)
+            // PISO BASE (siempre en todos los mapas)
             agregarFila(0, 500, 39, imgBloque);
             for (int i = 0; i < 40; i++) {
                 Plataforma ladrillo = new Plataforma(i * 30, 530, 30, 30);
@@ -123,19 +125,16 @@ public class LodeRunner extends Juego {
                 plataformas.add(ladrillo);
             }
 
-            // Variables para ubicar a las entidades según el mapa
-            int heroeStartX = 450;
-            int heroeStartY = 510;
+            //lo que compartarten todos los niveles
+            int heroeStartX=430;
+            int heroeStartY=510;
             ArrayList<Point> posGuardias = new ArrayList<>();
-
-            // Bucle arcade: 1, 2, 3, 1, 2, 3, 1...
             int nivelFisico = ((nivel - 1) % 3) + 1;
 
+            //avanzar en niveles
             switch (nivelFisico) {
                 case 1:
-                    // ========================================================
-                    // NIVEL 1: EL CLÁSICO ORIGINAL (3 Guardias)
-                    // ========================================================
+
                     agregarFila(0, 80, 13, imgBloque);
                     agregarFila(421, 80, 10, imgBloque);
                     agregarFila(10, 210, 5, imgBloque);
@@ -182,43 +181,70 @@ public class LodeRunner extends Juego {
                     break;
 
                 case 2:
-                    // ========================================================
-                    // NIVEL 2: ZIG ZAG Y BARRAS (4 Guardias)
-                    // ========================================================
-                    agregarFila(0, 150, 12, imgBloque);
-                    agregarFila(810, 150, 12, imgBloque);
-                    agregarFila(270, 270, 21, imgBloque);
-                    agregarFila(0, 390, 12, imgBloque);
-                    agregarFila(810, 390, 12, imgBloque);
+                    // NIVEL 2
 
-                    // Escaleras
-                    Escalera es1 = new Escalera(360, 150, 30, 120, false); es1.setImagen(imgEscMediana); escaleras.add(es1);
-                    Escalera es2 = new Escalera(810, 150, 30, 120, false); es2.setImagen(imgEscMediana); escaleras.add(es2);
-                    Escalera es3 = new Escalera(270, 270, 30, 120, false); es3.setImagen(imgEscMediana); escaleras.add(es3);
-                    Escalera es4 = new Escalera(900, 270, 30, 120, false); es4.setImagen(imgEscMediana); escaleras.add(es4);
-                    Escalera es5 = new Escalera(60, 390, 30, 110, false); es5.setImagen(imgEscMediana); escaleras.add(es5);
-                    Escalera es6 = new Escalera(1110, 390, 30, 110, false); es6.setImagen(imgEscMediana); escaleras.add(es6);
+                    // plataformas
+                    //PISO 4
+                    agregarFila(0, 440, 10, imgBloque);
+                    agregarFila(340, 440, 9, imgBloque);
+                    agregarFila(900, 440, 9, imgBloque);
+                    //PISO 3
+                    agregarFila(0, 350, 15, imgBloque);
+                    agregarFila(820, 350, 8, imgBloque);
+                    agregarFila(1100, 350, 3, imgBloque);
+                    //bloques sueltos
+                    agregarFila(0, 380, 6, imgBloque);
+                    agregarFila(0, 410, 2, imgBloque);
+                    agregarFila(150, 410, 1, imgBloque);
+                    //PISO 2
+                    agregarFila(715, 280, 14, imgBloque);
+                    agregarFila(490, 310, 6, imgBloque);
+                    agregarFila(75, 200, 6, imgBloque);
+                    agregarFila(890, 170, 8, imgBloque);
+                    //PISO 1
+                    agregarFila(75, 130, 6, imgBloque);
+                    agregarFila(490, 130, 12, imgBloque);
 
-                    // Barras gigantes cruzando los huecos
-                    BarraDeManos ba1 = new BarraDeManos(360, 150, 450, 15); ba1.setImagen(imgBarra); barras.add(ba1);
-                    BarraDeManos ba2 = new BarraDeManos(360, 390, 450, 15); ba2.setImagen(imgBarra); barras.add(ba2);
+                    //escaleras
+                    Escalera n2e1= new Escalera(300, 435, 40, 67, false);n2e1.setImagen(imgEscCorta); escaleras.add(n2e1);
+                    Escalera n2e2= new Escalera(788, 351, 30, 150, false);n2e2.setImagen(imgEscMediana); escaleras.add(n2e2);
+                    Escalera n2e3= new Escalera(452, 130, 35, 310, false);n2e3.setImagen(imgEscLarga); escaleras.add(n2e3);
+                    Escalera n2e4= new Escalera(1063, 347, 35, 93, false);n2e4.setImagen(imgEscMediana); escaleras.add(n2e4);
+                    Escalera n2e5= new Escalera(673, 280, 40, 64, false);n2e5.setImagen(imgEscCorta); escaleras.add(n2e5);
+                    Escalera n2e6= new Escalera(257, 130, 30, 220, false);n2e6.setImagen(imgEscMediana); escaleras.add(n2e6);
+                    Escalera n2e7= new Escalera(43, 130, 30, 220, false);n2e7.setImagen(imgEscMediana); escaleras.add(n2e7);
+                    Escalera n2e8= new Escalera(855, 130, 30, 148, false);n2e8.setImagen(imgEscMediana); escaleras.add(n2e8);
+                    Escalera n2e9= new Escalera(1133, 280, 38, 70, false);n2e9.setImagen(imgEscCorta); escaleras.add(n2e9);
+                    Escalera n2e10= new Escalera(1133, 62, 35, 140, false);n2e10.setImagen(imgEscMediana); escaleras.add(n2e10);
 
-                    // Oro distribuido estratégicamente
-                    Lingote or1 = new Lingote(90, 120, 30, 30); or1.setImagen(imgOro); lingotes.add(or1);
-                    Lingote or2 = new Lingote(1050, 120, 30, 30); or2.setImagen(imgOro); lingotes.add(or2);
-                    Lingote or3 = new Lingote(570, 240, 30, 30); or3.setImagen(imgOro); lingotes.add(or3);
-                    Lingote or4 = new Lingote(300, 360, 30, 30); or4.setImagen(imgOro); lingotes.add(or4);
-                    Lingote or5 = new Lingote(870, 360, 30, 30); or5.setImagen(imgOro); lingotes.add(or5);
+                    // barraDeManos
+                    BarraDeManos n2b1 = new BarraDeManos(540, 400, 250, 15); n2b1.setImagen(imgBarra); barras.add(n2b1);
+                    BarraDeManos n2b2 = new BarraDeManos(287, 250, 167, 15); n2b2.setImagen(imgBarra); barras.add(n2b2);
+                    BarraDeManos n2b3 = new BarraDeManos(490, 250, 225, 15); n2b3.setImagen(imgBarra); barras.add(n2b3);
 
-                    heroeStartX = 585; // Centro exacto
-                    heroeStartY = 510;
-                    posGuardias.add(new Point(120, 120)); // Arriba Izq
-                    posGuardias.add(new Point(960, 120)); // Arriba Der
-                    posGuardias.add(new Point(330, 360)); // Abajo Izq
-                    posGuardias.add(new Point(840, 360)); // Abajo Der
+                    //lingotes
+                    Lingote n2o1 = new Lingote(65, 410,30,30);n2o1.setImagen(imgOro); lingotes.add(n2o1);
+                    Lingote n2o2 = new Lingote(1120, 410,30,30);n2o2.setImagen(imgOro); lingotes.add(n2o2);
+                    Lingote n2o3 = new Lingote(320, 320,30,30);n2o3.setImagen(imgOro); lingotes.add(n2o3);
+                    Lingote n2o4 = new Lingote(510, 280,30,30);n2o4.setImagen(imgOro); lingotes.add(n2o4);
+                    Lingote n2o5 = new Lingote(100, 170,30,30);n2o5.setImagen(imgOro); lingotes.add(n2o5);
+                    Lingote n2o6 = new Lingote(140, 100,30,30);n2o6.setImagen(imgOro); lingotes.add(n2o6);
+                    Lingote n2o7 = new Lingote(720, 100,30,30);n2o7.setImagen(imgOro); lingotes.add(n2o7);
+                    Lingote n2o8 = new Lingote(950, 140,30,30);n2o8.setImagen(imgOro); lingotes.add(n2o8);
+
+                    //inicializamos personajes
+
+                    //heroe
+                    heroeStartX = 400; // Nace en el medio
+                    heroeStartY = 470; // Apoyado en el piso base
+
+                    //guardias (3)
+                    posGuardias.add(new Point(190, 320));
+                    posGuardias.add(new Point(190, 200)); //no aparece asset de bajando escalera
+                    posGuardias.add(new Point(810, 280)); //no aparece asset de bajando escalera
                     break;
 
-                case 3:
+                case 3: //hacer tal cual
                     // ========================================================
                     // NIVEL 3: LA TORRE CENTRAL (5 Guardias)
                     // ========================================================
@@ -273,8 +299,7 @@ public class LodeRunner extends Juego {
             heroe.setImagenColgado(imgHeroeColgado);
 
             for (int i = 1; i <= 7; i++) {
-                BufferedImage frameMuerte = ImageIO.read(
-                        this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_muriendo_" + i + ".png"));
+                BufferedImage frameMuerte = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_muriendo_" + i + ".png"));
                 heroe.setImagenMuriendo(i - 1, frameMuerte);
             }
 
@@ -304,7 +329,8 @@ public class LodeRunner extends Juego {
             java.net.URL urlMusica = this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav");
             audio.reproducirMusica(urlMusica);
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.out.println("Error cargando imagenes: " + e.getMessage());
             e.printStackTrace();
         }
@@ -353,43 +379,45 @@ public class LodeRunner extends Juego {
             }
         }
 
-        // DETECTAR SI RECOLECTÓ TODO EL ORO
-        if (lingotes.isEmpty() && !escaleraSalidaCreada) {
-            System.out.println("¡Todo el oro recolectado! Aparece la escalera de salida aleatoria.");
+        // DETECTAR SI EL HEROE RECOLECTO TODO EL ORO
+        if (!escaleraSalidaCreada) {
+            boolean mapaLimpio = lingotes.isEmpty();
 
-            // 1. Calculamos la altura del piso. (El oro está apoyado, así que el piso está aprox 30px más abajo)
-            double yPiso = ultimoOroY + 30;
-
-            // 2. Buscamos todos los bloques de ladrillo que compartan ese mismo piso
-            ArrayList<Plataforma> plataformasValidas = new ArrayList<>();
-            for (Plataforma p : plataformas) {
-                if (Math.abs(p.y - yPiso) <= 10) { // Margen de 10px por seguridad
-                    plataformasValidas.add(p);
+            boolean guardiasTienenOro = false;
+            for (Guardia g : guardias) {
+                if (g.isTieneOro()) {
+                    guardiasTienenOro = true;
+                    break;
                 }
             }
+            if (mapaLimpio && !guardiasTienenOro) {
+                System.out.println("¡Todo el oro recolectado y asegurado! Aparece la escalera de salida aleatoria.");
+                double yPiso = ultimoOroY + 30;
 
-            // 3. Elegimos un bloque al azar de ese piso
-            double escaleraX = ultimoOroX; // Por defecto, donde estaba el oro
-            double escaleraAlto = yPiso;
+                ArrayList<Plataforma> plataformasValidas = new ArrayList<>();
+                for (Plataforma p : plataformas) {
+                    if (Math.abs(p.y - yPiso) <= 10) {
+                        plataformasValidas.add(p);
+                    }
+                }
+                double escaleraX = ultimoOroX;
+                double escaleraAlto = yPiso;
 
-            if (!plataformasValidas.isEmpty()) {
-                int indexRandom = (int) (Math.random() * plataformasValidas.size());
-                Plataforma bloqueElegido = plataformasValidas.get(indexRandom);
-                escaleraX = bloqueElegido.x;
-                escaleraAlto = bloqueElegido.y;
-            }
-
-            // 4. Creamos la escalera desde el techo (Y=0) hasta el piso aleatorio elegido
-            escaleraDeSalida = new Escalera(escaleraX, 0, 30, (int) escaleraAlto, false);
-            if (imgEscaleraSalida != null) {
-                escaleraDeSalida.setImagen(imgEscaleraSalida);
-            }
-
-            escaleras.add(escaleraDeSalida);
-            escaleraSalidaCreada = true;
-
-            for (Guardia guardia : guardias) {
-                guardia.setMapa(escaleras, plataformas, barras, pozos);
+                if (!plataformasValidas.isEmpty()) {
+                    int indexRandom = (int) (Math.random() * plataformasValidas.size());
+                    Plataforma bloqueElegido = plataformasValidas.get(indexRandom);
+                    escaleraX = bloqueElegido.x;
+                    escaleraAlto = bloqueElegido.y;
+                }
+                escaleraDeSalida = new Escalera(escaleraX, 0, 30, (int) escaleraAlto, false);
+                if (imgEscaleraSalida != null) {
+                    escaleraDeSalida.setImagen(imgEscaleraSalida);
+                }
+                escaleras.add(escaleraDeSalida);
+                escaleraSalidaCreada = true;
+                for (Guardia guardia : guardias) {
+                    guardia.setMapa(escaleras, plataformas, barras, pozos);
+                }
             }
         }
 
@@ -539,6 +567,10 @@ public class LodeRunner extends Juego {
                 else if (imgPozo != null)
                     nuevoPozo.setImagen(imgPozo);
 
+                if (imgBloqueRegenerandose != null) {
+                    nuevoPozo.setImagenCerrandose(imgBloqueRegenerandose);
+                }
+
                 pozos.add(nuevoPozo);
                 return;
             }
@@ -574,8 +606,15 @@ public class LodeRunner extends Juego {
         }
         if (heroe != null)
             heroe.dibujar(mundo);
-        for (Guardia guardia : guardias)
+        for (Guardia guardia : guardias) {
             guardia.dibujar(mundo);
+
+            // --- NUEVO: INDICADOR VISUAL DE ROBO ---
+            // Si el guardia robó oro, le dibujamos un pequeño lingote flotando sobre su cabeza
+            if (guardia.isTieneOro() && imgOro != null) {
+                mundo.drawImage(imgOro, (int)guardia.x + 5, (int)guardia.y - 15, 20, 20, null);
+            }
+        }
 
         mundo.dispose();
 
@@ -642,14 +681,18 @@ public class LodeRunner extends Juego {
 
         // ── OVERLAY DE PANTALLA DE VICTORIA INTERMEDIA (CORREGIDO) ──────
         if (pantallaVictoria) {
-            // Fondo COMPLETAMENTE negro como pediste
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
             // Título principal en BLANCO (eliminamos el verde), más grande y centrado
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Monospaced", Font.BOLD, 42));
-            g.drawString("NIVEL PASSED", 265, 140);
+            if (imgLevelCompleted != null) {
+                int anchoTitulo = 500;
+                int altoTitulo = (anchoTitulo * imgLevelCompleted.getHeight()) / imgLevelCompleted.getWidth();
+
+                int xTitulo = (800 - anchoTitulo) / 2;
+                int yTitulo = 30;
+                g.drawImage(imgLevelCompleted, xTitulo, yTitulo, anchoTitulo, altoTitulo, null);
+            }
 
             // Mensaje de guía inferior en gris retro
             g.setColor(Color.LIGHT_GRAY);
@@ -657,40 +700,39 @@ public class LodeRunner extends Juego {
             g.drawString("PRESS ENTER TO NEXT STAGE", 280, 520);
 
             // Coordenadas de alineación de las filas de estadísticas
-            int startX = 240; // Un toque más a la izquierda para dar aire
-            int numX = 490;   // Alineación perfecta para la columna de números
-            int startY = 230; // Bajamos el bloque completo de datos
-            int espaciado = 65; // Más separación entre filas
+            int startX = 230; // Un toque más a la izquierda para dar aire
+            int numX = 510;   // Alineación perfecta para la columna de números
+            int startY = 240; // Bajamos el bloque completo de datos
+            int espaciado = 70; // Más separación entre filas
             double escalaItems = 2.0;
 
-            // 1. Dibujar VIDAS (Copiamos la lógica de ancho fijo del HUD para que aparezca sí o sí)
+            // 1. Dibujar VIDAS (Fila 0)
             if (imgLives != null) {
-                int wLives = 120; // Forzamos ancho base para que Java lo renderice impecable
-                int hLives = wLives * imgLives.getHeight() / imgLives.getWidth();
+                int wLives = 120;
+                int hLives = (wLives * imgLives.getHeight()) / imgLives.getWidth();
                 g.drawImage(imgLives, startX, startY, wLives, hLives, null);
-                // Centramos los números verticalmente con el sprite
-                dibujarNumero(g, String.format("%03d", vidasFinales), numX, startY + (hLives / 2) - 12, escalaItems);
+                // Dibujamos el número centrado en Y con el asset
+                dibujarNumero(g, String.format("%03d", vidasFinales), numX, startY + (hLives / 2) - 8, escalaItems);
             }
 
-            // 2. Dibujar TIEMPO SOBRANTE
-            g.setColor(Color.YELLOW);
-            g.setFont(new Font("Monospaced", Font.BOLD, 18));
-            g.drawString("TIME BONUS", startX, startY + espaciado + 22);
-            dibujarNumero(g, String.format("%03d", tiempoFinal), numX, startY + espaciado, escalaItems);
+            // 2. Dibujar TIEMPO SOBRANTE (Fila 1)
+            int filaTimeY = startY + espaciado;
+            if (imgTimeBonus != null) {
+                int anchoTime = 190; // Lo achicamos para que no desentone
+                int altoTime = (anchoTime * imgTimeBonus.getHeight()) / imgTimeBonus.getWidth();
+                g.drawImage(imgTimeBonus, startX, filaTimeY + 4, anchoTime, altoTime, null);
+            }
+            dibujarNumero(g, String.format("%03d", tiempoFinal), numX, filaTimeY, escalaItems);
 
-            // 3. Dibujar TOTAL SCORE
+            // 3. Dibujar TOTAL SCORE (Fila 2)
+            int filaScoreY = startY + (espaciado * 2);
             if (imgScore != null) {
                 int wScore = (int) (imgScore.getWidth() * escalaItems);
                 int hScore = (int) (imgScore.getHeight() * escalaItems);
-                g.drawImage(imgScore, startX, startY + (espaciado * 2), wScore, hScore, null);
-                dibujarNumero(g, String.format("%06d", score), numX, startY + (espaciado * 2), escalaItems);
+                g.drawImage(imgScore, startX, filaScoreY, wScore, hScore, null);
+                dibujarNumero(g, String.format("%06d", score), numX, filaScoreY + (hScore / 2) - 8, escalaItems);
             }
 
-            // 4. Dibujar HI-SCORE de la sesión
-            g.setColor(Color.RED);
-            g.setFont(new Font("Monospaced", Font.BOLD, 18));
-            g.drawString("HI-SCORE", startX, startY + (espaciado * 3) + 22);
-            dibujarNumero(g, String.format("%06d", highscore), numX, startY + (espaciado * 3), escalaItems);
         }
     }
 
@@ -701,7 +743,7 @@ public class LodeRunner extends Juego {
         boolean heroeEnEscalera = false;
         boolean heroeEnBarra = false;
         boolean heroeEnPozo = false;
-
+        ArrayList<Lingote> orosSoltados = new ArrayList<>();
         Keyboard teclado = this.getKeyboard();
 
         // COLISIONES HÉROE
@@ -791,8 +833,7 @@ public class LodeRunner extends Juego {
         heroe.setEstaCayendo(!heroeSoportado);
         heroe.setEnEscalera(heroeEnEscalera);
 
-
-        // ── 2. COLISIONES GUARDIAS ───────────────────────────────────────
+        //COLSIONES GUARDIAS
 
         for (Guardia guardia : guardias) {
             boolean guardiaSoportado = false;
@@ -801,6 +842,23 @@ public class LodeRunner extends Juego {
             boolean guardiaEnPozo = false;
             boolean estabaCayendo = (guardia.getEstado() == Guardia.Estado.CAYENDO);
 
+            // --- NUEVO: EL GUARDIA RECOGE ORO (Solo 1 a la vez y en tierra firme) ---
+            if (!guardia.isTieneOro() && (guardia.getEstado() == Guardia.Estado.CAMINANDO || guardia.getEstado() == Guardia.Estado.PATRULLANDO)) {
+                Iterator<Lingote> itOroGuardia = lingotes.iterator();
+                while (itOroGuardia.hasNext()) {
+                    Lingote oro = itOroGuardia.next();
+
+                    // Radar central ULTRA ESTRICTO (< 10 px) para que deba pisarlo perfectamente
+                    boolean mismoX = Math.abs((guardia.x + 15) - (oro.x + 15)) < 10;
+                    boolean mismoY = Math.abs((guardia.y + 15) - (oro.y + 15)) < 10;
+
+                    if (mismoX && mismoY) {
+                        guardia.setTieneOro(true);
+                        itOroGuardia.remove(); // Lo saca del mapa porque lo lleva encima
+                        System.out.println("¡Guardia ID [" + System.identityHashCode(guardia) + "] acaba de robar un lingote!");                        break;
+                    }
+                }
+            }
 
             // Guardia con escalera
             for (Escalera escalera : escaleras) {
@@ -827,14 +885,12 @@ public class LodeRunner extends Juego {
                 }
             }
 
-            // ── Guardia con plataforma ──
+            // guardia con plataforma
             for (Plataforma plataforma : plataformas) {
                 if (guardia.intersects(plataforma)) {
                     if (guardia.x + guardia.width > plataforma.x + 8 &&
                             guardia.x < plataforma.x + plataforma.width - 8) {
 
-                        // FIX 1: Verificamos por la cabeza del guardia (< plataforma.y + 15).
-                        // Ataja al guardia sí o sí, incluso si cae a máxima velocidad (evita fantasmas).
                         if (guardia.y < plataforma.y + 15) {
                             if (!guardiaEnPozo) {
                                 guardiaSoportado = true;
@@ -846,7 +902,7 @@ public class LodeRunner extends Juego {
                 }
             }
 
-            // ── Guardia con barra de manos ──
+            // guardia con barra de manos
             for (BarraDeManos barra : barras) {
                 if (guardia.intersects(barra) && !guardiaEnPozo) {
                     guardiaSoportado = true;
@@ -854,44 +910,45 @@ public class LodeRunner extends Juego {
                     if (!guardiaEnEscalera) {
                         guardia.y = barra.y;
 
-                        // FIX 2: IA CONGELADA (Deadlock). Si frena porque el héroe está abajo,
-                        // el motor físico lo arrastra a la fuerza para que busque la bajada.
                         if (guardia.getVelocidadX() == 0) {
                             double difX = heroe.x - guardia.x;
                             if (Math.abs(difX) > 2) {
                                 guardia.x += (difX > 0) ? 2.0 : -2.0;
                             } else {
-                                guardia.x += 2.0; // Desempate para sacarlo del centro exacto
+                                guardia.x += 2.0;
                             }
                         }
                     }
                 }
             }
 
-            // Guardia con Pozos (Abiertos y Cerrándose)
+            // guardia con pozos (Abiertos y Cerrandose)
+            boolean guardiaTocandoPozo = false;
+
             for (Pozo pozo : pozos) {
                 if (guardia.intersects(pozo)) {
-                    if (pozo.getEstado() == 0) { // Pozo abierto
+                    guardiaTocandoPozo = true;
 
-                        if (guardia.getEstado() == Guardia.Estado.ESCAPANDO_POZO) {
-                            guardiaEnPozo = true;
-                            guardiaSoportado = true;
+                    // 1. LÓGICA DE ESCAPE
+                    if (guardia.getEstado() == Guardia.Estado.ESCAPANDO_POZO) {
+                        guardiaEnPozo = true;
+                        guardiaSoportado = true;
 
-                            if (guardia.y <= pozo.y - 15) {
-                                guardia.y = pozo.y - guardia.height;
-                                guardia.notificarSalidaPozo();       
+                        if (guardia.y <= pozo.y - 15) {
+                            guardia.y = pozo.y - guardia.height;
+                            guardia.notificarSalidaPozo();
 
-                                double nuevaX = guardia.x + ((heroe.x > guardia.x) ? 16 : -16);
-                                guardia.x = Math.max(30, Math.min(1170 - guardia.width, nuevaX));
-                            }
+                            double nuevaX = guardia.x + ((heroe.x > guardia.x) ? 20 : -20);
+                            guardia.x = Math.max(30, Math.min(1170 - guardia.width, nuevaX));
                         }
-                        else if (guardia.getEstado() == Guardia.Estado.ATRAPADO_POZO) {
+                    }
+                    // 2. LÓGICA DE ATRAPE
+                    else if (pozo.getEstado() == 0) {
+                        if (guardia.getEstado() == Guardia.Estado.ATRAPADO_POZO) {
                             guardiaEnPozo = true;
                             guardiaSoportado = true;
                             guardia.x = pozo.x;
-                        }
-                        else {
-                            // Escaneamos si el pozo tiene un suelo sólido abajo
+                        } else {
                             boolean tieneSueloAbajo = false;
                             for (Plataforma plat : plataformas) {
                                 if (Math.abs(plat.x - pozo.x) < 5 && Math.abs(plat.y - (pozo.y + 30)) < 5) {
@@ -904,19 +961,33 @@ public class LodeRunner extends Juego {
                                 // Solo sumamos puntos si es la primera vez que cae
                                 if (guardia.getEstado() != Guardia.Estado.ATRAPADO_POZO &&
                                         guardia.getEstado() != Guardia.Estado.ESCAPANDO_POZO) {
+
+                                    // --- NUEVO: SI TIENE ORO, LO SUELTA ARRIBA DEL POZO ---
+                                    if (guardia.isTieneOro()) {
+                                        guardia.setTieneOro(false); // Pierde el oro
+
+                                        // Se coloca exactamente a 30px, alineado a la grilla de tu juego
+                                        Lingote oroRecuperado = new Lingote(pozo.x, pozo.y - 30, 30, 30);
+                                        if (imgOro != null) {
+                                            oroRecuperado.setImagen(imgOro);
+                                        }
+                                        orosSoltados.add(oroRecuperado);
+                                        System.out.println("¡El guardia soltó el oro al caer al pozo!");
+                                    }
+
                                     guardia.notificarEntradaPozo();
                                     score += 75;
                                     System.out.println("¡Guardia atrapado! +75 pts");
                                 }
-
                                 guardiaEnPozo = true;
                                 guardiaSoportado = true;
                                 guardia.x = pozo.x;
                                 guardia.y = pozo.y;
                             }
                         }
-
-                    } else if (pozo.getEstado() == -1) { // Pozo cerrándose
+                    }
+                    // 3. POZO CERRÁNDOSE
+                    else if (pozo.getEstado() == -1) {
                         boolean vieneDesdeArriba = (guardia.y + guardia.height <= pozo.y + 5);
 
                         if (vieneDesdeArriba && guardia.x + guardia.width > pozo.x + 8 &&
@@ -927,6 +998,10 @@ public class LodeRunner extends Juego {
                         }
                     }
                 }
+            }
+
+            if (guardia.getEstado() == Guardia.Estado.ESCAPANDO_POZO && !guardiaTocandoPozo) {
+                guardia.notificarSalidaPozo();
             }
 
             guardia.setEstaCayendo(!guardiaSoportado);
@@ -988,6 +1063,7 @@ public class LodeRunner extends Juego {
             audio.reproducirEfecto("miss");
             heroe.iniciarMuerte();
         }
+        lingotes.addAll(orosSoltados);
     }
 
 
@@ -1039,25 +1115,17 @@ public class LodeRunner extends Juego {
 
     private void completarNivel() {
         System.out.println("¡NIVEL COMPLETADO!");
-
-        // 1. Congelamos las estadísticas exactas de este nivel para mostrarlas
         vidasFinales = vidas;
         tiempoFinal = (int) tiempoRestante;
 
-        // 2. Sumamos las bonificaciones al score
+        // sumamos las bonificaciones al score
         int bonusNivel = 1500;
         score += bonusNivel;
 
         int puntosTiempo = tiempoFinal * 10;
         score += puntosTiempo;
 
-        // 3. Comprobamos si hay nuevo récord histórico
-        if (score > highscore) {
-            highscore = score;
-            System.out.println("¡NUEVO HI-SCORE LOGRADO!: " + highscore);
-        }
-
-        // 4. Activamos la pantalla intermedia de victoria
+        // activamos la pantalla intermedia de victoria
         pantallaVictoria = true;
     }
 
@@ -1102,6 +1170,4 @@ public class LodeRunner extends Juego {
     }
 }
 
-//corregir recoleccion de oro por parte de los guardias
-//agregar asset pozo cerrandose
 //cargar fuentes arcade
