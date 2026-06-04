@@ -868,30 +868,33 @@ public class LodeRunner extends Juego {
                 }
             }
 
-            // Guardia con Pozos (Abiertos y Cerrándose)
+            // guardia con Pozos (abiertos y cerrandose) 
+            boolean guardiaTocandoPozo = false;
+
             for (Pozo pozo : pozos) {
                 if (guardia.intersects(pozo)) {
-                    if (pozo.getEstado() == 0) { // Pozo abierto
+                    guardiaTocandoPozo = true;
 
-                        if (guardia.getEstado() == Guardia.Estado.ESCAPANDO_POZO) {
-                            guardiaEnPozo = true;
-                            guardiaSoportado = true;
+                    // LOGICA DE ESCAPE
+                    if (guardia.getEstado() == Guardia.Estado.ESCAPANDO_POZO) {
+                        guardiaEnPozo = true;
+                        guardiaSoportado = true;
 
-                            if (guardia.y <= pozo.y - 15) {
-                                guardia.y = pozo.y - guardia.height;
-                                guardia.notificarSalidaPozo();       
+                        if (guardia.y <= pozo.y - 15) {
+                            guardia.y = pozo.y - guardia.height;
+                            guardia.notificarSalidaPozo();
 
-                                double nuevaX = guardia.x + ((heroe.x > guardia.x) ? 16 : -16);
-                                guardia.x = Math.max(30, Math.min(1170 - guardia.width, nuevaX));
-                            }
+                            double nuevaX = guardia.x + ((heroe.x > guardia.x) ? 20 : -20);
+                            guardia.x = Math.max(30, Math.min(1170 - guardia.width, nuevaX));
                         }
-                        else if (guardia.getEstado() == Guardia.Estado.ATRAPADO_POZO) {
+                    }
+                    // LOGICA DE ATRAPE (solo si el pozo esta 100% abierto)
+                    else if (pozo.getEstado() == 0) {
+                        if (guardia.getEstado() == Guardia.Estado.ATRAPADO_POZO) {
                             guardiaEnPozo = true;
                             guardiaSoportado = true;
                             guardia.x = pozo.x;
-                        }
-                        else {
-                            // Escaneamos si el pozo tiene un suelo sólido abajo
+                        } else {
                             boolean tieneSueloAbajo = false;
                             for (Plataforma plat : plataformas) {
                                 if (Math.abs(plat.x - pozo.x) < 5 && Math.abs(plat.y - (pozo.y + 30)) < 5) {
@@ -901,22 +904,21 @@ public class LodeRunner extends Juego {
                             }
 
                             if (tieneSueloAbajo && guardia.y >= pozo.y - 10) {
-                                // Solo sumamos puntos si es la primera vez que cae
                                 if (guardia.getEstado() != Guardia.Estado.ATRAPADO_POZO &&
                                         guardia.getEstado() != Guardia.Estado.ESCAPANDO_POZO) {
                                     guardia.notificarEntradaPozo();
                                     score += 75;
                                     System.out.println("¡Guardia atrapado! +75 pts");
                                 }
-
                                 guardiaEnPozo = true;
                                 guardiaSoportado = true;
                                 guardia.x = pozo.x;
                                 guardia.y = pozo.y;
                             }
                         }
-
-                    } else if (pozo.getEstado() == -1) { // Pozo cerrándose
+                    }
+                    // POZO CERRANDOSE (pisable como suelo normal)
+                    else if (pozo.getEstado() == -1) {
                         boolean vieneDesdeArriba = (guardia.y + guardia.height <= pozo.y + 5);
 
                         if (vieneDesdeArriba && guardia.x + guardia.width > pozo.x + 8 &&
@@ -928,12 +930,8 @@ public class LodeRunner extends Juego {
                     }
                 }
             }
-
-            guardia.setEstaCayendo(!guardiaSoportado);
-            guardia.setEnBarra(guardiaEnBarra);
-
-            if (estabaCayendo && guardiaSoportado && !guardiaEnPozo) {
-                guardia.notificarAterrizaje();
+            if (guardia.getEstado() == Guardia.Estado.ESCAPANDO_POZO && !guardiaTocandoPozo) {
+                guardia.notificarSalidaPozo();
             }
 
             if (guardiaEnEscalera) {
