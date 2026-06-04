@@ -10,6 +10,7 @@ import java.io.IOException;
 
 public class ConfiguracionPong extends Configuracion {
     private String skinPaletas, skinCancha, skinPelota;
+    private String pistaMusical;
     private int puntosParaGanar;
     private int teclaUpJ1, teclaDownJ1, teclaUpJ2, teclaDownJ2;
 
@@ -21,6 +22,9 @@ public class ConfiguracionPong extends Configuracion {
     public ConfiguracionPong() {
         // defino su propio nombre de archivo
         super("config_pong.properties");
+        this.pistaMusical = "Ninguna";
+        this.leer();
+
     }
 
     @Override
@@ -32,7 +36,8 @@ public class ConfiguracionPong extends Configuracion {
         this.skinCancha = "Original";
         this.skinPelota = "Original";
         this.puntosParaGanar = 11; //11 o 15 puntos
-
+        this.contraBot = true;
+        this.nombreJ2 = "Jugador 2";
 
 
         // Teclas por defecto
@@ -72,6 +77,29 @@ public class ConfiguracionPong extends Configuracion {
             System.err.println("Error al guardar: " + e.getMessage());
         }
 
+    }
+
+    public void leer() {
+        // 1. Parámetros de audio y sistema
+        this.pistaMusical = propiedades.getProperty("pistaMusical", "Ninguna");
+        this.sonidoActivado = Boolean.parseBoolean(propiedades.getProperty("sonidoActivado", "true"));
+        this.pantallaCompleta = Boolean.parseBoolean(propiedades.getProperty("fullScreen", "false"));
+
+        // 2. Parámetros de personalización (Skins)
+        this.skinPelota = propiedades.getProperty("skinPelota", "Original");
+        this.skinPaletas = propiedades.getProperty("skinPaletas", "Original");
+        this.skinCancha = propiedades.getProperty("skinCancha", "Original");
+
+        // 3. Lógica de juego
+        this.puntosParaGanar = Integer.parseInt(propiedades.getProperty("puntosParaGanar", "11"));
+        this.contraBot = Boolean.parseBoolean(propiedades.getProperty("contraBot", "true"));
+        this.nombreJ2 = propiedades.getProperty("nombreJ2", "PIPOO BOT");
+
+        // 4. Teclas (Conversión de String a int)
+        this.teclaUpJ1 = Integer.parseInt(propiedades.getProperty("teclaUpJ1", "38"));
+        this.teclaDownJ1 = Integer.parseInt(propiedades.getProperty("teclaDownJ1", "40"));
+        this.teclaUpJ2 = Integer.parseInt(propiedades.getProperty("teclaUpJ2", "87"));
+        this.teclaDownJ2 = Integer.parseInt(propiedades.getProperty("teclaDownJ2", "83"));
     }
 
     // Getters y Setters específicos de Pong para la GUI

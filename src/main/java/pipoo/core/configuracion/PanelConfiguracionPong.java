@@ -8,6 +8,9 @@ public class PanelConfiguracionPong extends JPanel {
     private JCheckBox chkSonido, chkPantalla, chkContraBot;
     private JComboBox<String> comboSkinsPaleta, comboSkinsCancha, comboSkinsPelota, comboMusica;
     private JComboBox<Integer> comboPuntos; //entre 11 o 15
+    private JTextField txtNombreJ1;
+    private JTextField txtNombreJ2;
+
 
     private JTextField txtUpJ1, txtDownJ1, txtUpJ2, txtDownJ2;
     private JPanel parent;
@@ -20,8 +23,8 @@ public class PanelConfiguracionPong extends JPanel {
         this.setLayout(new BorderLayout(10, 10));
 
         // Inicializacion de componentes
-        JTextField txtNombreJ1 = new JTextField(config.getNombreJ1(), 10);
-        JTextField txtNombreJ2 = new JTextField(config.getNombreJ2(), 10);
+        txtNombreJ1 = new JTextField(config.getNombreJ1(), 10);
+        txtNombreJ2 = new JTextField(config.getNombreJ2(), 10);
         chkSonido = new JCheckBox("Sonido Activado", config.isSonidoActivado());
         chkPantalla = new JCheckBox("Pantalla Completa", config.isPantallaCompleta());
         chkContraBot = new JCheckBox("Jugar contra BOT", config.getContraBot());
@@ -34,7 +37,7 @@ public class PanelConfiguracionPong extends JPanel {
         comboSkinsPelota = new JComboBox<>(skins);
         comboSkinsCancha = new JComboBox<>(skins);
 
-        String[] canciones = {"Ninguna", "Jeff The Bat", "Bongo Cat"};
+        String[] canciones = {"Ninguna", "Jeff The Bat", "Keyboard Cat"};
         comboMusica = new JComboBox<>(canciones);
 
         //11 o 15 puntos
@@ -102,8 +105,11 @@ public class PanelConfiguracionPong extends JPanel {
 
         // Lógica Guardar
         btnGuardar.addActionListener(e -> {
-            String seleccionado = comboPuntos.getSelectedItem().toString();
-            int puntos = Integer.parseInt(seleccionado);
+            String seleccionPuntos = comboPuntos.getSelectedItem().toString();
+            int puntos = Integer.parseInt(seleccionPuntos);
+
+            String pistaSeleccionada = (String) comboMusica.getSelectedItem();
+            config.setPistaMusical(pistaSeleccionada);
 
             config.setNombreJ1(txtNombreJ1.getText());
             config.setNombreJ2(txtNombreJ2.getText());
@@ -124,12 +130,21 @@ public class PanelConfiguracionPong extends JPanel {
         btnReset.addActionListener(e -> {
             config.reset();
             actualizarGUI();
+            boolean esBot = chkContraBot.isSelected();
+            txtNombreJ2.setEnabled(!esBot);
+            txtNombreJ2.setText("PIPOO BOT");
             JOptionPane.showMessageDialog(this, "Valores restaurados por defecto.");
         });
         actualizarGUI();
     }
 
+
+
+
     private void actualizarGUI() {
+        txtNombreJ1.setText(config.getNombreJ1());
+        txtNombreJ2.setText(config.getNombreJ2());
+        chkContraBot.setSelected(config.getContraBot());
         chkSonido.setSelected(config.isSonidoActivado());
         chkPantalla.setSelected(config.isPantallaCompleta());
         comboSkinsPaleta.setSelectedItem(config.getSkinPaletas());

@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.URL;
 
 public class Pong extends Juego {
 
@@ -25,6 +26,7 @@ public class Pong extends Juego {
     private boolean sonidoActivado;
     private String nombreJ1;
     private String nombreJ2;
+    private String pistaMusical;
 
     //imagenes
     private BufferedImage[] imgNumeros;
@@ -45,8 +47,9 @@ public class Pong extends Juego {
     public void gameStartup() {
         try {
             ConfiguracionPong config = (ConfiguracionPong) this.getConfiguracion();
+            pistaMusical = config.getPistaMusical(); //pueden ser ninguna, jeff the bat o keyboard cat
+
             String skinPelota = config.getSkinPelota();
-            // pelota.setImagen(Cargar imagen según skinPelota);
 
             //nombres de j1 y el j2/bot en el juego
             this.nombreJ1 = config.getNombreJ1();
@@ -90,7 +93,25 @@ public class Pong extends Juego {
             if (!sonidoActivado) {
                 gestorAudio.detenerMusica();
             } else {
-                gestorAudio.reproducirMusica(getClass().getResource("sonidos/Bongo Cat.wav"));
+                String seleccion = config.getPistaMusical();
+                if (seleccion != null && !"Ninguna".equals(seleccion)) {
+                    String nombreArchivo = "";
+                    if ("Jeff The Bat".equals(seleccion)) {
+                        nombreArchivo = "sonidos/jeffthebat.wav";
+                    } else if ("Keyboard Cat".equals(seleccion)) {
+                        nombreArchivo = "sonidos/keyboard_cat.wav";
+                    }
+                    if (!nombreArchivo.isEmpty()) {
+                        URL urlMusica = getClass().getResource(nombreArchivo);
+                        if (urlMusica != null) {
+                            gestorAudio.reproducirMusica(urlMusica);
+                        } else {
+                            System.err.println("No se encontró el archivo: " + nombreArchivo);
+                        }
+                    }
+                }
+
+                // Efectos cortos
                 gestorAudio.precargarEfecto("rebote_borde", getClass().getResource("sonidos/pelota_rebota_borde.wav"));
                 gestorAudio.precargarEfecto("rebote_paleta", getClass().getResource("sonidos/pelota_rebota_paleta.wav"));
                 gestorAudio.precargarEfecto("punto", getClass().getResource("sonidos/anotacion.wav"));
