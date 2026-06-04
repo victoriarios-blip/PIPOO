@@ -608,12 +608,6 @@ public class LodeRunner extends Juego {
             heroe.dibujar(mundo);
         for (Guardia guardia : guardias) {
             guardia.dibujar(mundo);
-
-            // --- NUEVO: INDICADOR VISUAL DE ROBO ---
-            // Si el guardia robó oro, le dibujamos un pequeño lingote flotando sobre su cabeza
-            if (guardia.isTieneOro() && imgOro != null) {
-                mundo.drawImage(imgOro, (int)guardia.x + 5, (int)guardia.y - 15, 20, 20, null);
-            }
         }
 
         mundo.dispose();
@@ -801,16 +795,8 @@ public class LodeRunner extends Juego {
             if (heroe.intersects(pozo)) {
                 if (pozo.getEstado() == 0) { // Pozo abierto
 
-                    // Verificamos si hay un bloque real de soporte abajo
-                    boolean tieneSueloAbajo = false;
-                    for (Plataforma plat : plataformas) {
-                        if (Math.abs(plat.x - pozo.x) < 5 && Math.abs(plat.y - (pozo.y + 30)) < 5) {
-                            tieneSueloAbajo = true;
-                            break;
-                        }
-                    }
 
-                    if (tieneSueloAbajo && heroe.y >= pozo.y - 10) {
+                    if (heroe.y >= pozo.y - 10) {
                         heroeEnPozo = true;
                         heroeSoportado = true;
                         heroe.x = pozo.x;
@@ -949,15 +935,7 @@ public class LodeRunner extends Juego {
                             guardiaSoportado = true;
                             guardia.x = pozo.x;
                         } else {
-                            boolean tieneSueloAbajo = false;
-                            for (Plataforma plat : plataformas) {
-                                if (Math.abs(plat.x - pozo.x) < 5 && Math.abs(plat.y - (pozo.y + 30)) < 5) {
-                                    tieneSueloAbajo = true;
-                                    break;
-                                }
-                            }
-
-                            if (tieneSueloAbajo && guardia.y >= pozo.y - 10) {
+                            if (guardia.y >= pozo.y - 10) {
                                 // Solo sumamos puntos si es la primera vez que cae
                                 if (guardia.getEstado() != Guardia.Estado.ATRAPADO_POZO &&
                                         guardia.getEstado() != Guardia.Estado.ESCAPANDO_POZO) {

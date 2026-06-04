@@ -44,7 +44,7 @@ public class Pozo  extends ElementoGrafico {
             estado = 2; // se cierra por completo
 
         } else if (tiempoAbierto >= 4.5) {
-            estado = -1; 
+            estado = -1;
             if (imgCerrandose != null) {
                 setImagen(imgCerrandose);
             }
