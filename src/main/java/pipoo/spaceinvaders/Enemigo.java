@@ -3,6 +3,7 @@ package pipoo.spaceinvaders;
 import pipoo.core.ElementoGrafico;
 import pipoo.core.Movible;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public abstract class Enemigo extends Movible implements Disparador{
@@ -46,13 +47,24 @@ public abstract class Enemigo extends Movible implements Disparador{
         super(x, y, width, height);
     }
 
+    public int getValorPuntaje() {
+        return valorPuntaje;
+    }
+
     @Override
     public void mover(double delta) {
         this.x += this.velocidadX * delta;
         this.y += this.velocidadY * delta; // velocidadY solo es != 0 al bajar una fila
     }
 
-    // Llamado por FormacionEnemigos cuando toca bajar una fila
+    @Override
+    public void dibujar(Graphics2D g) {
+        if (visible && bufferImage != null) {
+            g.drawImage(bufferImage, (int)this.x, (int)this.y, (int)this.width, (int)this.height, null);
+        }
+    }
+
+    // Llamado por spaceinvaders cuando toca bajar una fila
     public void bajarFila(double distancia) {
         this.y += distancia;
         this.velocidadX = -this.velocidadX; // invierte dirección horizontal
@@ -80,7 +92,7 @@ public abstract class Enemigo extends Movible implements Disparador{
         }
     }
 
-    public abstract boolean colosionaCon(ElementoGrafico otro);
+    //public abstract boolean colosionaCon(ElementoGrafico otro);
 
     @Override
     public boolean colisionaCon(ElementoGrafico otro){

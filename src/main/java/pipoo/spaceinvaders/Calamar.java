@@ -18,9 +18,4 @@ public class Calamar extends Enemigo{
     public void reaccionarAColision(ElementoGrafico otro) {
 
     }
-
-    @Override
-    public boolean colosionaCon(ElementoGrafico otro) {
-        return false;
-    }
 }

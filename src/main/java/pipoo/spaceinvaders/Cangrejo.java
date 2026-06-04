@@ -19,11 +19,4 @@ public class Cangrejo extends Enemigo{
     public void reaccionarAColision(ElementoGrafico otro) {
 
     }
-
-    @Override
-    public boolean colosionaCon(ElementoGrafico otro) {
-        return false;
-    }
-
-    // override de los metodos mover y disparar? o se hace en Enemigo??
 }

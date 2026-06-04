@@ -1,6 +1,8 @@
 package pipoo.spaceinvaders;
 
 import pipoo.core.ElementoGrafico;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class Escudo extends ElementoGrafico {
@@ -43,7 +45,14 @@ public class Escudo extends ElementoGrafico {
     @Override
     public void reaccionarAColision(ElementoGrafico otro) {
         if (otro instanceof Proyectil) {
-            recibirDanio();
+            recibirDanio(); // ambos proyectiles dañan el escudo
+        }
+    }
+
+    @Override
+    public void dibujar(Graphics2D g) {
+        if (visible && bufferImage != null) {
+            g.drawImage(bufferImage, (int)this.x, (int)this.y, (int)this.width, (int)this.height, null);
         }
     }
 

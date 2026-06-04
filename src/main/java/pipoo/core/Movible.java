@@ -22,8 +22,6 @@ public abstract class Movible extends ElementoGrafico {
     public double getVelocidadY() {return velocidadY;}
 
     public abstract void mover(double delta);
-
-    public abstract void dibujar(Graphics2D g);
 }
 
 

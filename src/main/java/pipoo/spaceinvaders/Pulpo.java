@@ -15,11 +15,6 @@ public class Pulpo extends Enemigo{
     }
 
     @Override
-    public boolean colosionaCon(ElementoGrafico otro) {
-        return false;
-    }
-
-    @Override
     public boolean colisionaCon(ElementoGrafico otro) {
         return false;
     }
@@ -35,5 +30,4 @@ public class Pulpo extends Enemigo{
     public int getValorPuntaje(){
         return valorPuntaje;
     }
-    // override de los metodos mover y disparar? o se hace en Enemigo??
 }
