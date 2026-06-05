@@ -1,10 +1,6 @@
 package pipoo.core.configuracion;
 
-import java.io.OutputStream;
-import java.nio.file.Files; //api nio
-import java.nio.file.Paths; //api nio
 import java.util.Properties;
-import java.io.IOException;
 
 public class ConfiguracionSI extends Configuracion {
     private String skinNave, skinInvasores, skinProyectiles;
@@ -12,7 +8,7 @@ public class ConfiguracionSI extends Configuracion {
     private int teclaIzq, teclaDer, teclaDisparo;
 
     public ConfiguracionSI() {
-        super("config_space_invaders.properties");
+        super("jgame.properties");
     }
 
     @Override

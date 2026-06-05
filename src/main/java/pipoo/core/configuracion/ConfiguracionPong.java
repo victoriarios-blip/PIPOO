@@ -2,9 +2,6 @@ package pipoo.core.configuracion;
 
 
 import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Files; //api nio
-import java.nio.file.Paths; //api nio
 import java.util.Properties;
 import java.io.IOException;
 

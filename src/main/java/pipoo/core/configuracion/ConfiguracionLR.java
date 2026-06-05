@@ -7,7 +7,7 @@ public class ConfiguracionLR extends Configuracion {
     private int teclaEfectos, teclaMusica, teclaCavar, teclaEnter;
 
     public ConfiguracionLR() {
-        super("config_lode_runner.properties");
+        super("jgame.properties");
     }
 
     @Override

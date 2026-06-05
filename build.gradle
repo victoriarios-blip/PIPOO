@@ -24,8 +24,17 @@ tasks.named('test') {
 sourceSets {
     main {
         resources {
-            srcDirs = ['src/main/java', 'src/main/resources']
-            includes = ['**/*.png', '**/*.wav', '**/*.mp3', '**/*.properties']
+            srcDirs = ["src/main/java", "src/main/resources"]
+            include "**/*.properties"
+            include "**/*.wav"
+            include "**/*.png"
         }
     }
+}
+
+processResources {
+    from('src/main/java') {
+        include '**/*.properties'
+    }
+    into("${buildDir}/classes/java/main")
 }
