@@ -105,7 +105,7 @@ public class LodeRunner extends Juego {
             // escenario
             BufferedImage imgEscCorta = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera corta.png"));
             BufferedImage imgEscMediana = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera mediana.png"));
-            BufferedImage imgEscLarga = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera larga.png"));
+            BufferedImage imgEscLarga = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera_larga.png"));
             BufferedImage imgBarra = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/barramanos.png"));
             imgOro = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/oro.png"));
             imgBloque = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/bloque.png"));
