@@ -21,7 +21,7 @@ public class ConfiguracionPong extends Configuracion {
     //constructor config pong
     public ConfiguracionPong() {
         // defino su propio nombre de archivo
-        super("config_pong.properties");
+        super("jgame.properties");
         this.pistaMusical = "Ninguna";
         this.leer();
 
@@ -80,17 +80,17 @@ public class ConfiguracionPong extends Configuracion {
     }
 
     public void leer() {
-        // 1. Parámetros de audio y sistema
+        // Parametros de audio y sistema
         this.pistaMusical = propiedades.getProperty("pistaMusical", "Ninguna");
         this.sonidoActivado = Boolean.parseBoolean(propiedades.getProperty("sonidoActivado", "true"));
         this.pantallaCompleta = Boolean.parseBoolean(propiedades.getProperty("fullScreen", "false"));
 
-        // 2. Parámetros de personalización (Skins)
+        // Parametros de personalizacion (Skins)
         this.skinPelota = propiedades.getProperty("skinPelota", "Original");
         this.skinPaletas = propiedades.getProperty("skinPaletas", "Original");
         this.skinCancha = propiedades.getProperty("skinCancha", "Original");
 
-        // 3. Lógica de juego
+        // Logica de juego
         this.puntosParaGanar = Integer.parseInt(propiedades.getProperty("puntosParaGanar", "11"));
         this.contraBot = Boolean.parseBoolean(propiedades.getProperty("contraBot", "true"));
         this.nombreJ2 = propiedades.getProperty("nombreJ2", "PIPOO BOT");
