@@ -139,8 +139,6 @@ public class PanelConfiguracionPong extends JPanel {
     }
 
 
-
-
     private void actualizarGUI() {
         txtNombreJ1.setText(config.getNombreJ1());
         txtNombreJ2.setText(config.getNombreJ2());
