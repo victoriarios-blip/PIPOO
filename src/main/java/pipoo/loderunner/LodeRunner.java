@@ -56,7 +56,7 @@ public class LodeRunner extends Juego {
     private double timerEscalera = 0.18;
 
     public LodeRunner() {
-        super("Retro Lode Runner", 800, 630);
+        super("PIPOO LODE RUNNER", 800, 630);
     }
 
     @Override
