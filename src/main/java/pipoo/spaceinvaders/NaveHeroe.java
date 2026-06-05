@@ -16,6 +16,7 @@ public class NaveHeroe extends Movible implements Disparador {
     private boolean muriendo = false;
     private double tiempoMuerte = 0;
     private static final double DURACION_MUERTE = 1.0;
+    public boolean isMuriendo() { return this.muriendo; }
 
     // vidas
     private int vidas;
@@ -36,7 +37,19 @@ public class NaveHeroe extends Movible implements Disparador {
     public void detener()        { this.velocidadX = 0; }
 
     @Override
-    public void mover(double delta) { this.x += this.velocidadX * delta; }
+    public void mover(double delta) {
+        this.x += this.velocidadX * delta;
+
+        // tope izquierdo
+        if (this.x < 0) {
+            this.x = 0;
+        }
+
+        // tope derecho
+        if (this.x + this.width > 800) {
+            this.x = 800 - this.width;
+        }
+    }
 
     @Override
     public void dibujar(Graphics2D g) {
@@ -65,44 +78,50 @@ public class NaveHeroe extends Movible implements Disparador {
 
     @Override
     public void reaccionarAColision(ElementoGrafico otro) {
+        if (muriendo) return; // Si ya está explotando, ignoramos más impactos
+
         if (otro instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.ENEMIGO) {
             vidas--;
-            if (vidas <= 0) {
-                this.bufferImage = imagenExplosion1;
-                this.visible = false; // game over
-            } else {
-                // todavía tiene vidas, mostrar explosión brevemente
-                this.bufferImage = imagenExplosion1;
-                // reaparecer en posición inicial — SpaceInvaders lo maneja
-            }
+            muriendo = true;
+            tiempoMuerte = 0;
+            this.bufferImage = imagenExplosion1; // Comienza el estado de explosión
         }
+
         if (otro instanceof Borde) {
             if (this.velocidadX < 0) this.x = otro.x + otro.width;
             else                      this.x = otro.x - this.width;
             this.velocidadX = 0;
-        }
-        if (otro instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.ENEMIGO) {
-            vidas--;
-            this.bufferImage = imagenExplosion1;
-            this.muriendo = true;
-            if (vidas <= 0) this.visible = false;
         }
     }
 
     public void actualizar(double delta) {
         if (muriendo) {
             tiempoMuerte += delta;
+
+            // Alternamos entre los dos frames de explosión a la mitad del tiempo
+            if (tiempoMuerte < DURACION_MUERTE / 2) {
+                this.bufferImage = imagenExplosion1;
+            } else {
+                this.bufferImage = imagenExplosion2;
+            }
+
+            // Cuando termina el tiempo de animación de la muerte
             if (tiempoMuerte >= DURACION_MUERTE) {
                 muriendo = false;
                 tiempoMuerte = 0;
-                if (vidas > 0) resetear();
+
+                if (vidas <= 0) {
+                    this.visible = false; // Solo se vuelve invisible si es GAME OVER definitivo
+                } else {
+                    resetear(); // Si le quedan vidas, reaparece sano y salvo en su lugar
+                }
             }
         }
     }
 
     public void resetear() {
         this.x = 380;
-        this.y = 540;
+        this.y = 525;
         this.visible = true;
         this.bufferImage = imagenIntacta;
     }

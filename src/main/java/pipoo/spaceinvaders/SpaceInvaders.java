@@ -15,8 +15,14 @@ public class SpaceInvaders extends Juego {
     private List<Enemigo> oleada;
     private List<Escudo> escudos;
     private NaveNodriza enemigoFinal;
+
+    // proyectiles
     private List<Proyectil> proyectilesEnemigos;
     private List<Proyectil> proyectilesHeroe;
+
+    // marcador
+    private double tiempoJuego = 0; // Acumulador de segundos
+    private java.util.Map<Character, java.awt.image.BufferedImage> fuenteArcade;
 
     //aparicion nave nodriza
     private double tiempoNodriza = 0;
@@ -49,11 +55,11 @@ public class SpaceInvaders extends Juego {
         proyectilesEnemigos = new ArrayList<>();
         proyectilesHeroe = new ArrayList<>();
 
-        jugador = new NaveHeroe(380, 540);
+        jugador = new NaveHeroe(380, 525);
 
         int[] posicionesEscudosX = {104, 272, 440, 608};
         for (int x : posicionesEscudosX) {
-            escudos.add(new Escudo(x, 450));
+            escudos.add(new Escudo(x, 410));
         }
 
         // oleada enemiga (5 filas x 11 columnas)
@@ -74,6 +80,9 @@ public class SpaceInvaders extends Juego {
         // carga de assets
         try {
             BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeIntacta.png"));
+            BufferedImage naveHeroeExplosion1 = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeExplosion1.png"));
+            BufferedImage naveHeroeExplosion2 = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeExplosion2.png"));
+
             imgNaveNodriza = ImageIO.read(this.getClass().getResource("imagenes/naveNodriza.png"));
 
             // enemigos (2 frames cada uno)
@@ -100,6 +109,25 @@ public class SpaceInvaders extends Juego {
 
             BufferedImage muerteEnemigo = ImageIO.read(this.getClass().getResource("imagenes/muerte_enemigo.png"));
 
+            // Dentro del try {} de gameStartup()
+            fuenteArcade = new java.util.HashMap<>();
+            tiempoJuego = 0;
+
+        //números del 0 al 9 (asumiendo que se llaman "0.png", "1.png", etc.)
+            for (int i = 0; i <= 9; i++) {
+                char numero = (char) ('0' + i);
+                BufferedImage imgNum = ImageIO.read(this.getClass().getResource("imagenes/" + i + ".png"));
+                fuenteArcade.put(numero, imgNum);
+            }
+
+        // letras de la A a la Z
+            for (char c = 'A'; c <= 'Z'; c++) {
+                // Si tus archivos están en minúsculas (ej: "a.png"), usamos toLowerCase()
+                String nombreArchivo = String.valueOf(c).toLowerCase() + ".png";
+                BufferedImage imgLetra = ImageIO.read(this.getClass().getResource("imagenes/" + nombreArchivo));
+                fuenteArcade.put(c, imgLetra);
+            }
+
             for (Escudo escudo : escudos) {
                 escudo.setImgIntacto(escudoIntacto);
                 escudo.setEscudo1daño(escudo1daño);
@@ -108,7 +136,10 @@ public class SpaceInvaders extends Juego {
                 escudo.setEscudo4daño(escudo4daño);
             }
 
-            jugador.setImagen(naveHeroe);
+            jugador.setImagenIntacta(naveHeroe);
+            jugador.setImagenExplosion1(naveHeroeExplosion1);
+            jugador.setImagenExplosion2(naveHeroeExplosion2);
+
             //if (naveNodriza != null) naveNodriza.setImagen(naveNodriza); // Si instanciaron la Nave Nodriza
 
             for (Escudo escudo : escudos) {
@@ -140,19 +171,37 @@ public class SpaceInvaders extends Juego {
     public void gameUpdate(double delta) {
         Keyboard teclado = this.getKeyboard();
 
-        if (teclado.isKeyPressed(KeyEvent.VK_LEFT))  jugador.moverIzquierda();
-        else if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) jugador.moverDerecha();
-        else jugador.detener();
+        // 1. Control de teclado y disparo del héroe (Bloqueado si está explotando)
+        if (!jugador.isMuriendo()) {
+            if (teclado.isKeyPressed(KeyEvent.VK_LEFT))       jugador.moverIzquierda();
+            else if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) jugador.moverDerecha();
+            else                                              jugador.detener();
 
+            // Cooldown y lógica de disparos del héroe (Mudado acá adentro)
+            tiempoDisparo += delta;
+            if (teclado.isKeyPressed(KeyEvent.VK_SPACE) && tiempoDisparo >= COOLDOWN_DISPARO) {
+                Proyectil p = jugador.disparar();
+                if (p != null) {
+                    p.setImagen(imgProyectilHeroe);
+                    proyectilesHeroe.add(p);
+                    tiempoDisparo = 0;
+                }
+            }
+        } else {
+            // Si la nave está en plena explosión, se congela
+            jugador.detener();
+        }
+
+        // El movimiento físico de la nave se aplica siempre
         jugador.mover(delta);
 
-        // 1. Mover todos
+        // 2. Movimiento y animación de la oleada enemiga
         for (Enemigo enemigo : oleada) {
             enemigo.mover(delta);
             enemigo.actualizarFrame(delta);
         }
 
-// 2. Detectar borde UNA sola vez
+        // 3. Detección de bordes de los enemigos
         boolean tocoBorde = false;
         for (Enemigo e : oleada) {
             if (e.x <= 0 || e.x + e.width >= 800) {
@@ -161,14 +210,14 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-// 3. Si tocó el borde, bajar toda la formación
+        // 4. Si un alien tocó el borde, baja toda la formación e invierte dirección
         if (tocoBorde) {
             for (Enemigo e : oleada) {
                 e.bajarFila(20);
             }
         }
 
-// 4. Disparo enemigos
+        // 5. Lógica de disparo aleatorio de los enemigos
         for (Enemigo enemigo : oleada) {
             Proyectil p = enemigo.disparar();
             if (p != null) {
@@ -177,61 +226,46 @@ public class SpaceInvaders extends Juego {
             }
         }
 
+        // 6. Actualizar posición de todos los proyectiles en pantalla
         for (Proyectil p : proyectilesEnemigos) { p.mover(delta); }
         for (Proyectil p : proyectilesHeroe)    { p.mover(delta); }
 
-        //cooldown escudos
+        // 7. Resetear flags de daño de los escudos
         for (Escudo escudo : escudos) {
             escudo.resetFrame();
         }
 
-        //cooldown disparos heroe
-        tiempoDisparo += delta;
-        if (teclado.isKeyPressed(KeyEvent.VK_SPACE) && tiempoDisparo >= COOLDOWN_DISPARO) {
-            Proyectil p = jugador.disparar();
-            if (p != null) {
-                p.setImagen(imgProyectilHeroe);
-                proyectilesHeroe.add(p);
-                tiempoDisparo = 0;
-            }
-        }
-
+        // 8. Procesar colisiones, puntajes y limpieza de entidades muertas/fuera de pantalla
         detectarColisiones();
         actualizarPuntaje();
         limpiarNoVisibles();
 
-        // game over
-        if (!jugador.isVisible()) {
-            if (jugador.getVidas() <= 0) {
-                System.out.println("GAME OVER");
-                this.stop();
-            } else {
-                // reaparecer
-                jugador.setX(380);
-                jugador.setY(540);
-                jugador.setVisible(true);
-                jugador.resetImagen();
-            }
+        // 9. Verificación de GAME OVER (Por quedarse sin vidas)
+        // El bloque 'else' se borró porque la reaparición ahora la maneja jugador.actualizar()
+        if (!jugador.isVisible() && jugador.getVidas() <= 0) {
+            System.out.println("GAME OVER - Te quedaste sin vidas");
+            this.stop();
         }
 
+        // 10. Verificación de GAME OVER (Si los enemigos invaden la Tierra)
         for (Enemigo e : oleada) {
             if (e.y + e.height >= 500) {
-                System.out.println("GAME OVER - enemigos llegaron");
+                System.out.println("GAME OVER - Los enemigos llegaron a la línea límite");
                 this.stop();
                 break;
             }
         }
 
-        // win
+        // 11. Verificación de VICTORIA
         if (oleada.isEmpty()) {
-            System.out.println("GANASTE");
+            System.out.println("¡GANASTE! Limpiaste la oleada");
             this.stop();
         }
 
-        // timer nave nodriza
+        // 12. Temporizador y movimiento de la Nave Nodriza
         tiempoNodriza += delta;
         if (tiempoNodriza >= intervaloNodriza) {
-            enemigoFinal = new NaveNodriza(-60, 30); // entra desde la izquierda
+            enemigoFinal = new NaveNodriza(-60, 30);
             enemigoFinal.setImagen(imgNaveNodriza);
             tiempoNodriza = 0;
         }
@@ -239,8 +273,11 @@ public class SpaceInvaders extends Juego {
             enemigoFinal.mover(delta);
         }
 
-        // actualizar heroe
+        // 13. Actualizar estado del héroe (Procesa los timers y frames de la explosión)
         jugador.actualizar(delta);
+
+        // Suma la fracción de segundo que pasó en este frame
+        tiempoJuego += delta;
     }
 
     void limpiarNoVisibles() {
@@ -276,6 +313,46 @@ public class SpaceInvaders extends Juego {
         if (enemigoFinal != null && enemigoFinal.isVisible()) {
             enemigoFinal.dibujar(g);
         }
+        // ... (Debajo del jugador.dibujar(g)) ...
+
+        // 1. Línea verde divisoria clásica de los arcades
+        g.setColor(Color.GREEN);
+        g.fillRect(0, 555, 800, 4); // Una línea de 4 píxeles de alto
+
+        // 2. Formatear los datos en texto
+        // %04d hace que el puntaje siempre tenga 4 dígitos (ej: "0050")
+        String strPuntaje = "SCORE " + String.format("%04d", puntaje);
+
+        // Mostramos el tiempo truncado a entero
+        String strTiempo = "TIME " + String.format("%03d", (int)tiempoJuego);
+
+        String strVidas = "LIVES " + jugador.getVidas();
+
+        // 3. Pintar en pantalla usando tus assets en la franja inferior (Y = 570)
+        dibujarTextoRetro(g, strPuntaje, 40, 570);  // A la izquierda
+        dibujarTextoRetro(g, strTiempo, 330, 570);  // Al centro
+        dibujarTextoRetro(g, strVidas, 620, 570);   // A la derecha
+    }
+
+
+    private void dibujarTextoRetro(Graphics2D g, String texto, int x, int y) {
+        texto = texto.toUpperCase(); // Nos aseguramos de buscar siempre en mayúsculas
+        int anchoCaracter = 16;      // Tamaño en píxeles al que se va a dibujar cada letra
+        int altoCaracter = 16;
+        int espaciado = 2;           // Píxeles de separación entre letras
+
+        for (int i = 0; i < texto.length(); i++) {
+            char caracter = texto.charAt(i);
+
+            if (caracter != ' ') { // Si no es un espacio en blanco, dibujamos el sprite
+                BufferedImage img = fuenteArcade.get(caracter);
+                if (img != null) {
+                    g.drawImage(img, x, y, anchoCaracter, altoCaracter, null);
+                }
+            }
+            // Avanzamos la X para el siguiente caracter (incluso si era un espacio)
+            x += anchoCaracter + espaciado;
+        }
     }
 
     @Override
@@ -290,7 +367,7 @@ public class SpaceInvaders extends Juego {
             if (!proyectil.isVisible()) continue;
             for (Enemigo enemigo : oleada) {
                 if (!enemigo.isVisible()) continue;
-                if (enemigo.colisionaCon(proyectil)) { // ← enemigo llama colisionaCon, igual que escudo
+                if (proyectil.colisionaCon(enemigo)) { // ← enemigo llama colisionaCon, igual que escudo
                     proyectil.reaccionarAColision(enemigo);
                     enemigo.reaccionarAColision(proyectil);
                     puntaje += enemigo.getValorPuntaje();
