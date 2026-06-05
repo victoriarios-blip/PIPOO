@@ -285,7 +285,7 @@ public class LodeRunner extends Juego {
                     break;
             }
 
-            imgEscaleraSalida = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera larga.png"));
+            imgEscaleraSalida = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera_larga.png"));
             tiempoRestante = 150.0;
 
             // ── INICIALIZACIÓN DE ENTIDADES VIVAS ──────────
