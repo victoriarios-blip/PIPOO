@@ -30,7 +30,6 @@ public class Pong extends Juego {
 
     //imagenes
     private BufferedImage[] imgNumeros;
-    //private BufferedImage[] imgNumerosNeon;
     private Rectangle2D.Double bordeSuperior;
     private Rectangle2D.Double bordeInferior;
 
@@ -49,7 +48,9 @@ public class Pong extends Juego {
             ConfiguracionPong config = (ConfiguracionPong) this.getConfiguracion();
             pistaMusical = config.getPistaMusical(); //pueden ser ninguna, jeff the bat o keyboard cat
 
-            String skinPelota = config.getSkinPelota();
+            String skinPelota = appProperties.getProperty("skinPelota", "Original");
+            String skinPaleta = appProperties.getProperty("skinPaletas", "Original");
+            String skinCancha = appProperties.getProperty("skinCancha", "Original");
 
             //nombres de j1 y el j2/bot en el juego
             this.nombreJ1 = config.getNombreJ1();
@@ -78,6 +79,7 @@ public class Pong extends Juego {
             paleta1 = new Paleta(20, (double)getHeight() / 2 - 40, 15, 80);
             paleta2 = new Paleta(getWidth() - 35, (double)getHeight()/2 - 40, 15, 80);
             //marcador = new Marcador(200, 200, 200,200); //ver estos valores
+
 
             //velocidad de la pelota
             pelota.setVelocidadX(350.00);
@@ -120,38 +122,44 @@ public class Pong extends Juego {
 
 
             //cargamos los assets (DEFAULT)
-
-            BufferedImage imgPelota = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/pelota_default.png"));
-            BufferedImage imgPaleta = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/paleta_default.png"));
-            this.imgCancha = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/cancha_default.png"));
-            this.imgDivisor = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/barra_del_medio.png"));
-            this.imgGameOver = ImageIO.read(getClass().getResource("/pipoo/pong/neon/game_over.png"));
-
-            //NEON
-/*
-            BufferedImage imgPelota = ImageIO.read(getClass().getResource("/pipoo/pong/neon/yellow_ball_neon.png"));
-            BufferedImage imgPaleta = ImageIO.read(getClass().getResource("/pipoo/pong/neon/red_bar_neon.png"));
-            this.imgCancha = ImageIO.read(getClass().getResource("/pipoo/pong/neon/cancha_neon.png"));
-            this.imgDivisor = ImageIO.read(getClass().getResource("/pipoo/pong/neon/barra_del_medio.png"));
-
- */
-            //puntos estilo default
-            imgNumeros = new BufferedImage[16];
-            for (int i = 0; i <= 15; i++) {
-                imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/" + i + ".png"));
+            // --- LÓGICA PARA LA PELOTA ---
+            String rutaPelota = "/pipoo/pong/imagenes/pelota_default.png"; // Default
+            if (skinPelota.equalsIgnoreCase("Neon")) {
+                rutaPelota = "/pipoo/pong/neon/pelota_neon.png";
             }
-
-            //puntos estilo neon
-            /*
-            imgNumerosNeon = new BufferedImage[16];
-            for (int i = 0; i<= 15; i++) {
-                imgNumerosNeon[i] = ImageIO.read(getClass().getResource("/pipoo/pong/neon/" + i + ".png"));
-            }
-
-             */
+            BufferedImage imgPelota = ImageIO.read(getClass().getResource(rutaPelota));
             pelota.setImagen(imgPelota);
+
+            // --- LÓGICA PARA LAS PALETAS ---
+            String rutaPaleta = "/pipoo/pong/imagenes/paleta_default.png"; // Default
+            if (skinPaleta.equalsIgnoreCase("Neon")) {
+                rutaPaleta = "/pipoo/pong/neon/paleta_neon.png";
+            }
+            BufferedImage imgPaleta = ImageIO.read(getClass().getResource(rutaPaleta));
             paleta1.setImagen(imgPaleta);
             paleta2.setImagen(imgPaleta);
+
+
+            // --- LÓGICA PARA LA CANCHA ---
+            String rutaCancha = "/pipoo/pong/imagenes/cancha_default.png"; // Default
+            String rutaDivisor = "/pipoo/pong/imagenes/barra_del_medio.png";
+            if (skinCancha.equalsIgnoreCase("Neon")) {
+                rutaCancha = "/pipoo/pong/neon/cancha_neon.png";
+                rutaDivisor = "/pipoo/pong/neon/barra_del_medio.png";
+            }
+            this.imgCancha = ImageIO.read(getClass().getResource(rutaCancha));
+            this.imgDivisor = ImageIO.read(getClass().getResource(rutaDivisor));
+
+            // --- ELEMENTOS COMUNES (Divisor y Game Over) ---
+            this.imgGameOver = ImageIO.read(getClass().getResource("/pipoo/pong/neon/game_over.png"));
+
+            //puntos estilo default
+            String carpeta = skinCancha.equalsIgnoreCase("Neon") ? "neon" : "imagenes";
+            this.imgNumeros = new BufferedImage[16];
+            for (int i = 0; i <= 15; i++) {
+                this.imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/" + carpeta + "/" + i + ".png"));
+            }
+
 
         } catch (IOException e){
             System.err.println("Error cargando assets de Pong " +e.getMessage());
@@ -233,7 +241,7 @@ public class Pong extends Juego {
         paleta2.dibujar(g);
 
         //dibujamos los nombres de los jugadores
-        g.setFont(new Font("Monospaced", Font.BOLD, 20));
+        g.setFont(new Font("Consolas", Font.BOLD, 20));
         g.setColor(Color.WHITE);
         if (this.nombreJ1 != null){
             g.drawString(this.nombreJ1, (getWidth()/4)-20, 75);

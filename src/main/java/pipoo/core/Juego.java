@@ -43,25 +43,31 @@ public abstract class Juego extends JGame {
 
     @Override
     protected void readPropertiesFile() {
-        System.out.println("DEBUG: Usando buscador de configuración personalizado en Juego.java");
-        try (java.io.InputStream input = getClass().getClassLoader().getResourceAsStream("jgame.properties")) {
+        System.out.println("DEBUG: Iniciando búsqueda de configuración sincronizada ");
 
+        // PRIORIDAD ALTA: El archivo físico en la raíz (donde el Panel guarda)
+        java.io.File fileRaiz = new java.io.File("jgame.properties");
+
+        if (fileRaiz.exists()) {
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(fileRaiz)) {
+                this.appProperties.load(fis);
+                System.out.println("DEBUG: Cambios del usuario cargados desde la raiz ");
+                return;
+            } catch (Exception e) {
+                System.err.println("Error al leer archivo de raíz: " + e.getMessage());
+            }
+        }
+
+        // PRIORIDAD BAJA: El Classpath (Solo si no hay cambios del usuario en la raíz)
+        try (java.io.InputStream input = getClass().getClassLoader().getResourceAsStream("jgame.properties")) {
             if (input != null) {
                 this.appProperties.load(input);
-                System.out.println("DEBUG: jgame.properties cargado con éxito desde el Classpath.");
+                System.out.println("DEBUG: Cargada configuración por defecto del Classpath.");
             } else {
-                java.io.File fileRaiz = new java.io.File("jgame.properties");
-                if (fileRaiz.exists()) {
-                    try (java.io.FileInputStream fis = new java.io.FileInputStream(fileRaiz)) {
-                        this.appProperties.load(fis);
-                        System.out.println("DEBUG: jgame.properties cargado desde la raíz del proyecto.");
-                    }
-                } else {
-                    System.err.println("ADVERTENCIA: No se encontró jgame.properties en ninguna ubicación.");
-                }
+                System.err.println("ADVERTENCIA: No se encontró jgame.properties en ninguna ubicacion.");
             }
         } catch (Exception e) {
-            System.err.println("Error al leer propiedades: " + e.getMessage());
+            System.err.println("Error al leer recursos: " + e.getMessage());
         }
     }
 
