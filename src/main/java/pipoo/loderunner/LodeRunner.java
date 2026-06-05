@@ -101,7 +101,7 @@ public class LodeRunner extends Juego {
             // HUD
             imgScore = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/score.png"));
             imgLevel = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level.png"));
-            imgTitulo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/titulo lode runner.png"));
+            imgTitulo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/loderunner_menu.png"));
             imgLives = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/lives.png"));
             imgGameOver = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/game_over.png"));
 
@@ -169,7 +169,6 @@ public class LodeRunner extends Juego {
         // Arrancamos el juego en la pantalla de menú
         estadoActual = EstadoJuego.MENU;
 
-
     }
 
     // ── MÉTODO PARA CONSTRUIR EL MAPA CUANDO SE ELIGE UN NIVEL ──
@@ -192,7 +191,7 @@ public class LodeRunner extends Juego {
 
         // PISO BASE (siempre en todos los mapas)
         agregarFila(0, 500, 39, imgBloque);
-        for (int i = 0; i < 40; i++) {
+        for (int i = 0; i < 41; i++) {
             Plataforma ladrillo = new Plataforma(i * 30, 530, 30, 30);
             if (imgLadrilloInferior != null) ladrillo.setImagen(imgLadrilloInferior);
             plataformas.add(ladrillo);
@@ -428,7 +427,10 @@ public class LodeRunner extends Juego {
         // ── ESTADO: SELECCIÓN DE NIVEL ──
         else if (estadoActual == EstadoJuego.SELECCION) {
             if (actLeft && !keyLeft && nivelSeleccionado > 1) nivelSeleccionado--;
-            if (actRight && !keyRight && nivelSeleccionado < 999) nivelSeleccionado++;
+
+            // ACA ESTÁ EL CAMBIO: Cambiamos el 999 por un 3
+            if (actRight && !keyRight && nivelSeleccionado < 3) nivelSeleccionado++;
+
             if (actEnter && !keyEnter) {
                 nivel = nivelSeleccionado;
                 score = 0;
@@ -440,7 +442,6 @@ public class LodeRunner extends Juego {
             actualizarTeclas(actUp, actDown, actLeft, actRight, actEnter);
             return;
         }
-
         // ── ESTADO: TRANSICIÓN ("STAGE 00X") ──
         else if (estadoActual == EstadoJuego.TRANSICION) {
             timerTransicion -= delta;
@@ -545,8 +546,18 @@ public class LodeRunner extends Juego {
         // Cavar pozos
         if (teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
             heroe.cavar();
-            double puntoImpactoX = heroe.x + (heroe.width / 2.0) + ultimaDireccion;
-            double puntoImpactoY = heroe.y + heroe.height + 5;
+
+            // 1. Calculamos en qué "columna" exacta de la grilla (30x30) está el centro del héroe
+            int columnaHeroe = (int) ((heroe.x + (heroe.width / 2.0)) / 30);
+
+            // 2. Determinamos la columna objetivo (la de al lado según dónde miramos)
+            int columnaObjetivo = columnaHeroe + (ultimaDireccion > 0 ? 1 : -1);
+
+            // 3. Calculamos el punto de impacto forzándolo al CENTRO matemático de ese bloque
+            double puntoImpactoX = (columnaObjetivo * 30) + 15;
+
+            // El Y apunta siempre a la mitad del bloque que está debajo de los pies
+            double puntoImpactoY = heroe.y + heroe.height + 15;
 
             if (puntoImpactoY < 530) {
                 intentarCavar(puntoImpactoX, puntoImpactoY);
@@ -687,40 +698,76 @@ public class LodeRunner extends Juego {
 
         // PANTALLA: MENÚ PRINCIPAL
         if (estadoActual == EstadoJuego.MENU) {
+            // 1. LA IMAGEN DE FONDO OCUPA TODA LA VENTANA
             if (imgTitulo != null) {
-                int w = 500; int h = (w * imgTitulo.getHeight()) / imgTitulo.getWidth();
-                g.drawImage(imgTitulo, (800 - w) / 2, 80, w, h, null);
+                g.drawImage(imgTitulo, 0, 0, this.getWidth(), this.getHeight(), null);
             }
-            g.setFont(new Font("Monospaced", Font.BOLD, 20)); // Ajusta el número al tamaño que necesites
+
+            // Configuramos la fuente estándar para el menú
+            Font fuenteMenu = new Font("Consolas", Font.BOLD, 30);
+            g.setFont(fuenteMenu);
+
+            // FontMetrics nos permite calcular el ancho exacto del texto para centrarlo
+            FontMetrics fm = g.getFontMetrics(fuenteMenu);
+
+            // 2. OPCIÓN 1: CENTRADA PERFECTAMENTE
+            String textoArcade = "1. PLAY ARCADE MODE";
+            int xArcade = (this.getWidth() - fm.stringWidth(textoArcade)) / 2; // Centro exacto en X
+
             if (opcionMenu == 0) g.setColor(Color.YELLOW); else g.setColor(Color.WHITE);
-            g.drawString("1. PLAY ARCADE MODE", 250, 350);
+            g.drawString(textoArcade, xArcade, 420); // 390 es la altura (Y), ajustala si querés
+
+            // 3. OPCIÓN 2: CENTRADA PERFECTAMENTE
+            String textoSelect = "2. SELECT STAGE";
+            int xSelect = (this.getWidth() - fm.stringWidth(textoSelect)) / 2; // Centro exacto en X
 
             if (opcionMenu == 1) g.setColor(Color.YELLOW); else g.setColor(Color.WHITE);
-            g.drawString("2. SELECT STAGE", 250, 420);
+            g.drawString(textoSelect, xSelect, 470); // 450 es la altura (Y)
             return;
         }
 
         // PANTALLA: SELECCIÓN DE NIVEL
         if (estadoActual == EstadoJuego.SELECCION) {
+
+            // 1. TÍTULO SUPERIOR CENTRADO
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g.drawString("SELECT YOUR STAGE", 280, 200);
+            Font fuenteTitulo = new Font("Consolas", Font.BOLD, 30);
+            g.setFont(fuenteTitulo);
+            FontMetrics fmTitulo = g.getFontMetrics(fuenteTitulo);
+            String textoTitulo = "SELECT YOUR STAGE";
+            int xTitulo = (this.getWidth() - fmTitulo.stringWidth(textoTitulo)) / 2;
+            g.drawString(textoTitulo, xTitulo, 200);
 
-            g.setColor(Color.YELLOW);
-            g.setFont(new Font("Monospaced", Font.BOLD, 20));
-            g.drawString("< " + String.format("%03d", nivelSeleccionado) + " >", 320, 350);
+            int assetY = 260;
+            if (imgHeroeDer != null) g.drawImage(imgHeroeDer, 350, assetY, 40, 40, null);
+            if (imgGuardiaDer != null) g.drawImage(imgGuardiaDer, 420, assetY, 40, 40, null);
 
+            // 3. NÚMEROS DE SELECCIÓN CENTRADOS (Debajo de los assets)
+            g.setColor(Color.RED);
+            Font fuenteNumeros = new Font("Consolas", Font.BOLD, 36);
+            g.setFont(fuenteNumeros);
+            FontMetrics fmNumeros = g.getFontMetrics(fuenteNumeros);
+            String textoNumeros = "< " + String.format("%02d", nivelSeleccionado) + " >";
+            int xNumeros = (this.getWidth() - fmNumeros.stringWidth(textoNumeros)) / 2;
+            g.drawString(textoNumeros, xNumeros, 360);
+
+            // 4. TEXTO INFERIOR CENTRADO
             g.setColor(Color.LIGHT_GRAY);
-            g.setFont(new Font("Monospaced", Font.BOLD, 20));
-            g.drawString("PRESS ENTER TO START", 270, 500);
+            Font fuenteEnter = new Font("Consolas", Font.BOLD, 16);
+            g.setFont(fuenteEnter);
+            FontMetrics fmEnter = g.getFontMetrics(fuenteEnter);
+            String textoEnter = "PRESS ENTER TO START";
+            int xEnter = (this.getWidth() - fmEnter.stringWidth(textoEnter)) / 2;
+            g.drawString(textoEnter, xEnter, 500);
+
             return;
         }
 
         // PANTALLA: TRANSICIÓN ("STAGE 00X")
         if (estadoActual == EstadoJuego.TRANSICION) {
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Monospaced", Font.BOLD, 20));
-            g.drawString(String.format("%03d STAGE", nivel), 260, 280);
+            g.setFont(new Font("Consolas", Font.BOLD, 30));
+            g.drawString(String.format("%02d STAGE", nivel), 330, 280);
 
             if (imgHeroeDer != null) g.drawImage(imgHeroeDer, 340, 340, 40, 40, null);
             if (imgGuardiaDer != null) g.drawImage(imgGuardiaDer, 420, 340, 40, 40, null);
@@ -751,10 +798,6 @@ public class LodeRunner extends Juego {
             heroe.dibujar(mundo);
         for (Guardia guardia : guardias) {
             guardia.dibujar(mundo);
-            // Dibuja el lingote robado arriba de su cabeza
-            if (guardia.isTieneOro() && imgOro != null) {
-                mundo.drawImage(imgOro, (int)guardia.x + 5, (int)guardia.y - 15, 20, 20, null);
-            }
         }
 
         mundo.dispose();
@@ -775,25 +818,32 @@ public class LodeRunner extends Juego {
             double escalaLives = 2.0;
             int w = 100;
             int h = w * imgLives.getHeight() / imgLives.getWidth();
-            g.drawImage(imgLives, 310, hudY, w, h, null);
-            dibujarNumero(g, String.format("%03d", vidas), 310 + w + 10, hudY + (h / 2) - 8, escalaLives);
+            g.drawImage(imgLives, 280, 555, w, h, null);
+            dibujarNumero(g, String.format("%03d", vidas), 280 + w + 10, 577, escalaLives);
         }
 
         if (imgLevel != null) {
             double escalaLevel = 2.0;
             int w = (int) (imgLevel.getWidth() * escalaLevel);
             int h = (int) (imgLevel.getHeight() * escalaLevel);
-            g.drawImage(imgLevel, 560, hudY, w, h, null);
-            dibujarNumero(g, String.format("%03d", nivel), 560 + w + 10, hudY, escalaLevel);
+            g.drawImage(imgLevel, 500, hudY, w, h, null);
+            dibujarNumero(g, String.format("%03d", nivel), 500 + w + 10, hudY, escalaLevel);
         }
 
-        g.setColor(Color.YELLOW);
-        g.setFont(new Font("Monospaced", Font.BOLD, 20));
-        g.drawString("TIME:", 740, hudY + 12);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Consolas", Font.BOLD, 20));
+        g.drawString("TIME:", 700, hudY + 14);
 
         double escalaTime = 1.2;
-        dibujarNumero(g, String.format("%03d", (int) tiempoRestante), 740, hudY + 24, escalaTime);
+        dibujarNumero(g, String.format("%03d", (int) tiempoRestante), 765, hudY +5, escalaTime);
 
+        if (imgLadrilloInferior != null) {
+            // Recorremos todo el ancho de la pantalla (de 30 en 30 píxeles)
+            for (int x = 0; x < this.getWidth(); x += 30) {
+                // Dibujamos en Y = 600 para que ocupe los últimos 30 píxeles de la ventana
+                g.drawImage(imgLadrilloInferior, x, 610, 30, 30, null);
+            }
+        }
         // GAME OVER
         if (juegoTerminado && imgGameOver != null) {
             g.setColor(new Color(0, 0, 0, 195));
@@ -808,11 +858,11 @@ public class LodeRunner extends Juego {
             g.drawImage(imgGameOver, x, y, nuevoAncho, nuevoAlto, null);
 
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Monospaced", Font.BOLD, 20));
+            g.setFont(new Font("Consolas", Font.BOLD, 20));
             g.drawString("PRESS ENTER TO MAIN MENU", 230, y + nuevoAlto + 40);
 
             g.setColor(Color.LIGHT_GRAY);
-            g.setFont(new Font("Monospaced", Font.BOLD, 20));
+            g.setFont(new Font("Consolas", Font.BOLD, 20));
             g.drawString("PRESS ESC TO EXIT", 325, y + nuevoAlto + 65);
         }
 
@@ -821,13 +871,6 @@ public class LodeRunner extends Juego {
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
-            // 1. TÍTULO "LEVEL COMPLETED" (PEGADO BIEN ARRIBA)
-            if (imgLevelCompleted != null) {
-                int anchoTitulo = 500;
-                int altoTitulo = (anchoTitulo * imgLevelCompleted.getHeight()) / imgLevelCompleted.getWidth();
-                int xTitulo = (800 - anchoTitulo) / 2;
-                g.drawImage(imgLevelCompleted, xTitulo, -35, anchoTitulo, altoTitulo, null);
-            }
 
             // =========================================================
             // 2. EXTREMO INFERIOR IZQ: HÉROE ANIMADO (MÁS GRANDE Y ABAJO)
@@ -877,16 +920,16 @@ public class LodeRunner extends Juego {
 
             int datosY = 200;      // Altura inicial
             int filaSeparacion = 75;
-            double tamañoNumeros = 2.0;
+            double tamañoNumeros = 3.0;
 
             // Fijamos la fuente Monospaced nativa directamente
-            g.setFont(new Font("Monospaced", Font.BOLD, 22));
+            g.setFont(new Font("Consolas", Font.BOLD, 22));
             g.setColor(Color.WHITE);
 
             // FILA 1: ORO (Ícono + Puntaje Directo)
             int totalPuntosOro = orosRecolectadosNivel * 250;
             if (imgOro != null) {
-                g.drawImage(imgOro, assetX, 190, 35, 35, null);
+                g.drawImage(imgOro, assetX, 170, 55, 55, null);
             }
             dibujarNumero(g, String.format("%04d", totalPuntosOro), numX, datosY, tamañoNumeros);
 
@@ -894,27 +937,28 @@ public class LodeRunner extends Juego {
             int totalPuntosGuardias = guardiasAtrapadosNivel * 75;
             int fila2Y = datosY + filaSeparacion;
             if (imgGuardiaAtrapado != null) {
-                g.drawImage(imgGuardiaAtrapado, assetX, 260, 35, 35, null);
+                g.drawImage(imgGuardiaAtrapado, assetX, 260, 55, 55, null);
             }
             dibujarNumero(g, String.format("%04d", totalPuntosGuardias), numX, fila2Y, tamañoNumeros);
 
             // FILA 3: TIME BONUS
             int fila3Y = fila2Y + filaSeparacion;
             g.setColor(Color.WHITE);
-            g.drawString("TIME BONUS", 245, 335+25);
+            g.setFont(new Font("Consolas", Font.BOLD, 33)); // Cambiá el 26 por 24 o 28 si lo querés distinto
+            g.drawString("TIME BONUS", 245, 342 + 25);
             dibujarNumero(g, String.format("%04d", tiempoFinal * 10), numX, 345, tamañoNumeros);
 
             // FILA 4: TOTAL SCORE
             int fila4Y = fila3Y + filaSeparacion + 15;
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Monospaced", Font.BOLD, 26)); // Un poco más grande para el total
-            g.drawString("TOTAL SCORE", textoX - 15, 457);
-            dibujarNumero(g, String.format("%06d", score), numX, fila4Y, tamañoNumeros);
+            g.setFont(new Font("Consolas", Font.BOLD, 41)); // Un poco más grande para el total
+            g.drawString("TOTAL SCORE", 180, 468);
+            dibujarNumero(g, String.format("%06d", score), numX, fila4Y, 3.5);
 
             // GUÍA INFERIOR
             g.setColor(Color.LIGHT_GRAY);
-            g.setFont(new Font("Monospaced", Font.PLAIN, 16));
-            g.drawString("PRESS ENTER TO NEXT STAGE", 290, 590);
+            g.setFont(new Font("Consolas", Font.PLAIN, 16));
+            g.drawString("PRESS ENTER TO NEXT STAGE", 290, 610);
         }
     }
 
