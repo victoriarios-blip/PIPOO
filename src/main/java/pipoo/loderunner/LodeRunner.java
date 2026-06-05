@@ -11,6 +11,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class LodeRunner extends Juego {
+
+    // MÁQUINA DE ESTADOS
+    public enum EstadoJuego { MENU, SELECCION, TRANSICION, JUGANDO, GAMEOVER}
+    private EstadoJuego estadoActual = EstadoJuego.MENU;
+
+    // Variables del Menú
+    private int opcionMenu = 0; // 0 = Play Arcade, 1 = Select Stage
+    private int nivelSeleccionado = 1;
+    private double timerTransicion = 0;
+    private boolean keyUp = false, keyDown = false, keyLeft = false, keyRight = false, keyEnter = false;
+
+
+    // ── VARIABLES DEL JUEGO ─────────────────────────────────────
     private Heroe heroe;
     private int ultimaDireccion = 30; // 30 es derecha, -30 es izquierda
     private ArrayList<Pozo> pozos;
@@ -24,7 +37,7 @@ public class LodeRunner extends Juego {
     private static final int ANCHO_PANTALLA = 800;
     private static final int ANCHO_MUNDO = 1200;
 
-    // victoria - tiempo
+
     private double tiempoRestante = 150.0;
     private boolean escaleraSalidaCreada = false;
     private boolean juegoTerminado = false;
@@ -42,13 +55,20 @@ public class LodeRunner extends Juego {
     // ATRIBUTOS DEL HUD
     private BufferedImage imgScore, imgLevel,imgTimeBonus, imgTitulo, imgLives,imgLevelCompleted, imgOro, imgPozo, imgFragmentoPozo, imgBloque, imgLadrilloInferior, imgParedLimite,imgGameOver, imgBloqueRegenerandose;
     private BufferedImage[] numeros;
-    private BufferedImage imgHighscore;
+
+    // ATRIBUTOS ENTIDADES
+    private BufferedImage imgHeroeDer, imgHeroeIzq, imgHeroeEscalera, imgHeroeColgado;
+    private BufferedImage imgGuardiaDer, imgGuardiaIzq, imgGuardiaEscalera, imgGuardiaColgado, imgGuardiaAtrapado;
+    private BufferedImage imgEscCorta, imgEscMediana, imgEscLarga, imgBarra;
+    private BufferedImage[] framesMuerteHeroe;
 
     private int score = 0;
     private int vidas = 5;
     private int nivel = 1;
 
-
+    private int orosRecolectadosNivel = 0;
+    private int guardiasAtrapadosNivel = 0;
+    private double animacionVictoriaY = 0;
 
     // AUDIO
     private GestorAudio audio = new GestorAudio();
@@ -63,10 +83,10 @@ public class LodeRunner extends Juego {
     protected void actualizarPuntaje() {
     }
 
-    //carga de mapa y nivel
+    //carga de recursos (AHORA BLINDADA Y SEPARADA)
     @Override
     public void gameStartup() {
-        System.out.println("Iniciando Lode Runner...");
+        System.out.println("Iniciando Lode Runner y cargando recursos...");
 
         pozos = new ArrayList<>();
         guardias = new ArrayList<>();
@@ -75,251 +95,63 @@ public class LodeRunner extends Juego {
         escaleras = new ArrayList<>();
         barras = new ArrayList<>();
 
+
+        //CARGAR IMÁGENES
         try {
             // HUD
             imgScore = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/score.png"));
             imgLevel = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level.png"));
             imgTitulo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/titulo lode runner.png"));
             imgLives = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/lives.png"));
-            imgTimeBonus = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/time_bonus.png")); // <-- NUEVA LÍNEA
             imgGameOver = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/game_over.png"));
-            imgLevelCompleted = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level_completed.png"));
+
             numeros = new BufferedImage[10];
             for (int i = 0; i <= 9; i++) {
                 numeros[i] = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + i + ".png"));
             }
 
+            // Assets nuevos (con manejo seguro por si falta alguno)
+            try { imgTimeBonus = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/time_bonus.png")); } catch(Exception e){}
+            try { imgLevelCompleted = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level_completed.png")); } catch(Exception e){}
+            try { imgBloqueRegenerandose = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/bloque_regenerandose.png")); } catch(Exception e){}
+
             // heroe
-            BufferedImage imgHeroeDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_mirando_der.png"));
-            BufferedImage imgHeroeIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_mirando_izq.png"));
-            BufferedImage imgHeroeEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_subiendo_escalera.png"));
-            BufferedImage imgHeroeColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_colgado_barramanos.png"));
+            imgHeroeDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_mirando_der.png"));
+            imgHeroeIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_mirando_izq.png"));
+            imgHeroeEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_subiendo_escalera.png"));
+            imgHeroeColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_colgado_barramanos.png"));
+
+            framesMuerteHeroe = new BufferedImage[7];
+            for (int i = 1; i <= 7; i++) {
+                framesMuerteHeroe[i-1] = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_muriendo_" + i + ".png"));
+            }
 
             // guardia
-            BufferedImage imgGuardiaDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_derecha_1.png"));
-            BufferedImage imgGuardiaIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_izquierda_1.png"));
-            BufferedImage imgGuardiaEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_en_escalera.png"));
-            BufferedImage imgGuardiaColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_izq_colgado.png"));
-            BufferedImage imgGuardiaAtrapado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_atrapado_pozo.png"));
+            imgGuardiaDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_derecha_1.png"));
+            imgGuardiaIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_izquierda_1.png"));
+            imgGuardiaEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_en_escalera.png"));
+            imgGuardiaColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_izq_colgado.png"));
+            imgGuardiaAtrapado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_atrapado_pozo.png"));
 
             // escenario
-            BufferedImage imgEscCorta = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera corta.png"));
-            BufferedImage imgEscMediana = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera mediana.png"));
-            BufferedImage imgEscLarga = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera_larga.png"));
-            BufferedImage imgBarra = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/barramanos.png"));
+            imgEscCorta = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera corta.png"));
+            imgEscMediana = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera mediana.png"));
+            imgEscLarga = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera_larga.png"));
+            imgEscaleraSalida = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera_larga.png"));
+            imgBarra = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/barramanos.png"));
             imgOro = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/oro.png"));
             imgBloque = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/bloque.png"));
             imgPozo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/pozo.png"));
             imgFragmentoPozo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/fragmentos_pozo.png"));
             imgLadrilloInferior = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/ladrillo_plat_inferior.png"));
-            imgParedLimite = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/ladrillo.png")); // CARGAR AQUÍ
-            imgBloqueRegenerandose = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/bloque_regenerandose.png")); // <-- NUEVA LÍNEA
+            imgParedLimite = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/ladrillo.png"));
 
-            // ESCENARIO NIVELES
+        } catch (Exception e) {
+            System.out.println("Error cargando imagenes: " + e.getMessage());
+        }
 
-            // PISO BASE (siempre en todos los mapas)
-            agregarFila(0, 500, 39, imgBloque);
-            for (int i = 0; i < 40; i++) {
-                Plataforma ladrillo = new Plataforma(i * 30, 530, 30, 30);
-                if (imgLadrilloInferior != null) ladrillo.setImagen(imgLadrilloInferior);
-                plataformas.add(ladrillo);
-            }
-
-            //lo que compartarten todos los niveles
-            int heroeStartX=430;
-            int heroeStartY=510;
-            ArrayList<Point> posGuardias = new ArrayList<>();
-            int nivelFisico = ((nivel - 1) % 3) + 1;
-
-            //avanzar en niveles
-            switch (nivelFisico) {
-                case 1:
-
-                    agregarFila(0, 80, 13, imgBloque);
-                    agregarFila(421, 80, 10, imgBloque);
-                    agregarFila(10, 210, 5, imgBloque);
-                    agregarFila(185, 210, 9, imgBloque);
-                    agregarFila(805, 150, 9, imgBloque);
-                    agregarFila(1105, 150, 3, imgBloque);
-                    agregarFila(600, 210, 9, imgBloque);
-                    agregarFila(895, 210, 10, imgBloque);
-                    agregarFila(600, 180, 3, imgBloque);
-                    agregarFila(600, 150, 3, imgBloque);
-                    agregarFila(0, 280, 17, imgBloque);
-                    agregarFila(540, 280, 11, imgBloque);
-                    agregarFila(300, 420, 8, imgBloque);
-                    agregarFila(865, 420, 9, imgBloque);
-
-                    // Escaleras
-                    Escalera e6 = new Escalera(390, 81, 30, 130, false); e6.setImagen(imgEscMediana); escaleras.add(e6);
-                    Escalera e5 = new Escalera(691, 150, 30, 60, false); e5.setImagen(imgEscCorta); escaleras.add(e5);
-                    Escalera e51 = new Escalera(1075, 150, 30, 60, false); e51.setImagen(imgEscCorta); escaleras.add(e51);
-                    Escalera e4 = new Escalera(155, 205, 30, 78, false); e4.setImagen(imgEscCorta); escaleras.add(e4);
-                    Escalera e41 = new Escalera(865, 210, 30, 209, false); e41.setImagen(imgEscMediana); escaleras.add(e41);
-                    Escalera e3 = new Escalera(510, 282, 30, 138, false); e3.setImagen(imgEscMediana); escaleras.add(e3);
-                    Escalera e2 = new Escalera(268, 420, 30, 80, false); e2.setImagen(imgEscCorta); escaleras.add(e2);
-                    Escalera e11 = new Escalera(1135, 420, 30, 80, false); e11.setImagen(imgEscCorta); escaleras.add(e11);
-
-                    // Barras
-                    BarraDeManos b1 = new BarraDeManos(420, 115, 385, 15); b1.setImagen(imgBarra); barras.add(b1);
-                    BarraDeManos b2 = new BarraDeManos(538, 370, 324, 15); b2.setImagen(imgBarra); barras.add(b2);
-
-                    // Oro
-                    Lingote o1 = new Lingote(230, 50, 30, 30); o1.setImagen(imgOro); lingotes.add(o1);
-                    Lingote o2 = new Lingote(1000, 120, 30, 30); o2.setImagen(imgOro); lingotes.add(o2);
-                    Lingote o3 = new Lingote(960, 180, 30, 30); o3.setImagen(imgOro); lingotes.add(o3);
-                    Lingote o4 = new Lingote(400, 390, 30, 30); o4.setImagen(imgOro); lingotes.add(o4);
-                    Lingote o5 = new Lingote(1040, 390, 30, 30); o5.setImagen(imgOro); lingotes.add(o5);
-                    Lingote o6 = new Lingote(760, 470, 30, 30); o6.setImagen(imgOro); lingotes.add(o6);
-
-                    // Setup personajes Nivel 1
-                    heroeStartX = 450;
-                    heroeStartY = 510;
-                    posGuardias.add(new Point(230, 180));
-                    posGuardias.add(new Point(1000, 180));
-                    posGuardias.add(new Point(691, 250));
-                    break;
-
-                case 2:
-                    // NIVEL 2
-
-                    // plataformas
-                    //PISO 4
-                    agregarFila(0, 440, 10, imgBloque);
-                    agregarFila(340, 440, 9, imgBloque);
-                    agregarFila(900, 440, 9, imgBloque);
-                    //PISO 3
-                    agregarFila(0, 350, 15, imgBloque);
-                    agregarFila(820, 350, 8, imgBloque);
-                    agregarFila(1100, 350, 3, imgBloque);
-                    //bloques sueltos
-                    agregarFila(0, 380, 6, imgBloque);
-                    agregarFila(0, 410, 2, imgBloque);
-                    agregarFila(150, 410, 1, imgBloque);
-                    //PISO 2
-                    agregarFila(715, 280, 14, imgBloque);
-                    agregarFila(490, 310, 6, imgBloque);
-                    agregarFila(75, 200, 6, imgBloque);
-                    agregarFila(890, 170, 8, imgBloque);
-                    //PISO 1
-                    agregarFila(75, 130, 6, imgBloque);
-                    agregarFila(490, 130, 12, imgBloque);
-
-                    //escaleras
-                    Escalera n2e1= new Escalera(300, 435, 40, 67, false);n2e1.setImagen(imgEscCorta); escaleras.add(n2e1);
-                    Escalera n2e2= new Escalera(788, 351, 30, 150, false);n2e2.setImagen(imgEscMediana); escaleras.add(n2e2);
-                    Escalera n2e3= new Escalera(452, 130, 35, 310, false);n2e3.setImagen(imgEscLarga); escaleras.add(n2e3);
-                    Escalera n2e4= new Escalera(1063, 347, 35, 93, false);n2e4.setImagen(imgEscMediana); escaleras.add(n2e4);
-                    Escalera n2e5= new Escalera(673, 280, 40, 64, false);n2e5.setImagen(imgEscCorta); escaleras.add(n2e5);
-                    Escalera n2e6= new Escalera(257, 130, 30, 220, false);n2e6.setImagen(imgEscMediana); escaleras.add(n2e6);
-                    Escalera n2e7= new Escalera(43, 130, 30, 220, false);n2e7.setImagen(imgEscMediana); escaleras.add(n2e7);
-                    Escalera n2e8= new Escalera(855, 130, 30, 148, false);n2e8.setImagen(imgEscMediana); escaleras.add(n2e8);
-                    Escalera n2e9= new Escalera(1133, 280, 38, 70, false);n2e9.setImagen(imgEscCorta); escaleras.add(n2e9);
-                    Escalera n2e10= new Escalera(1133, 62, 35, 140, false);n2e10.setImagen(imgEscMediana); escaleras.add(n2e10);
-
-                    // barraDeManos
-                    BarraDeManos n2b1 = new BarraDeManos(540, 400, 250, 15); n2b1.setImagen(imgBarra); barras.add(n2b1);
-                    BarraDeManos n2b2 = new BarraDeManos(287, 250, 167, 15); n2b2.setImagen(imgBarra); barras.add(n2b2);
-                    BarraDeManos n2b3 = new BarraDeManos(490, 250, 225, 15); n2b3.setImagen(imgBarra); barras.add(n2b3);
-
-                    //lingotes
-                    Lingote n2o1 = new Lingote(65, 410,30,30);n2o1.setImagen(imgOro); lingotes.add(n2o1);
-                    Lingote n2o2 = new Lingote(1120, 410,30,30);n2o2.setImagen(imgOro); lingotes.add(n2o2);
-                    Lingote n2o3 = new Lingote(320, 320,30,30);n2o3.setImagen(imgOro); lingotes.add(n2o3);
-                    Lingote n2o4 = new Lingote(510, 280,30,30);n2o4.setImagen(imgOro); lingotes.add(n2o4);
-                    Lingote n2o5 = new Lingote(100, 170,30,30);n2o5.setImagen(imgOro); lingotes.add(n2o5);
-                    Lingote n2o6 = new Lingote(140, 100,30,30);n2o6.setImagen(imgOro); lingotes.add(n2o6);
-                    Lingote n2o7 = new Lingote(720, 100,30,30);n2o7.setImagen(imgOro); lingotes.add(n2o7);
-                    Lingote n2o8 = new Lingote(950, 140,30,30);n2o8.setImagen(imgOro); lingotes.add(n2o8);
-
-                    //inicializamos personajes
-
-                    //heroe
-                    heroeStartX = 400; // Nace en el medio
-                    heroeStartY = 470; // Apoyado en el piso base
-
-                    //guardias (3)
-                    posGuardias.add(new Point(190, 320));
-                    posGuardias.add(new Point(190, 200)); //no aparece asset de bajando escalera
-                    posGuardias.add(new Point(810, 280)); //no aparece asset de bajando escalera
-                    break;
-
-                case 3: //hacer tal cual
-                    // ========================================================
-                    // NIVEL 3: LA TORRE CENTRAL (5 Guardias)
-                    // ========================================================
-                    // Plataformas centrales
-                    agregarFila(450, 120, 10, imgBloque);
-                    agregarFila(450, 240, 10, imgBloque);
-                    agregarFila(450, 360, 10, imgBloque);
-                    // Plataformas laterales flotantes
-                    agregarFila(60, 180, 5, imgBloque);
-                    agregarFila(990, 180, 5, imgBloque);
-                    agregarFila(60, 300, 5, imgBloque);
-                    agregarFila(990, 300, 5, imgBloque);
-
-                    // Escaleras de la torre
-                    Escalera t1 = new Escalera(450, 120, 30, 380, false); t1.setImagen(imgEscLarga); escaleras.add(t1);
-                    Escalera t2 = new Escalera(720, 120, 30, 380, false); t2.setImagen(imgEscLarga); escaleras.add(t2);
-
-                    // Barras para alcanzar las plataformas flotantes
-                    BarraDeManos tb1 = new BarraDeManos(210, 180, 240, 15); tb1.setImagen(imgBarra); barras.add(tb1);
-                    BarraDeManos tb2 = new BarraDeManos(750, 180, 240, 15); tb2.setImagen(imgBarra); barras.add(tb2);
-                    BarraDeManos tb3 = new BarraDeManos(210, 300, 240, 15); tb3.setImagen(imgBarra); barras.add(tb3);
-                    BarraDeManos tb4 = new BarraDeManos(750, 300, 240, 15); tb4.setImagen(imgBarra); barras.add(tb4);
-
-                    // Oro arriesgado en los bordes
-                    Lingote tg1 = new Lingote(90, 150, 30, 30); tg1.setImagen(imgOro); lingotes.add(tg1);
-                    Lingote tg2 = new Lingote(1080, 150, 30, 30); tg2.setImagen(imgOro); lingotes.add(tg2);
-                    Lingote tg3 = new Lingote(90, 270, 30, 30); tg3.setImagen(imgOro); lingotes.add(tg3);
-                    Lingote tg4 = new Lingote(1080, 270, 30, 30); tg4.setImagen(imgOro); lingotes.add(tg4);
-                    Lingote tg5 = new Lingote(570, 90, 30, 30); tg5.setImagen(imgOro); lingotes.add(tg5);
-
-                    heroeStartX = 585;
-                    heroeStartY = 510;
-                    posGuardias.add(new Point(540, 90));   // Cima
-                    posGuardias.add(new Point(540, 210));  // Medio
-                    posGuardias.add(new Point(540, 330));  // Abajo
-                    posGuardias.add(new Point(120, 510));  // Base Izq
-                    posGuardias.add(new Point(1020, 510)); // Base Der
-                    break;
-            }
-
-            imgEscaleraSalida = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera_larga.png"));
-            tiempoRestante = 150.0;
-
-            // ── INICIALIZACIÓN DE ENTIDADES VIVAS ──────────
-
-            // 1. Crear Héroe
-            heroe = new Heroe(heroeStartX, heroeStartY, 30, 30);
-            heroe.setImagen(imgHeroeDer);
-            heroe.setImagenDer(imgHeroeDer);
-            heroe.setImagenIzq(imgHeroeIzq);
-            heroe.setImagenEscalera(imgHeroeEscalera);
-            heroe.setImagenColgado(imgHeroeColgado);
-
-            for (int i = 1; i <= 7; i++) {
-                BufferedImage frameMuerte = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_muriendo_" + i + ".png"));
-                heroe.setImagenMuriendo(i - 1, frameMuerte);
-            }
-
-            // 2. Crear Guardias Dinámicos
-            for (Point p : posGuardias) {
-                guardias.add(new Guardia(p.x, p.y, 30, 30, heroe));
-            }
-
-            for (Guardia guardia : guardias) {
-                guardia.setMapa(escaleras, plataformas, barras, pozos);
-                guardia.setImagen(imgGuardiaDer);
-                guardia.setImgDer(imgGuardiaDer);
-                guardia.setImgIzq(imgGuardiaIzq);
-                guardia.setImgEscalera(imgGuardiaEscalera);
-                guardia.setImgColgado(imgGuardiaColgado);
-                guardia.setImgAtrapado(imgGuardiaAtrapado);
-            }
-
-            // SONIDOS
-
+        // 3. CARGAR AUDIOS (En un try separado para que no se rompa si falla una imagen)
+        try {
             audio.precargarEfecto("pasos", this.getClass().getResource("/pipoo/loderunner/audio/pasos.wav"));
             audio.precargarEfecto("escalera", this.getClass().getResource("/pipoo/loderunner/audio/escalera.wav"));
             audio.precargarEfecto("oro", this.getClass().getResource("/pipoo/loderunner/audio/oro.wav"));
@@ -327,12 +159,237 @@ public class LodeRunner extends Juego {
             audio.precargarEfecto("game_over", this.getClass().getResource("/pipoo/loderunner/audio/game_over.wav"));
 
             java.net.URL urlMusica = this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav");
-            audio.reproducirMusica(urlMusica);
-
+            if (urlMusica != null) {
+                audio.reproducirMusica(urlMusica);
+            }
+        } catch (Exception e) {
+            System.out.println("Error cargando audios: " + e.getMessage());
         }
-        catch (Exception e) {
-            System.out.println("Error cargando imagenes: " + e.getMessage());
-            e.printStackTrace();
+
+        // Arrancamos el juego en la pantalla de menú
+        estadoActual = EstadoJuego.MENU;
+
+
+    }
+
+    // ── MÉTODO PARA CONSTRUIR EL MAPA CUANDO SE ELIGE UN NIVEL ──
+    private void cargarNivel(int nivelACargar) {
+        pozos.clear();
+        guardias.clear();
+        lingotes.clear();
+        plataformas.clear();
+        escaleras.clear();
+        barras.clear();
+
+        tiempoRestante = 150.0;
+        escaleraSalidaCreada = false;
+        escaleraDeSalida = null;
+        pantallaVictoria = false;
+        juegoTerminado = false;
+
+        orosRecolectadosNivel = 0;
+        guardiasAtrapadosNivel = 0;
+
+        // PISO BASE (siempre en todos los mapas)
+        agregarFila(0, 500, 39, imgBloque);
+        for (int i = 0; i < 40; i++) {
+            Plataforma ladrillo = new Plataforma(i * 30, 530, 30, 30);
+            if (imgLadrilloInferior != null) ladrillo.setImagen(imgLadrilloInferior);
+            plataformas.add(ladrillo);
+        }
+
+        //lo que compartarten todos los niveles
+        int heroeStartX=430;
+        int heroeStartY=510;
+        ArrayList<Point> posGuardias = new ArrayList<>();
+        int nivelFisico = ((nivelACargar - 1) % 3) + 1;
+
+        //avanzar en niveles
+        switch (nivelFisico) {
+            case 1:
+                agregarFila(0, 80, 13, imgBloque);
+                agregarFila(421, 80, 10, imgBloque);
+                agregarFila(10, 210, 5, imgBloque);
+                agregarFila(185, 210, 9, imgBloque);
+                agregarFila(805, 150, 9, imgBloque);
+                agregarFila(1105, 150, 3, imgBloque);
+                agregarFila(600, 210, 9, imgBloque);
+                agregarFila(895, 210, 10, imgBloque);
+                agregarFila(600, 180, 3, imgBloque);
+                agregarFila(600, 150, 3, imgBloque);
+                agregarFila(0, 280, 17, imgBloque);
+                agregarFila(540, 280, 11, imgBloque);
+                agregarFila(300, 420, 8, imgBloque);
+                agregarFila(865, 420, 9, imgBloque);
+
+                // Escaleras
+                Escalera e6 = new Escalera(390, 81, 30, 130, false); e6.setImagen(imgEscMediana); escaleras.add(e6);
+                Escalera e5 = new Escalera(691, 150, 30, 60, false); e5.setImagen(imgEscCorta); escaleras.add(e5);
+                Escalera e51 = new Escalera(1075, 150, 30, 60, false); e51.setImagen(imgEscCorta); escaleras.add(e51);
+                Escalera e4 = new Escalera(155, 205, 30, 78, false); e4.setImagen(imgEscCorta); escaleras.add(e4);
+                Escalera e41 = new Escalera(865, 210, 30, 209, false); e41.setImagen(imgEscMediana); escaleras.add(e41);
+                Escalera e3 = new Escalera(510, 282, 30, 138, false); e3.setImagen(imgEscMediana); escaleras.add(e3);
+                Escalera e2 = new Escalera(268, 420, 30, 80, false); e2.setImagen(imgEscCorta); escaleras.add(e2);
+                Escalera e11 = new Escalera(1135, 420, 30, 80, false); e11.setImagen(imgEscCorta); escaleras.add(e11);
+
+                // Barras
+                BarraDeManos b1 = new BarraDeManos(420, 115, 385, 15); b1.setImagen(imgBarra); barras.add(b1);
+                BarraDeManos b2 = new BarraDeManos(538, 370, 324, 15); b2.setImagen(imgBarra); barras.add(b2);
+
+                // Oro
+                Lingote o1 = new Lingote(230, 50, 30, 30); o1.setImagen(imgOro); lingotes.add(o1);
+                Lingote o2 = new Lingote(1000, 120, 30, 30); o2.setImagen(imgOro); lingotes.add(o2);
+                Lingote o3 = new Lingote(960, 180, 30, 30); o3.setImagen(imgOro); lingotes.add(o3);
+                Lingote o4 = new Lingote(400, 390, 30, 30); o4.setImagen(imgOro); lingotes.add(o4);
+                Lingote o5 = new Lingote(1040, 390, 30, 30); o5.setImagen(imgOro); lingotes.add(o5);
+                Lingote o6 = new Lingote(760, 470, 30, 30); o6.setImagen(imgOro); lingotes.add(o6);
+
+                // Setup personajes Nivel 1
+                heroeStartX = 450;
+                heroeStartY = 510;
+                posGuardias.add(new Point(230, 180));
+                posGuardias.add(new Point(1000, 180));
+                posGuardias.add(new Point(691, 250));
+                break;
+
+            case 2:
+                // NIVEL 2
+                // plataformas
+                //PISO 4
+                agregarFila(0, 440, 10, imgBloque);
+                agregarFila(340, 440, 9, imgBloque);
+                agregarFila(900, 440, 9, imgBloque);
+                //PISO 3
+                agregarFila(0, 350, 15, imgBloque);
+                agregarFila(820, 350, 8, imgBloque);
+                agregarFila(1100, 350, 3, imgBloque);
+                //bloques sueltos
+                agregarFila(0, 380, 6, imgBloque);
+                agregarFila(0, 410, 2, imgBloque);
+                agregarFila(150, 410, 1, imgBloque);
+                //PISO 2
+                agregarFila(715, 280, 14, imgBloque);
+                agregarFila(490, 310, 6, imgBloque);
+                agregarFila(75, 200, 6, imgBloque);
+                agregarFila(890, 170, 8, imgBloque);
+                //PISO 1
+                agregarFila(75, 130, 6, imgBloque);
+                agregarFila(490, 130, 12, imgBloque);
+
+                //escaleras
+                Escalera n2e1= new Escalera(300, 435, 40, 67, false);n2e1.setImagen(imgEscCorta); escaleras.add(n2e1);
+                Escalera n2e2= new Escalera(788, 351, 30, 150, false);n2e2.setImagen(imgEscMediana); escaleras.add(n2e2);
+                Escalera n2e3= new Escalera(452, 130, 35, 310, false);n2e3.setImagen(imgEscLarga); escaleras.add(n2e3);
+                Escalera n2e4= new Escalera(1063, 347, 35, 93, false);n2e4.setImagen(imgEscMediana); escaleras.add(n2e4);
+                Escalera n2e5= new Escalera(673, 280, 40, 64, false);n2e5.setImagen(imgEscCorta); escaleras.add(n2e5);
+                Escalera n2e6= new Escalera(257, 130, 30, 220, false);n2e6.setImagen(imgEscMediana); escaleras.add(n2e6);
+                Escalera n2e7= new Escalera(43, 130, 30, 220, false);n2e7.setImagen(imgEscMediana); escaleras.add(n2e7);
+                Escalera n2e8= new Escalera(855, 130, 30, 148, false);n2e8.setImagen(imgEscMediana); escaleras.add(n2e8);
+                Escalera n2e9= new Escalera(1133, 280, 38, 70, false);n2e9.setImagen(imgEscCorta); escaleras.add(n2e9);
+                Escalera n2e10= new Escalera(1133, 62, 35, 140, false);n2e10.setImagen(imgEscMediana); escaleras.add(n2e10);
+
+                // barraDeManos
+                BarraDeManos n2b1 = new BarraDeManos(540, 400, 250, 15); n2b1.setImagen(imgBarra); barras.add(n2b1);
+                BarraDeManos n2b2 = new BarraDeManos(287, 250, 167, 15); n2b2.setImagen(imgBarra); barras.add(n2b2);
+                BarraDeManos n2b3 = new BarraDeManos(490, 250, 225, 15); n2b3.setImagen(imgBarra); barras.add(n2b3);
+
+                //lingotes
+                Lingote n2o1 = new Lingote(65, 410,30,30);n2o1.setImagen(imgOro); lingotes.add(n2o1);
+                Lingote n2o2 = new Lingote(1120, 410,30,30);n2o2.setImagen(imgOro); lingotes.add(n2o2);
+                Lingote n2o3 = new Lingote(320, 320,30,30);n2o3.setImagen(imgOro); lingotes.add(n2o3);
+                Lingote n2o4 = new Lingote(510, 280,30,30);n2o4.setImagen(imgOro); lingotes.add(n2o4);
+                Lingote n2o5 = new Lingote(100, 170,30,30);n2o5.setImagen(imgOro); lingotes.add(n2o5);
+                Lingote n2o6 = new Lingote(140, 100,30,30);n2o6.setImagen(imgOro); lingotes.add(n2o6);
+                Lingote n2o7 = new Lingote(720, 100,30,30);n2o7.setImagen(imgOro); lingotes.add(n2o7);
+                Lingote n2o8 = new Lingote(950, 140,30,30);n2o8.setImagen(imgOro); lingotes.add(n2o8);
+
+                //heroe
+                heroeStartX = 400; // Nace en el medio
+                heroeStartY = 470; // Apoyado en el piso base
+
+                //guardias (3)
+                posGuardias.add(new Point(190, 320));
+                posGuardias.add(new Point(190, 200));
+                posGuardias.add(new Point(810, 280));
+                break;
+
+            case 3: //hacer tal cual
+                // ========================================================
+                // NIVEL 3: LA TORRE CENTRAL (5 Guardias)
+                // ========================================================
+                // Plataformas centrales
+                agregarFila(450, 120, 10, imgBloque);
+                agregarFila(450, 240, 10, imgBloque);
+                agregarFila(450, 360, 10, imgBloque);
+                // Plataformas laterales flotantes
+                agregarFila(60, 180, 5, imgBloque);
+                agregarFila(990, 180, 5, imgBloque);
+                agregarFila(60, 300, 5, imgBloque);
+                agregarFila(990, 300, 5, imgBloque);
+
+                // Escaleras de la torre
+                Escalera t1 = new Escalera(450, 120, 30, 380, false); t1.setImagen(imgEscLarga); escaleras.add(t1);
+                Escalera t2 = new Escalera(720, 120, 30, 380, false); t2.setImagen(imgEscLarga); escaleras.add(t2);
+
+                // Barras para alcanzar las plataformas flotantes
+                BarraDeManos tb1 = new BarraDeManos(210, 180, 240, 15); tb1.setImagen(imgBarra); barras.add(tb1);
+                BarraDeManos tb2 = new BarraDeManos(750, 180, 240, 15); tb2.setImagen(imgBarra); barras.add(tb2);
+                BarraDeManos tb3 = new BarraDeManos(210, 300, 240, 15); tb3.setImagen(imgBarra); barras.add(tb3);
+                BarraDeManos tb4 = new BarraDeManos(750, 300, 240, 15); tb4.setImagen(imgBarra); barras.add(tb4);
+
+                // Oro arriesgado en los bordes
+                Lingote tg1 = new Lingote(90, 150, 30, 30); tg1.setImagen(imgOro); lingotes.add(tg1);
+                Lingote tg2 = new Lingote(1080, 150, 30, 30); tg2.setImagen(imgOro); lingotes.add(tg2);
+                Lingote tg3 = new Lingote(90, 270, 30, 30); tg3.setImagen(imgOro); lingotes.add(tg3);
+                Lingote tg4 = new Lingote(1080, 270, 30, 30); tg4.setImagen(imgOro); lingotes.add(tg4);
+                Lingote tg5 = new Lingote(570, 90, 30, 30); tg5.setImagen(imgOro); lingotes.add(tg5);
+
+                heroeStartX = 585;
+                heroeStartY = 510;
+                posGuardias.add(new Point(540, 90));   // Cima
+                posGuardias.add(new Point(540, 210));  // Medio
+                posGuardias.add(new Point(540, 330));  // Abajo
+                posGuardias.add(new Point(120, 510));  // Base Izq
+                posGuardias.add(new Point(1020, 510)); // Base Der
+                break;
+        }
+
+        // 1. Crear Héroe
+        heroe = new Heroe(heroeStartX, heroeStartY, 30, 30);
+        heroe.setImagen(imgHeroeDer);
+        heroe.setImagenDer(imgHeroeDer);
+        heroe.setImagenIzq(imgHeroeIzq);
+        heroe.setImagenEscalera(imgHeroeEscalera);
+        heroe.setImagenColgado(imgHeroeColgado);
+
+        for (int i = 0; i < 7; i++) {
+            if (framesMuerteHeroe != null && framesMuerteHeroe[i] != null) {
+                heroe.setImagenMuriendo(i, framesMuerteHeroe[i]);
+            }
+        }
+
+        // 2. Crear Guardias Dinámicos
+        for (Point p : posGuardias) {
+            guardias.add(new Guardia(p.x, p.y, 30, 30, heroe));
+        }
+
+        for (Guardia guardia : guardias) {
+            guardia.setMapa(escaleras, plataformas, barras, pozos);
+            guardia.setImagen(imgGuardiaDer);
+            guardia.setImgDer(imgGuardiaDer);
+            guardia.setImgIzq(imgGuardiaIzq);
+            guardia.setImgEscalera(imgGuardiaEscalera);
+            guardia.setImgColgado(imgGuardiaColgado);
+            guardia.setImgAtrapado(imgGuardiaAtrapado);
+        }
+        try {
+            audio.detenerMusica(); // Por si venía sonando del menú o de la vida anterior
+            java.net.URL urlMusica = this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav");
+            if (urlMusica != null) {
+                audio.reproducirMusica(urlMusica);
+            }
+        } catch (Exception e) {
+            System.out.println("Error con la música: " + e.getMessage());
         }
     }
 
@@ -340,24 +397,80 @@ public class LodeRunner extends Juego {
     public void gameUpdate(double delta) {
         Keyboard teclado = this.getKeyboard();
 
-        if (juegoTerminado) {
-            if (teclado.isKeyPressed(KeyEvent.VK_ENTER)) {
-                // START OVER: Reiniciamos la partida por completo
-                reiniciarJuegoTotal();
-            } else if (teclado.isKeyPressed(KeyEvent.VK_ESCAPE)) {
-                // EXIT: Cerramos el juego
-                System.exit(0);
+        // ── ENTRADAS ANTIRREBOTE PARA MENÚS ──
+        boolean actUp = teclado.isKeyPressed(KeyEvent.VK_UP);
+        boolean actDown = teclado.isKeyPressed(KeyEvent.VK_DOWN);
+        boolean actLeft = teclado.isKeyPressed(KeyEvent.VK_LEFT);
+        boolean actRight = teclado.isKeyPressed(KeyEvent.VK_RIGHT);
+        boolean actEnter = teclado.isKeyPressed(KeyEvent.VK_ENTER);
+
+        // ── ESTADO: MENÚ PRINCIPAL ──
+        if (estadoActual == EstadoJuego.MENU) {
+            if (actUp && !keyUp) opcionMenu = 0;
+            if (actDown && !keyDown) opcionMenu = 1;
+
+            if (actEnter && !keyEnter) {
+                if (opcionMenu == 0) {
+                    nivel = 1;
+                    score = 0;
+                    vidas = 5;
+                    cargarNivel(nivel);
+                    estadoActual = EstadoJuego.TRANSICION;
+                    timerTransicion = 2.5;
+                } else {
+                    estadoActual = EstadoJuego.SELECCION;
+                }
             }
-            return; // Congela el mundo
+            actualizarTeclas(actUp, actDown, actLeft, actRight, actEnter);
+            return;
         }
 
-        // NUEVO: Si completó el nivel, esperamos que presione ENTER para cambiar de mapa
+        // ── ESTADO: SELECCIÓN DE NIVEL ──
+        else if (estadoActual == EstadoJuego.SELECCION) {
+            if (actLeft && !keyLeft && nivelSeleccionado > 1) nivelSeleccionado--;
+            if (actRight && !keyRight && nivelSeleccionado < 999) nivelSeleccionado++;
+            if (actEnter && !keyEnter) {
+                nivel = nivelSeleccionado;
+                score = 0;
+                vidas = 5;
+                cargarNivel(nivel);
+                estadoActual = EstadoJuego.TRANSICION;
+                timerTransicion = 2.5;
+            }
+            actualizarTeclas(actUp, actDown, actLeft, actRight, actEnter);
+            return;
+        }
+
+        // ── ESTADO: TRANSICIÓN ("STAGE 00X") ──
+        else if (estadoActual == EstadoJuego.TRANSICION) {
+            timerTransicion -= delta;
+            if (timerTransicion <= 0 || (actEnter && !keyEnter)) {
+                estadoActual = EstadoJuego.JUGANDO;
+            }
+            actualizarTeclas(actUp, actDown, actLeft, actRight, actEnter);
+            return;
+        }
+
+        // ── A PARTIR DE ACÁ ES TU CÓDIGO ORIGINAL DEL JUEGO (ESTADO JUGANDO) ──
+        actualizarTeclas(actUp, actDown, actLeft, actRight, actEnter); // Limpiar buffer de teclas
+
+        if (juegoTerminado) {
+            if (teclado.isKeyPressed(KeyEvent.VK_ENTER)) {
+                // START OVER: Volver al menú
+                estadoActual = EstadoJuego.MENU;
+                juegoTerminado = false;
+            } else if (teclado.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+                System.exit(0);
+            }
+            return;
+        }
+
         if (pantallaVictoria) {
             if (teclado.isKeyPressed(KeyEvent.VK_ENTER)) {
                 pantallaVictoria = false;
-                avanzarSiguienteNivel(); // Método nuevo que crearemos en el Paso 4
+                avanzarSiguienteNivel();
             }
-            return; // Corta el update, congela enemigos y reloj
+            return;
         }
 
         if (heroe.isEstaMuriendo()) {
@@ -429,13 +542,6 @@ public class LodeRunner extends Juego {
             }
         }
 
-        if (heroe.isEstaMuriendo()) {
-            boolean animacionTerminada = heroe.actualizarAnimacionMuerte(delta);
-            if (animacionTerminada)
-                reiniciarPosiciones();
-            return;
-        }
-
         // Cavar pozos
         if (teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
             heroe.cavar();
@@ -453,9 +559,8 @@ public class LodeRunner extends Juego {
             Pozo pozoActual = iteradorPozos.next();
             pozoActual.actualizar(delta);
 
-            if (pozoActual.getEstado() == 2) { // 2= el pozo se esta cerrando
+            if (pozoActual.getEstado() == 2) {
 
-                // ver si entierra al Héroe
                 if (heroe.intersects(pozoActual) && heroe.y >= pozoActual.y - 10) {
                     System.out.println("¡El héroe fue enterrado vivo!");
                     heroe.iniciarMuerte();
@@ -465,11 +570,11 @@ public class LodeRunner extends Juego {
                     if (g.intersects(pozoActual)) {
                         System.out.println("¡Un guardia fue eliminado! +75 pts");
                         score += 75;
-                        g.reaparecer(); // vuelve a su posición inicial
+                        guardiasAtrapadosNivel++;
+                        g.reaparecer();
                     }
                 }
 
-                // regenerar el bloque solido
                 Plataforma bloqueRegenerado = new Plataforma(pozoActual.x, pozoActual.y, 30, 30);
                 if (imgBloque != null)
                     bloqueRegenerado.setImagen(imgBloque);
@@ -478,31 +583,23 @@ public class LodeRunner extends Juego {
             }
         }
 
-        // movimiento heroe — caida bloquea horizontal
+        // movimiento heroe
         if (heroe.isEstaCayendo()) {
             heroe.setVelocidadX(0);
         } else {
-            if (teclado.isKeyPressed(KeyEvent.VK_RIGHT))
-                heroe.setVelocidadX(2);
-            else if (teclado.isKeyPressed(KeyEvent.VK_LEFT))
-                heroe.setVelocidadX(-2);
-            else
-                heroe.setVelocidadX(0);
+            if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) heroe.setVelocidadX(2);
+            else if (teclado.isKeyPressed(KeyEvent.VK_LEFT)) heroe.setVelocidadX(-2);
+            else heroe.setVelocidadX(0);
         }
 
-        // escalera heroe
         if (heroe.isEnEscalera()) {
-            if (teclado.isKeyPressed(KeyEvent.VK_UP))
-                heroe.setVelocidadY(-2.5);
-            else if (teclado.isKeyPressed(KeyEvent.VK_DOWN))
-                heroe.setVelocidadY(2.5);
-            else
-                heroe.setVelocidadY(0);
+            if (teclado.isKeyPressed(KeyEvent.VK_UP)) heroe.setVelocidadY(-2.5);
+            else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) heroe.setVelocidadY(2.5);
+            else heroe.setVelocidadY(0);
         } else if (!heroe.isEstaCayendo()) {
             heroe.setVelocidadY(0);
         }
 
-        // movimiento horizontal
         if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) {
             heroe.setVelocidadX(2.5);
             ultimaDireccion = 30;
@@ -547,8 +644,13 @@ public class LodeRunner extends Juego {
 
         // camara
         cameraX = heroe.x - ANCHO_PANTALLA / 2.0;
-        cameraX = Math.max(0, cameraX); // Permite ver la pared izquierda
+        cameraX = Math.max(0, cameraX);
         cameraX = Math.min(ANCHO_MUNDO  - ANCHO_PANTALLA, cameraX);
+    }
+
+    // Método auxiliar para el teclado en menú
+    private void actualizarTeclas(boolean u, boolean d, boolean l, boolean r, boolean e) {
+        keyUp = u; keyDown = d; keyLeft = l; keyRight = r; keyEnter = e;
     }
 
     // CAVAR
@@ -577,11 +679,55 @@ public class LodeRunner extends Juego {
         }
     }
 
+
     @Override
     public void gameDraw(Graphics2D g) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, 800, 630);
 
+        // PANTALLA: MENÚ PRINCIPAL
+        if (estadoActual == EstadoJuego.MENU) {
+            if (imgTitulo != null) {
+                int w = 500; int h = (w * imgTitulo.getHeight()) / imgTitulo.getWidth();
+                g.drawImage(imgTitulo, (800 - w) / 2, 80, w, h, null);
+            }
+            g.setFont(new Font("Monospaced", Font.BOLD, 20)); // Ajusta el número al tamaño que necesites
+            if (opcionMenu == 0) g.setColor(Color.YELLOW); else g.setColor(Color.WHITE);
+            g.drawString("1. PLAY ARCADE MODE", 250, 350);
+
+            if (opcionMenu == 1) g.setColor(Color.YELLOW); else g.setColor(Color.WHITE);
+            g.drawString("2. SELECT STAGE", 250, 420);
+            return;
+        }
+
+        // PANTALLA: SELECCIÓN DE NIVEL
+        if (estadoActual == EstadoJuego.SELECCION) {
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Monospaced", Font.BOLD, 24));
+            g.drawString("SELECT YOUR STAGE", 280, 200);
+
+            g.setColor(Color.YELLOW);
+            g.setFont(new Font("Monospaced", Font.BOLD, 20));
+            g.drawString("< " + String.format("%03d", nivelSeleccionado) + " >", 320, 350);
+
+            g.setColor(Color.LIGHT_GRAY);
+            g.setFont(new Font("Monospaced", Font.BOLD, 20));
+            g.drawString("PRESS ENTER TO START", 270, 500);
+            return;
+        }
+
+        // PANTALLA: TRANSICIÓN ("STAGE 00X")
+        if (estadoActual == EstadoJuego.TRANSICION) {
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Monospaced", Font.BOLD, 20));
+            g.drawString(String.format("%03d STAGE", nivel), 260, 280);
+
+            if (imgHeroeDer != null) g.drawImage(imgHeroeDer, 340, 340, 40, 40, null);
+            if (imgGuardiaDer != null) g.drawImage(imgGuardiaDer, 420, 340, 40, 40, null);
+            return;
+        }
+
+        // ── PANTALLA: JUEGO NORMAL ──
         Graphics2D mundo = (Graphics2D) g.create();
         mundo.translate((int) -cameraX, 0);
 
@@ -596,18 +742,19 @@ public class LodeRunner extends Juego {
         for (Pozo pozo : pozos)
             pozo.dibujar(mundo);
 
-        // PAREDES LIMITE
         if (imgParedLimite != null) {
             for (int y =0; y <= 510; y += 30) {
-                // pared izquierda
                 mundo.drawImage(imgParedLimite, 0, y, 30, 30, null);
-                // pared derecha
                 mundo.drawImage(imgParedLimite, ANCHO_MUNDO - 29, y, 35, 30, null);            }
         }
         if (heroe != null)
             heroe.dibujar(mundo);
         for (Guardia guardia : guardias) {
             guardia.dibujar(mundo);
+            // Dibuja el lingote robado arriba de su cabeza
+            if (guardia.isTieneOro() && imgOro != null) {
+                mundo.drawImage(imgOro, (int)guardia.x + 5, (int)guardia.y - 15, 20, 20, null);
+            }
         }
 
         mundo.dispose();
@@ -616,7 +763,6 @@ public class LodeRunner extends Juego {
         int hudY = 575;
         double escala = 1.5;
 
-        // SCORE
         if (imgScore != null) {
             double escalaScore = 2.0;
             int w = (int) (imgScore.getWidth() * escalaScore);
@@ -625,7 +771,6 @@ public class LodeRunner extends Juego {
             dibujarNumero(g, String.format("%06d", score), 20 + w + 10, hudY, escalaScore);
         }
 
-        // LIVES
         if (imgLives != null) {
             double escalaLives = 2.0;
             int w = 100;
@@ -634,7 +779,6 @@ public class LodeRunner extends Juego {
             dibujarNumero(g, String.format("%03d", vidas), 310 + w + 10, hudY + (h / 2) - 8, escalaLives);
         }
 
-        // LEVEL
         if (imgLevel != null) {
             double escalaLevel = 2.0;
             int w = (int) (imgLevel.getWidth() * escalaLevel);
@@ -643,13 +787,13 @@ public class LodeRunner extends Juego {
             dibujarNumero(g, String.format("%03d", nivel), 560 + w + 10, hudY, escalaLevel);
         }
 
-        // TIMER
         g.setColor(Color.YELLOW);
-        g.setFont(new Font("Monospaced", Font.BOLD, 14));
+        g.setFont(new Font("Monospaced", Font.BOLD, 20));
         g.drawString("TIME:", 740, hudY + 12);
 
         double escalaTime = 1.2;
         dibujarNumero(g, String.format("%03d", (int) tiempoRestante), 740, hudY + 24, escalaTime);
+
         // GAME OVER
         if (juegoTerminado && imgGameOver != null) {
             g.setColor(new Color(0, 0, 0, 195));
@@ -663,70 +807,114 @@ public class LodeRunner extends Juego {
 
             g.drawImage(imgGameOver, x, y, nuevoAncho, nuevoAlto, null);
 
-            // NUEVO: Texto de opciones (START OVER o EXIT)
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Monospaced", Font.BOLD, 22));
-            g.drawString("PRESS ENTER TO START OVER", 230, y + nuevoAlto + 40);
+            g.setFont(new Font("Monospaced", Font.BOLD, 20));
+            g.drawString("PRESS ENTER TO MAIN MENU", 230, y + nuevoAlto + 40);
 
             g.setColor(Color.LIGHT_GRAY);
-            g.setFont(new Font("Monospaced", Font.BOLD, 14));
+            g.setFont(new Font("Monospaced", Font.BOLD, 20));
             g.drawString("PRESS ESC TO EXIT", 325, y + nuevoAlto + 65);
         }
 
-        // ── OVERLAY DE PANTALLA DE VICTORIA INTERMEDIA (CORREGIDO) ──────
+        // ── PANTALLA DE VICTORIA CLÁSICA Y LIMPIA (SIN FUENTE ARCADE) ──
         if (pantallaVictoria) {
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
-            // Título principal en BLANCO (eliminamos el verde), más grande y centrado
+            // 1. TÍTULO "LEVEL COMPLETED" (PEGADO BIEN ARRIBA)
             if (imgLevelCompleted != null) {
                 int anchoTitulo = 500;
                 int altoTitulo = (anchoTitulo * imgLevelCompleted.getHeight()) / imgLevelCompleted.getWidth();
-
                 int xTitulo = (800 - anchoTitulo) / 2;
-                int yTitulo = 30;
-                g.drawImage(imgLevelCompleted, xTitulo, yTitulo, anchoTitulo, altoTitulo, null);
+                g.drawImage(imgLevelCompleted, xTitulo, -35, anchoTitulo, altoTitulo, null);
             }
 
-            // Mensaje de guía inferior en gris retro
+            // =========================================================
+            // 2. EXTREMO INFERIOR IZQ: HÉROE ANIMADO (MÁS GRANDE Y ABAJO)
+            // =========================================================
+            int basePlataformaX = 10;
+            int basePlataformaY = 520;
+            int sizeP = 45;
+
+            if (imgBloque != null) {
+                // Primeros 2 bloques
+                g.drawImage(imgBloque, basePlataformaX, basePlataformaY, sizeP, sizeP, null);
+                g.drawImage(imgBloque, basePlataformaX + sizeP, basePlataformaY, sizeP, sizeP, null);
+
+                // Siguientes 3 bloques
+                g.drawImage(imgBloque, basePlataformaX + (sizeP * 3), basePlataformaY, sizeP, sizeP, null);
+                g.drawImage(imgBloque, basePlataformaX + (sizeP * 4), basePlataformaY, sizeP, sizeP, null);
+                g.drawImage(imgBloque, basePlataformaX + (sizeP * 5), basePlataformaY, sizeP, sizeP, null);
+            }
+
+            // Ubicamos la escalera exactamente en el hueco vacío
+            int escVictoriaX = basePlataformaX + (sizeP * 2);
+            if (imgEscCorta != null) {
+                g.drawImage(imgEscCorta, escVictoriaX, basePlataformaY, sizeP, 115, null);
+            }
+
+            // Animación del héroe adaptada al pozo (baja y sube)
+            double ciclo = (System.currentTimeMillis() % 2000) / 2000.0;
+            int maxDesplazamiento = 70;
+            int desplazamientoY;
+
+            if (ciclo < 0.5) {
+                desplazamientoY = (int) (ciclo * 2 * maxDesplazamiento);
+            } else {
+                desplazamientoY = (int) (maxDesplazamiento - ((ciclo - 0.5) * 2 * maxDesplazamiento));
+            }
+
+            if (imgHeroeEscalera != null) {
+                g.drawImage(imgHeroeEscalera, escVictoriaX, basePlataformaY + desplazamientoY, sizeP, sizeP, null);
+            }
+
+            // =========================================================
+            // 3. CENTRO: DESGLOSE MINIMALISTA PERFECCIONADO Y ALINEADO
+            // =========================================================
+            int assetX = 250;      // Columnas rígidas de alineación horizontal
+            int numX = 450;
+            int textoX = 260;
+
+            int datosY = 200;      // Altura inicial
+            int filaSeparacion = 75;
+            double tamañoNumeros = 2.0;
+
+            // Fijamos la fuente Monospaced nativa directamente
+            g.setFont(new Font("Monospaced", Font.BOLD, 22));
+            g.setColor(Color.WHITE);
+
+            // FILA 1: ORO (Ícono + Puntaje Directo)
+            int totalPuntosOro = orosRecolectadosNivel * 250;
+            if (imgOro != null) {
+                g.drawImage(imgOro, assetX, 190, 35, 35, null);
+            }
+            dibujarNumero(g, String.format("%04d", totalPuntosOro), numX, datosY, tamañoNumeros);
+
+            // FILA 2: GUARDIA (Ícono + Puntaje Directo)
+            int totalPuntosGuardias = guardiasAtrapadosNivel * 75;
+            int fila2Y = datosY + filaSeparacion;
+            if (imgGuardiaAtrapado != null) {
+                g.drawImage(imgGuardiaAtrapado, assetX, 260, 35, 35, null);
+            }
+            dibujarNumero(g, String.format("%04d", totalPuntosGuardias), numX, fila2Y, tamañoNumeros);
+
+            // FILA 3: TIME BONUS
+            int fila3Y = fila2Y + filaSeparacion;
+            g.setColor(Color.WHITE);
+            g.drawString("TIME BONUS", 245, 335+25);
+            dibujarNumero(g, String.format("%04d", tiempoFinal * 10), numX, 345, tamañoNumeros);
+
+            // FILA 4: TOTAL SCORE
+            int fila4Y = fila3Y + filaSeparacion + 15;
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Monospaced", Font.BOLD, 26)); // Un poco más grande para el total
+            g.drawString("TOTAL SCORE", textoX - 15, 457);
+            dibujarNumero(g, String.format("%06d", score), numX, fila4Y, tamañoNumeros);
+
+            // GUÍA INFERIOR
             g.setColor(Color.LIGHT_GRAY);
-            g.setFont(new Font("Monospaced", Font.BOLD, 16));
-            g.drawString("PRESS ENTER TO NEXT STAGE", 280, 520);
-
-            // Coordenadas de alineación de las filas de estadísticas
-            int startX = 230; // Un toque más a la izquierda para dar aire
-            int numX = 510;   // Alineación perfecta para la columna de números
-            int startY = 240; // Bajamos el bloque completo de datos
-            int espaciado = 70; // Más separación entre filas
-            double escalaItems = 2.0;
-
-            // 1. Dibujar VIDAS (Fila 0)
-            if (imgLives != null) {
-                int wLives = 120;
-                int hLives = (wLives * imgLives.getHeight()) / imgLives.getWidth();
-                g.drawImage(imgLives, startX, startY, wLives, hLives, null);
-                // Dibujamos el número centrado en Y con el asset
-                dibujarNumero(g, String.format("%03d", vidasFinales), numX, startY + (hLives / 2) - 8, escalaItems);
-            }
-
-            // 2. Dibujar TIEMPO SOBRANTE (Fila 1)
-            int filaTimeY = startY + espaciado;
-            if (imgTimeBonus != null) {
-                int anchoTime = 190; // Lo achicamos para que no desentone
-                int altoTime = (anchoTime * imgTimeBonus.getHeight()) / imgTimeBonus.getWidth();
-                g.drawImage(imgTimeBonus, startX, filaTimeY + 4, anchoTime, altoTime, null);
-            }
-            dibujarNumero(g, String.format("%03d", tiempoFinal), numX, filaTimeY, escalaItems);
-
-            // 3. Dibujar TOTAL SCORE (Fila 2)
-            int filaScoreY = startY + (espaciado * 2);
-            if (imgScore != null) {
-                int wScore = (int) (imgScore.getWidth() * escalaItems);
-                int hScore = (int) (imgScore.getHeight() * escalaItems);
-                g.drawImage(imgScore, startX, filaScoreY, wScore, hScore, null);
-                dibujarNumero(g, String.format("%06d", score), numX, filaScoreY + (hScore / 2) - 8, escalaItems);
-            }
-
+            g.setFont(new Font("Monospaced", Font.PLAIN, 16));
+            g.drawString("PRESS ENTER TO NEXT STAGE", 290, 590);
         }
     }
 
@@ -754,6 +942,7 @@ public class LodeRunner extends Juego {
                 heroe.recolectarOro();
                 itOro.remove();
                 score += 250;
+                orosRecolectadosNivel++;
                 audio.reproducirEfecto("oro");
             }
         }
@@ -849,6 +1038,7 @@ public class LodeRunner extends Juego {
                     if (mismoX && mismoY) {
                         guardia.setTieneOro(true);
                         itOroGuardia.remove(); // Lo saca del mapa porque lo lleva encima
+                        System.out.println("¡Guardia ID [" + System.identityHashCode(guardia) + "] acaba de robar un lingote!");                        break;
                     }
                 }
             }
@@ -963,6 +1153,7 @@ public class LodeRunner extends Juego {
 
                                     guardia.notificarEntradaPozo();
                                     score += 75;
+                                    guardiasAtrapadosNivel++;
                                     System.out.println("¡Guardia atrapado! +75 pts");
                                 }
                                 guardiaEnPozo = true;
@@ -1062,13 +1253,12 @@ public class LodeRunner extends Juego {
             audio.reproducirEfecto("game_over");
             juegoTerminado = true;
             vidas = 0;
+            estadoActual = EstadoJuego.GAMEOVER;
         } else {
             System.out.println("Vidas restantes: " + vidas);
-
-            escaleraSalidaCreada = false;
-            escaleraDeSalida = null;
-
-            gameStartup();
+            cargarNivel(nivel);
+            estadoActual = EstadoJuego.TRANSICION;
+            timerTransicion = 2.5;
         }
     }
 
@@ -1119,31 +1309,22 @@ public class LodeRunner extends Juego {
         nivel++;
         vidas++;
 
-        // Resetear la escalera de escape
-        escaleraSalidaCreada = false;
-        if (escaleraDeSalida != null) {
-            escaleras.remove(escaleraDeSalida);
-        }
-        escaleraDeSalida = null;
-
-        gameStartup();
+        cargarNivel(nivel);
+        estadoActual = EstadoJuego.TRANSICION;
+        timerTransicion = 2.5;
     }
 
     private void reiniciarJuegoTotal() {
         // Restauramos las variables al estado inicial de un juego nuevo
         vidas = 5;
         score = 0;
-        tiempoRestante = 150.0;
+        nivel = 1;
 
-        juegoTerminado = false;
-        escaleraSalidaCreada = false;
-        if (escaleraDeSalida != null) {
-            escaleras.remove(escaleraDeSalida);
-        }
-        escaleraDeSalida = null;
+        cargarNivel(nivel);
+        audio.reproducirMusica(this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav"));
 
-        // Recargamos el mapa y volvemos a arrancar la música
-        gameStartup();
+        estadoActual = EstadoJuego.TRANSICION;
+        timerTransicion = 2.5;
     }
 
     // =========================================================
@@ -1155,5 +1336,3 @@ public class LodeRunner extends Juego {
         System.exit(0);
     }
 }
-
-//cargar fuentes arcade

@@ -1,5 +1,7 @@
 package pipoo.core.configuracion;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 public class ConfiguracionLR extends Configuracion {
@@ -24,7 +26,7 @@ public class ConfiguracionLR extends Configuracion {
     @Override public void guardar() {
         Properties prop = new Properties();
         // guardar parametros de la clase abstracta (comunes)
-        prop.setProperty("pantallaCompleta", String.valueOf(this.pantallaCompleta));
+        prop.setProperty("fullScreen", String.valueOf(this.pantallaCompleta));
         prop.setProperty("sonidoActivado", String.valueOf(this.sonidoActivado));
         prop.setProperty("pistaMusical", this.pistaMusical);
 
@@ -35,6 +37,13 @@ public class ConfiguracionLR extends Configuracion {
         prop.setProperty("teclaCavar", String.valueOf(this.teclaCavar));
         prop.setProperty("teclaEnter", String.valueOf(this.teclaEnter));
         persistirEnArchivo(prop, "config_lode_runner.properties");
+
+        try (FileOutputStream out = new FileOutputStream("jgame.properties")) {
+            prop.store(out, "Configuracion PIPOO");
+            System.out.println("DEBUG: Configuración guardada.");
+        } catch (IOException e) {
+            System.err.println("Error al guardar: " + e.getMessage());
+        }
 
     }
 
