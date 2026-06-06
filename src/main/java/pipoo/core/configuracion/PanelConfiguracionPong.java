@@ -32,12 +32,12 @@ public class PanelConfiguracionPong extends JPanel {
         //para que habilite escribir un nombre si no jugamos contra bot
         txtNombreJ2.setEnabled(!chkContraBot.isSelected());
 
-        String[] skins = {"Original", "Neon"};
+        String[] skins = {"Original", "Shpong"};
         comboSkinsPaleta = new JComboBox<>(skins);
         comboSkinsPelota = new JComboBox<>(skins);
         comboSkinsCancha = new JComboBox<>(skins);
 
-        String[] canciones = {"Ninguna", "Jeff The Bat", "Keyboard Cat"};
+        String[] canciones = {"Ninguna", "Jeff The Bat", "Keyboard Cat", "Koopa Troopa Beach", "Under The Sea", "Yoshi Island"};
         comboMusica = new JComboBox<>(canciones);
 
         //11 o 15 puntos
