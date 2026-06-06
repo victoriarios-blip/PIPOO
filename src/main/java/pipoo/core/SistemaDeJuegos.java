@@ -166,7 +166,10 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
             prepararJuego(juegoActual, configPong);
             esLanzamientoDeJuego = true;
         } else if (origen == btnLodeRunner) {
+            String nombreUsuario = txtNombreUsuario.getText();
+            configLR.setNombreJ1(nombreUsuario);
             juegoActual = new LodeRunner();
+            prepararJuego(juegoActual, configLR);
             esLanzamientoDeJuego = true;
         } else if (origen == btnSpaceInvaders) {
             juegoActual = new SpaceInvaders();
