@@ -36,8 +36,14 @@ public class Pong extends Juego {
     private String skinPelota;
     private String skinPaleta;
     private String rutaCancha, rutaPaleta, rutaPaleta2, rutaPelota, rutaDivisor;
+
     //sonido
     private GestorAudio gestorAudio = new GestorAudio();
+
+    //atributos para gestionar el tiempo de pantalla de carga
+    private BufferedImage imgLoading;
+    private double acumTiempo = 0.0;
+    private boolean enCarga = true;
 
     public Pong() {
         super("PIPOO PONG", 800, 600); // titulo y tamaño de ventana
@@ -48,6 +54,9 @@ public class Pong extends Juego {
     @Override
     public void gameStartup() {
         try {
+            //pantalla de carga
+            this.imgLoading = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/pantalla_carga.png"));
+
             ConfiguracionPong config = (ConfiguracionPong) this.getConfiguracion();
             pistaMusical = config.getPistaMusical(); //pueden ser ninguna, jeff the bat o keyboard cat
 
@@ -186,87 +195,95 @@ public class Pong extends Juego {
 
     @Override
     public void gameUpdate(double delta) {
-        Keyboard teclado = this.getKeyboard();
-
-        // Controles jugador 1
-        if (teclado.isKeyPressed(KeyEvent.VK_W)) {
-            paleta1.moverArriba(delta);
-        }
-        if (teclado.isKeyPressed(KeyEvent.VK_S)) {
-            paleta1.moverAbajo(delta);
-        }
-
-        // Controles jugador 2 / BOT
-        if (this.jugador2 instanceof Bot) {
-            // Si es un BOT, ejecuta su logica
-            this.actualizarBOT(delta);
-        } else {
-            // Si no es un bot, es un humano
-            if (teclado.isKeyPressed(KeyEvent.VK_UP)) {
-                paleta2.moverArriba(delta);
-            } else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
-                paleta2.moverAbajo(delta);
+        if (enCarga) {
+            // --- ESTADO DE CARGA ---
+            acumTiempo += delta;
+            if (acumTiempo >= 3.0) {
+                enCarga = false;
             }
+        } else {
+            Keyboard teclado = this.getKeyboard();
+
+            // Movimiento Jugador 1
+            if (teclado.isKeyPressed(KeyEvent.VK_W)) {
+                paleta1.moverArriba(delta);
+            }
+            if (teclado.isKeyPressed(KeyEvent.VK_S)) {
+                paleta1.moverAbajo(delta);
+            }
+
+            // Lógica del Jugador 2 o BOT
+            if (this.jugador2 instanceof Bot) {
+                this.actualizarBOT(delta);
+            } else {
+                if (teclado.isKeyPressed(KeyEvent.VK_UP)) {
+                    paleta2.moverArriba(delta);
+                } else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
+                    paleta2.moverAbajo(delta);
+                }
+            }
+
+            pelota.mover(delta);
+            detectarColisiones();
+            actualizarPuntaje();
         }
-        pelota.mover(delta);
-        detectarColisiones();
-        actualizarPuntaje();
     }
 
     @Override
     public void gameDraw(Graphics2D g) {
-        //dibujamos el fondo
-        if (imgCancha != null) {
-            g.drawImage(imgCancha, 0, 0, getWidth(), getHeight(), null);
-        }
-        if (imgDivisor != null) {
-            int posX = (getWidth()/2) - (imgDivisor.getWidth() / 2);
-            g.drawImage(imgDivisor, posX, 1, imgDivisor.getWidth(), getHeight(), null);
-        }
-
-        if (juegoFinalizado) {
-            g.drawImage(imgGameOver, 0,0, getWidth(), getHeight(), null);
-        }
-
-        //bordes
-        if (skinCancha.equalsIgnoreCase("Shpong")) {
-            GradientPaint gradiente = new GradientPaint(0, 0, new Color(60, 20, 160), getWidth()/2, 0, new Color(20, 100, 220), true);
-            g.setPaint(gradiente);
+        if (enCarga) {
+            // pantalla de carga...
+            if (imgLoading != null) {
+                g.drawImage(imgLoading, 0, 0, getWidth(), getHeight(), null);
+            }
         } else {
+            //si la carga es falsa, dibujamos todo
+            // fondo de la cancha
+            if (imgCancha != null) {
+                g.drawImage(imgCancha, 0, 0, getWidth(), getHeight(), null);
+            }
+
+            // divisor de cancha
+            if (imgDivisor != null) {
+                int posX = (getWidth() / 2) - (imgDivisor.getWidth() / 2);
+                g.drawImage(imgDivisor, posX, 1, imgDivisor.getWidth(), getHeight(), null);
+            }
+
+            // game over
+            if (juegoFinalizado) {
+                g.drawImage(imgGameOver, 0, 0, getWidth(), getHeight(), null);
+            }
+
+            // bordes
+            if (skinCancha.equalsIgnoreCase("Shpong")) {
+                // Uso de GradientPaint según Java2D [1, 2]
+                GradientPaint gradiente = new GradientPaint(0, 0, new Color(60, 20, 160), getWidth() / 2, 0, new Color(20, 100, 220), true);
+                g.setPaint(gradiente);
+            } else {
+                g.setColor(Color.WHITE);
+            }
+
+            if (bordeSuperior != null) g.fill(bordeSuperior);
+            if (bordeInferior != null) g.fill(bordeInferior);
+
+            // marcador
+            if (imgNumeros[puntosJ1] != null) {
+                g.drawImage(imgNumeros[puntosJ1], getWidth() / 4, 90, null);
+            }
+            if (imgNumeros[puntosJ2] != null) {
+                g.drawImage(imgNumeros[puntosJ2], (getWidth() / 4) * 3, 90, null);
+            }
+
+            pelota.dibujar(g);
+            paleta1.dibujar(g);
+            paleta2.dibujar(g);
+
+            // nombre de jugadores
+            g.setFont(new Font("Consolas", Font.BOLD, 20));
             g.setColor(Color.WHITE);
+            if (this.nombreJ1 != null) g.drawString(this.nombreJ1, (getWidth() / 4) - 20, 75);
+            if (this.nombreJ2 != null) g.drawString(this.nombreJ2, (getWidth() / 4) * 3 - 45, 75);
         }
-
-        if (bordeSuperior != null) {
-            g.fill(bordeSuperior);
-        }
-
-        if (bordeInferior != null){
-            g.fill(bordeInferior);
-        }
-
-        //usa puntosj1 y puntosj2 como indice
-        if (imgNumeros[puntosJ1] != null) {
-            g.drawImage(imgNumeros[puntosJ1], getWidth() / 4, 90, null);
-        }
-        if (imgNumeros[puntosJ2] != null) {
-            // Posicionamos la imagen del número actual del J2
-            g.drawImage(imgNumeros[puntosJ2], (getWidth() / 4) * 3, 90, null);
-        }
-
-        pelota.dibujar(g);
-        paleta1.dibujar(g);
-        paleta2.dibujar(g);
-
-        //dibujamos los nombres de los jugadores
-        g.setFont(new Font("Consolas", Font.BOLD, 20));
-        g.setColor(Color.WHITE);
-        if (this.nombreJ1 != null){
-            g.drawString(this.nombreJ1, (getWidth()/4)-20, 75);
-        }
-        if (this.nombreJ2 != null) {
-            g.drawString(this.nombreJ2, (getWidth()/4)*3-45, 75);
-        }
-
     }
 
     @Override
