@@ -4,6 +4,7 @@ import com.entropyinteractive.Keyboard;
 import pipoo.core.GestorAudio;
 import pipoo.core.Juego;
 import java.awt.image.BufferedImage;
+import pipoo.core.configuracion.ConfiguracionLR;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -70,11 +71,13 @@ public class LodeRunner extends Juego {
 
     // AUDIO
     private GestorAudio audio = new GestorAudio();
+    private boolean sonidoActivado;
+    private String pistaMusical;
     private double timerPasos = 0.15;
     private double timerEscalera = 0.18;
 
     public LodeRunner() {
-        super("PIPOO LODE RUNNER", 800, 630);
+        super("PIPOO LODE RUNNER", 800, 600);
     }
 
     @Override
@@ -92,6 +95,41 @@ public class LodeRunner extends Juego {
         plataformas = new ArrayList<>();
         escaleras = new ArrayList<>();
         barras = new ArrayList<>();
+
+        ConfiguracionLR config = (ConfiguracionLR) this.getConfiguracion();
+        if (config != null) {
+            System.out.println("Skin: " + config.getSkinPersonaje());
+            // Guardamos la config en las variables globales como en Pong
+            this.sonidoActivado = config.isSonidoActivado();
+            this.pistaMusical = config.getPistaMusical();
+        } else {
+            this.sonidoActivado = true;
+            this.pistaMusical = "Tema LR Original";
+        }
+
+        // 3. CARGAR AUDIOS
+        if (!sonidoActivado) {
+            audio.detenerMusica();
+        } else {
+            try {
+                // Precargamos los efectos SÓLO si el sonido está activado
+                audio.precargarEfecto("pasos", this.getClass().getResource("/pipoo/loderunner/audio/pasos.wav"));
+                audio.precargarEfecto("escalera", this.getClass().getResource("/pipoo/loderunner/audio/escalera.wav"));
+                audio.precargarEfecto("oro", this.getClass().getResource("/pipoo/loderunner/audio/oro.wav"));
+                audio.precargarEfecto("miss", this.getClass().getResource("/pipoo/loderunner/audio/miss.wav"));
+                audio.precargarEfecto("game_over", this.getClass().getResource("/pipoo/loderunner/audio/game_over.wav"));
+
+                // Reproducimos la música del menú SÓLO si no eligió "Ninguna"
+                if (pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                    java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
+                    if (urlMusicaMenu != null) {
+                        audio.reproducirMusica(urlMusicaMenu);
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error cargando audios: " + e.getMessage());
+            }
+        }
 
 
         //CARGAR IMAGENES
@@ -148,21 +186,6 @@ public class LodeRunner extends Juego {
             System.out.println("Error cargando imagenes: " + e.getMessage());
         }
 
-        // 3. CARGAR AUDIOS
-        try {
-            audio.precargarEfecto("pasos", this.getClass().getResource("/pipoo/loderunner/audio/pasos.wav"));
-            audio.precargarEfecto("escalera", this.getClass().getResource("/pipoo/loderunner/audio/escalera.wav"));
-            audio.precargarEfecto("oro", this.getClass().getResource("/pipoo/loderunner/audio/oro.wav"));
-            audio.precargarEfecto("miss", this.getClass().getResource("/pipoo/loderunner/audio/miss.wav"));
-            audio.precargarEfecto("game_over", this.getClass().getResource("/pipoo/loderunner/audio/game_over.wav"));
-
-            java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
-            if (urlMusicaMenu != null) {
-                audio.reproducirMusica(urlMusicaMenu);
-            }
-        } catch (Exception e) {
-            System.out.println("Error cargando audios: " + e.getMessage());
-        }
 
         // arrancamos el juego en la pantalla de menu
         estadoActual = EstadoJuego.MENU;
@@ -417,15 +440,19 @@ public class LodeRunner extends Juego {
             guardia.setImgColgado(imgGuardiaColgado);
             guardia.setImgAtrapado(imgGuardiaAtrapado);
         }
+
         try {
-            audio.detenerMusica(); // Por si venía sonando del menú o de la vida anterior
-            java.net.URL urlMusica = this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav");
-            if (urlMusica != null) {
-                audio.reproducirMusica(urlMusica);
+            audio.detenerMusica();
+            if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                java.net.URL urlMusica = this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav");
+                if (urlMusica != null) {
+                    audio.reproducirMusica(urlMusica);
+                }
             }
         } catch (Exception e) {
             System.out.println("Error con la música: " + e.getMessage());
         }
+
     }
 
     @Override
@@ -492,8 +519,10 @@ public class LodeRunner extends Juego {
 
                 try {
                     audio.detenerMusica();
-                    java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
-                    if (urlMusicaMenu != null) audio.reproducirMusica(urlMusicaMenu);
+                    if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                        java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
+                        if (urlMusicaMenu != null) audio.reproducirMusica(urlMusicaMenu);
+                    }
                 } catch (Exception e) {
                     System.out.println("Error reiniciando música menú: " + e.getMessage());
                 }
@@ -655,7 +684,7 @@ public class LodeRunner extends Juego {
         if (heroe.getVelocidadX() != 0 && !heroe.isEstaCayendo() && !heroe.isEnEscalera()) {
             timerPasos += delta;
             if (timerPasos >= 0.25) {
-                audio.reproducirEfecto("pasos");
+                if (sonidoActivado) audio.reproducirEfecto("pasos");
                 timerPasos = 0;
             }
         } else {
@@ -666,7 +695,7 @@ public class LodeRunner extends Juego {
         if (heroe.getVelocidadY() != 0 && heroe.isEnEscalera()) {
             timerEscalera += delta;
             if (timerEscalera >= 0.18) {
-                audio.reproducirEfecto("escalera");
+                if (sonidoActivado) audio.reproducirEfecto("escalera");
                 timerEscalera = 0;
             }
         } else {
@@ -984,8 +1013,7 @@ public class LodeRunner extends Juego {
                 itOro.remove();
                 score += 250;
                 orosRecolectadosNivel++;
-                audio.reproducirEfecto("oro");
-            }
+                if (sonidoActivado) audio.reproducirEfecto("oro");            }
         }
 
         // heroe con escalera
@@ -1271,7 +1299,7 @@ public class LodeRunner extends Juego {
 
         if (atrapado) {
             System.out.println("¡El guardia atrapó al héroe! Pierdes una vida.");
-            audio.reproducirEfecto("miss");
+            if (sonidoActivado) audio.reproducirEfecto("miss");
             heroe.iniciarMuerte();
         }
         lingotes.addAll(orosSoltados);
@@ -1284,8 +1312,7 @@ public class LodeRunner extends Juego {
         if (vidas <= 0) {
             System.out.println("¡GAME OVER! Te quedaste sin vidas.");
             audio.detenerMusica();
-            audio.reproducirEfecto("game_over");
-            juegoTerminado = true;
+            if (sonidoActivado) audio.reproducirEfecto("game_over");            juegoTerminado = true;
             vidas = 0;
             estadoActual = EstadoJuego.GAMEOVER;
         } else {
@@ -1337,9 +1364,11 @@ public class LodeRunner extends Juego {
         score += puntosTiempo;
         try {
             audio.detenerMusica(); // Corta el BGM del juego normal
-            java.net.URL urlVictoria = this.getClass().getResource("/pipoo/loderunner/audio/stage_clear.wav");
-            if (urlVictoria != null) {
-                audio.reproducirMusica(urlVictoria);
+            if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                java.net.URL urlVictoria = this.getClass().getResource("/pipoo/loderunner/audio/stage_clear.wav");
+                if (urlVictoria != null) {
+                    audio.reproducirMusica(urlVictoria);
+                }
             }
         } catch (Exception e) {
             System.out.println("Error al reproducir audio de victoria: " + e.getMessage());
@@ -1365,7 +1394,9 @@ public class LodeRunner extends Juego {
         nivel = 1;
 
         cargarNivel(nivel);
-        audio.reproducirMusica(this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav"));
+        if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+            audio.reproducirMusica(this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav"));
+        }
         estadoActual = EstadoJuego.TRANSICION;
         timerTransicion = 2.5;
     }
@@ -1377,4 +1408,5 @@ public class LodeRunner extends Juego {
         juego.run(1.0 / 60.0);
         System.exit(0);
     }
+
 }
