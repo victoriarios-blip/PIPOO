@@ -389,7 +389,7 @@ public class LodeRunner extends Juego {
                 break;
         }
 
-        // 1. Crear Héroe
+        // crear heroe
         heroe = new Heroe(heroeStartX, heroeStartY, 30, 30);
         heroe.setImagen(imgHeroeDer);
         heroe.setImagenDer(imgHeroeDer);
@@ -444,7 +444,7 @@ public class LodeRunner extends Juego {
 
             if (actEnter && !keyEnter) {
                 if (opcionMenu == 0) {
-                    nivel = 3;
+                    nivel = 1;
                     score = 0;
                     vidas = 5;
                     cargarNivel(nivel);
@@ -1002,9 +1002,10 @@ public class LodeRunner extends Juego {
                 if (heroe.x + heroe.width > plataforma.x + 8 &&
                         heroe.x < plataforma.x + plataforma.width - 8) {
                     if (!heroeEnPozo) {
-                        heroeSoportado = true;
-                        if (!heroe.isEnEscalera())
+                        if (!heroe.isEnEscalera() && heroe.getVelocidadY() >= 0) {
+                            heroeSoportado = true;
                             heroe.y = plataforma.y - heroe.height + 1;
+                        }
                     }
                 }
             }
@@ -1292,6 +1293,7 @@ public class LodeRunner extends Juego {
             cargarNivel(nivel);
             estadoActual = EstadoJuego.TRANSICION;
             timerTransicion = 2.5;
+            score=0;
         }
     }
 
