@@ -48,7 +48,6 @@ public class ConfiguracionPong extends Configuracion {
     public void guardar() {
         Properties prop = new Properties();
 
-        // guardar parametros de la clase abstracta (comunes)
         prop.setProperty("fullScreen", String.valueOf(this.isPantallaCompleta()));
         prop.setProperty("sonidoActivado", String.valueOf(this.sonidoActivado));
         prop.setProperty("pistaMusical", this.pistaMusical);

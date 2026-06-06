@@ -139,23 +139,28 @@ public class Pong extends Juego {
 
 
             //cargamos los assets (DEFAULT)
-            // --- LÓGICA PARA LA PELOTA ---
-            rutaPelota = "/pipoo/pong/imagenes/pelota_default.png"; // Default
+            // --- LOGICA PARA LA PELOTA ---
+            rutaPelota = "/pipoo/pong/imagenes/pelota_default.png";
             if (skinPelota.equalsIgnoreCase("Shpong")) {
                 pelota = new Pelota(400, 300, 32, 32);
                 rutaPelota = "/pipoo/pong/shpong/saturno.png";
+            } else if (skinPelota.equals("Japong")) {
+                pelota = new Pelota(400, 300, 32, 32);
+                rutaPelota = "/pipoo/pong/japong/pelota_japong.png";
             }
             BufferedImage imgPelota = ImageIO.read(getClass().getResource(rutaPelota));
             pelota.setImagen(imgPelota);
 
-            // --- LÓGICA PARA LAS PALETAS ---
-            rutaPaleta = "/pipoo/pong/imagenes/paleta_default.png"; // Default
+            // --- LOGICA PARA LAS PALETAS ---
+            rutaPaleta = "/pipoo/pong/imagenes/paleta_default.png";
             rutaPaleta2 = null;
             if (skinPaleta.equalsIgnoreCase("Shpong")) {
                 rutaPaleta = "/pipoo/pong/shpong/nave_azul.png";
                 rutaPaleta2 = "/pipoo/pong/shpong/nave_azul_derecha.png";
                 paleta1 = new Paleta(20, (double) getHeight() / 2 - 40, 40, 80);
                 paleta2 = new Paleta(getWidth() - 45, (double) getHeight() / 2 - 40, 40, 80);
+            } else if (skinPaleta.equalsIgnoreCase("Japong")) {
+                rutaPaleta = "/pipoo/pong/japong/paleta_japong.png";
             }
             BufferedImage imgPaleta = ImageIO.read(getClass().getResource(rutaPaleta));
             BufferedImage imgPaleta2 = (rutaPaleta2 != null) ? ImageIO.read(getClass().getResource(rutaPaleta2)) : imgPaleta;
@@ -173,8 +178,14 @@ public class Pong extends Juego {
                 for (int i = 0; i <= 15; i++) {
                     this.imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/shpong/" + i + ".png"));
                 }
+            } else if (skinCancha.equalsIgnoreCase("Japong")) {
+                rutaCancha = "/pipoo/pong/japong/cancha_japong.png";
+                this.imgCancha = ImageIO.read(getClass().getResource(rutaCancha));
+                for (int i = 0; i <= 15; i++) {
+                    this.imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/japong/" + i + ".png"));
+                }
             } else {
-                // --- ELEMENTOS COMUNES (Divisor y Game Over) ---
+                // ELEMENTOS COMUNES (Divisor y Game Over)
                 this.imgDivisor = ImageIO.read(getClass().getResource(rutaDivisor));
                 this.imgGameOver = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/game_over.png"));
                 for (int i = 0; i <= 15; i++) {

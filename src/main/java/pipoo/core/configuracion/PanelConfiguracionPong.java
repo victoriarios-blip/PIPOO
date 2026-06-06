@@ -32,7 +32,7 @@ public class PanelConfiguracionPong extends JPanel {
         //para que habilite escribir un nombre si no jugamos contra bot
         txtNombreJ2.setEnabled(!chkContraBot.isSelected());
 
-        String[] skins = {"Original", "Shpong"};
+        String[] skins = {"Original", "Shpong", "Japong"};
         comboSkinsPaleta = new JComboBox<>(skins);
         comboSkinsPelota = new JComboBox<>(skins);
         comboSkinsCancha = new JComboBox<>(skins);
@@ -54,8 +54,7 @@ public class PanelConfiguracionPong extends JPanel {
         panelFormulario.add(txtNombreJ2);
         this.add(panelFormulario, BorderLayout.CENTER);
 
-        // --- 3. PANEL DE BOTONES (SUR) ---
-        // Agrupamos los botones de acción abajo para que no se estiren con el GridLayout [1, 2]
+        // --- PANEL DE BOTONES (SUR) ---
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         JButton btnGuardar = new JButton("Guardar");
         JButton btnReset = new JButton("Reset");
