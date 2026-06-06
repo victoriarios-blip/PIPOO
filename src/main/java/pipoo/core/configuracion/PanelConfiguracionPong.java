@@ -81,6 +81,8 @@ public class PanelConfiguracionPong extends JPanel {
         panelFormulario.add(comboSkinsPaleta);
         panelFormulario.add(new JLabel("Skin Pelota:"));
         panelFormulario.add(comboSkinsPelota);
+        panelFormulario.add(new JLabel("Escenario Cancha"));
+        panelFormulario.add(comboSkinsCancha);
 
         // SECCIÓN: Info de Controles
         panelFormulario.add(new JLabel("CONTROLES J1:"));
@@ -118,6 +120,7 @@ public class PanelConfiguracionPong extends JPanel {
             config.setPantallaCompleta(chkPantalla.isSelected());
             config.setSkinPaletas((String) comboSkinsPaleta.getSelectedItem());
             config.setSkinPelota((String) comboSkinsPelota.getSelectedItem());
+            config.setSkinCancha((String) comboSkinsCancha.getSelectedItem());
             config.setPistaMusical((String) comboMusica.getSelectedItem());
             config.setPuntosParaGanar(puntos);
 
@@ -129,6 +132,7 @@ public class PanelConfiguracionPong extends JPanel {
         // Lógica reset
         btnReset.addActionListener(e -> {
             config.reset();
+            config.guardar();
             actualizarGUI();
             boolean esBot = chkContraBot.isSelected();
             txtNombreJ2.setEnabled(!esBot);
@@ -147,6 +151,7 @@ public class PanelConfiguracionPong extends JPanel {
         chkPantalla.setSelected(config.isPantallaCompleta());
         comboSkinsPaleta.setSelectedItem(config.getSkinPaletas());
         comboSkinsPelota.setSelectedItem(config.getSkinPelota());
+        comboSkinsCancha.setSelectedItem(config.getSkinCancha());
         comboMusica.setSelectedItem(config.getPistaMusical());
         comboPuntos.setSelectedItem(config.getPuntosParaGanar());
     }
