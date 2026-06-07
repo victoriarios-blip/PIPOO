@@ -7,10 +7,12 @@ public class PanelConfiguracionPong extends JPanel {
     private ConfiguracionPong config;
     private JCheckBox chkSonido, chkPantalla, chkContraBot;
     private JComboBox<String> comboSkinsPaleta, comboSkinsCancha, comboSkinsPelota, comboMusica;
-    private JComboBox<Integer> comboPuntos; //entre 11 o 15
+    private JComboBox<String> comboPuntos; //entre 11, 15 o personalizado
     private JTextField txtNombreJ1;
     private JTextField txtNombreJ2;
-
+    private String seleccionPuntos, entrada;
+    private int puntos;
+    private int puntosPersonalizados = 11;
 
     private JTextField txtUpJ1, txtDownJ1, txtUpJ2, txtDownJ2;
     private JPanel parent;
@@ -41,8 +43,35 @@ public class PanelConfiguracionPong extends JPanel {
         comboMusica = new JComboBox<>(canciones);
 
         //11 o 15 puntos
-        Integer[] opcionesPuntos = {11, 15};
+        String[] opcionesPuntos = {"11", "15", "Personalizado"};
         comboPuntos = new JComboBox<>(opcionesPuntos);
+        comboPuntos.addActionListener(e -> {
+            String seleccion = comboPuntos.getSelectedItem().toString();
+
+            if (seleccion.equals("Personalizado")) {
+                String entrada = JOptionPane.showInputDialog(this,
+                        "Ingrese el puntaje máximo para ganar",
+                        "Puntaje Personalizado", JOptionPane.QUESTION_MESSAGE);
+
+                try {
+                    if (entrada != null && !entrada.isEmpty()) {
+                        int valor = Integer.parseInt(entrada);
+                        if (valor > 0) {
+                            puntosPersonalizados = valor;
+                        } else {
+                            throw new NumberFormatException();
+                        }
+                    } else {
+                        // Si cancela, volvemos al default
+                        comboPuntos.setSelectedIndex(0);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Entrada no válida. Se usará 11 por defecto.");
+                    puntosPersonalizados = 11;
+                    comboPuntos.setSelectedIndex(0);
+                }
+            }
+        });
 
         //Panel del centro
         JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
@@ -106,10 +135,17 @@ public class PanelConfiguracionPong extends JPanel {
 
         // Lógica Guardar
         btnGuardar.addActionListener(e -> {
-            String seleccionPuntos = comboPuntos.getSelectedItem().toString();
-            int puntos = Integer.parseInt(seleccionPuntos);
+            seleccionPuntos = comboPuntos.getSelectedItem().toString().trim();
+            int puntosFinales;
 
-            String pistaSeleccionada = (String) comboMusica.getSelectedItem();
+            if (seleccionPuntos.equals("Personalizado")) {
+                puntosFinales = puntosPersonalizados;
+            } else {
+                // Parseamos el 11 o 15 directamente
+                puntosFinales = Integer.parseInt(seleccionPuntos);
+            }
+
+        String pistaSeleccionada = (String) comboMusica.getSelectedItem();
             config.setPistaMusical(pistaSeleccionada);
 
             config.setNombreJ1(txtNombreJ1.getText());
@@ -120,8 +156,7 @@ public class PanelConfiguracionPong extends JPanel {
             config.setSkinPaletas((String) comboSkinsPaleta.getSelectedItem());
             config.setSkinPelota((String) comboSkinsPelota.getSelectedItem());
             config.setSkinCancha((String) comboSkinsCancha.getSelectedItem());
-            config.setPistaMusical((String) comboMusica.getSelectedItem());
-            config.setPuntosParaGanar(puntos);
+            config.setPuntosParaGanar(puntosFinales);
 
             config.guardar();
 

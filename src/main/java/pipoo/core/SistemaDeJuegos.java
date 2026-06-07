@@ -3,7 +3,8 @@ package pipoo.core;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-
+import java.util.List;
+import java.util.ArrayList;
 import pipoo.core.configuracion.*;
 import pipoo.loderunner.LodeRunner;
 import pipoo.pong.Pong;
@@ -25,11 +26,11 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     private ConfiguracionSI configSI = new ConfiguracionSI();
     private ConfiguracionLR configLR = new ConfiguracionLR();
 
-
     private JPanel panelInicio, panelJuegos,
             panelConfigGeneral, panelConfigP, panelConfigLR, panelConfigSI,
             panelRankingP, panelRankingLR, panelRankingSI,
             panelPong, panelLodeRunner, panelSpaceInvaders;
+    private JTextArea areaTexto;
 
     public SistemaDeJuegos() {
         setLayout(new GridLayout(1, 3, 10, 10));
@@ -114,15 +115,19 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         this.add(guiLR, "CONFIG_LODE");
 
 
-        /*this.add(panelConfigGeneral, "CONFIG_GENERAL");
-        this.add(panelConfigP, "CONFIG_PONG");
-        this.add(panelConfigSI, "CONFIG_SPACE");
-        this.add(panelConfigLR, "CONFIG_LODE");
+        //RANKING: NOMBRES, COLORES, PANEL, BOTON PARA VOLVER AL INICIO
+        this.areaTexto = new JTextArea(20, 50);
+        this.areaTexto.setEditable(false);
+        this.areaTexto.setBackground(Color.BLACK);
+        this.areaTexto.setForeground(Color.WHITE);
+        this.areaTexto.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        JPanel vistaRanking = new JPanel(new BorderLayout());
+        vistaRanking.add(new JScrollPane(this.areaTexto), BorderLayout.CENTER);
+        JButton btnVolver = new JButton("Volver al Menu");
+        btnVolver.addActionListener(e -> cardLayout.show(this, "INICIO"));
+        vistaRanking.add(btnVolver, BorderLayout.SOUTH);
+        this.add(vistaRanking, "PANTALLA_RANKING");
 
-        this.add(panelRankingP, "RANKING_PONG");
-        this.add(panelRankingSI, "RANKING_SPACE_INV");
-        this.add(panelRankingLR, "RANKING_LODE_R");
-         */
     }
 
     //metodos auxiliares para creacion de paneles
@@ -181,12 +186,18 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         } else if (origen == btnConfigLR) {
             cardLayout.show(this, "CONFIG_LODE");
         }
-        else if (origen == btnRankingP) {
-            cardLayout.show(this, "RANKING_PONG");
-        } else if (origen == btnRankingSI) {
-            cardLayout.show(this, "RANKING_SPACE_INV");
-        } else if (origen == btnRankingLR) {
-            cardLayout.show(this, "RANKING_LODE_R");
+        if (origen == btnRankingP || origen == btnRankingSI || origen == btnRankingLR) {
+            String archivo = "";
+            // Determinamos qué archivo cargar según el botón presionado
+            if (origen == btnRankingP) archivo = "ranking_pong.dat";
+            else if (origen == btnRankingSI) archivo = "ranking_si.dat";
+            else if (origen == btnRankingLR) archivo = "ranking_lr.dat";
+
+            Ranking manager = new Ranking(archivo);
+            manager.cargarRanking();
+            this.areaTexto.setText(manager.toStrOrdenado());
+            this.areaTexto.setCaretPosition(0); // Scroll arriba
+            cardLayout.show(this, "PANTALLA_RANKING");
         }
 
         if (esLanzamientoDeJuego && juegoActual != null) {

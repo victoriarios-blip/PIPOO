@@ -64,6 +64,9 @@ public class Pong extends Juego {
             skinPaleta = appProperties.getProperty("skinPaletas", "Original");
             skinCancha = appProperties.getProperty("skinCancha", "Original");
 
+            //ranking
+            this.nombreJ1 = this.appProperties.getProperty("nombreJ1", "Invitado");
+
             //nombres de j1 y el j2/bot en el juego
             this.nombreJ1 = config.getNombreJ1();
             if (config.getContraBot()) {
@@ -90,7 +93,6 @@ public class Pong extends Juego {
             pelota = new Pelota(400, 300, 15, 15);
             paleta1 = new Paleta(20, (double) getHeight() / 2 - 40, 15, 80);
             paleta2 = new Paleta(getWidth() - 35, (double) getHeight() / 2 - 40, 15, 80);
-            //marcador = new Marcador(200, 200, 200,200); //ver estos valores
 
 
             //velocidad de la pelota
@@ -267,7 +269,6 @@ public class Pong extends Juego {
 
             // bordes
             if (skinCancha.equalsIgnoreCase("Shpong")) {
-                // Uso de GradientPaint según Java2D [1, 2]
                 GradientPaint gradiente = new GradientPaint(0, 0, new Color(60, 20, 160), getWidth() / 2, 0, new Color(20, 100, 220), true);
                 g.setPaint(gradiente);
             } else {
@@ -300,8 +301,20 @@ public class Pong extends Juego {
     @Override
     public void gameShutdown() {
         // SistemaDeJuego con ranking:
-        // sistemaDeJuego.guardarPuntaje("J1", marcador.getPuntosJ1());
-        // sistemaDeJuego.guardarPuntaje("J2", marcador.getPuntosJ2());
+        Ranking manager = new Ranking("ranking_pong.dat");
+        manager.cargarRanking();
+        String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+
+        //entrada para jugador 1
+        manager.agregarEntrada(new RankingEntry(this.nombreJ1, 1, this.puntosJ1, fecha));
+
+        // entrada jugador 2 (Solo si no es un BOT)
+        if (!(this.jugador2 instanceof Bot)) {
+            manager.agregarEntrada(new RankingEntry(this.nombreJ2, 1, this.puntosJ2, fecha));
+        }
+
+        manager.guardarRanking();
+
         gestorAudio.detenerMusica();
         pelota = null;
         paleta1 = null;

@@ -3,6 +3,8 @@ package pipoo.core;
 import java.util.*;
 import java.io.*;
 import java.nio.file.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Ranking {
     private List<RankingEntry> listaRankingEntry;
@@ -11,17 +13,11 @@ public class Ranking {
     public Ranking(String nombreArchivo) {
         this.nombreArchivo = nombreArchivo;
         this.listaRankingEntry = new ArrayList<>();
-        cargarRanking(); // Intenta cargar datos existentes al instanciarse
     }
 
     public void agregarEntrada(RankingEntry entrada) {
         this.listaRankingEntry.add(entrada);
         ordenarPorPuntaje(); // Mantiene la lista organizada
-
-        // Si hay más de 10, eliminamos los sobrantes para cumplir el requerimiento
-        if (listaRankingEntry.size() > 10) {
-            listaRankingEntry = listaRankingEntry.subList(0, 10);
-        }
     }
 
     public void ordenarPorPuntaje() {
@@ -30,15 +26,11 @@ public class Ranking {
     }
 
     public List<RankingEntry> obtenerTope(int cantidad) {
-        if (listaRankingEntry.size() < cantidad) {
-            return listaRankingEntry;
-        }
-        return listaRankingEntry.subList(0, cantidad);
+        ordenarPorPuntaje();
+        int fin = Math.min(cantidad, listaRankingEntry.size());
+        return new ArrayList<>(listaRankingEntry.subList(0, fin));
     }
 
-    /**
-     * Guarda la lista de ranking en un archivo binario.
-     */
 
     public void guardarRanking() {
         try (ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(Paths.get(nombreArchivo)))) {
@@ -49,9 +41,7 @@ public class Ranking {
         }
     }
 
-    /**
-     * Carga la lista de ranking desde el disco.
-     */
+
     @SuppressWarnings("unchecked")
     public void cargarRanking() {
         Path path = Paths.get(nombreArchivo);
@@ -63,4 +53,33 @@ public class Ranking {
             System.err.println("No se pudo cargar el ranking: " + e.getMessage());
         }
     }
+
+    public String toStrOrdenado() {
+        List<RankingEntry> top10 = obtenerTope(10);
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("=====================================================\n");
+        sb.append("             TOP 10 MEJORES PUNTAJES       \n");
+        sb.append("=====================================================\n\n");
+
+        sb.append(String.format("%-5s | %-15s | %-8s | %-10s\n",
+                "Pos", "Jugador", "Puntos", "Fecha"));
+        sb.append("------------------------------------------------------------\n");
+
+        int pos = 1;
+        for (RankingEntry entry : top10) {
+            sb.append(String.format("%-5d | %-15s | %-8d | %-10s\n",
+                    pos, entry.getNombreJugador(), entry.getPuntaje(), entry.getFecha()));
+            pos++;
+        }
+
+        if (top10.isEmpty()) {
+            sb.append("\n   ¡Aun no hay récords grabados!\n");
+        }
+
+        return sb.toString();
+    }
+
+
+
 }
