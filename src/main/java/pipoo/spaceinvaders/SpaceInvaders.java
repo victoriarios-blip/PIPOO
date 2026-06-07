@@ -3,8 +3,7 @@ package pipoo.spaceinvaders;
 import com.entropyinteractive.Keyboard;
 import pipoo.core.*;
 import javax.imageio.ImageIO;
-import java.awt.Graphics2D;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +37,18 @@ public class SpaceInvaders extends Juego {
     private BufferedImage imgProyectilHeroe;
     private BufferedImage imgProyectilEnemigo;
     private BufferedImage imgNaveNodriza;
+
+    // pantalla de carga
+    private enum Estado { CARGA, JUGANDO, GAMEOVER }
+    private Estado estadoActual = Estado.CARGA; // Arranca en modo carga
+    private double acumuladorCarga = 0;
+    private static final double DURACION_CARGA = 3.0; // Duración en segundos (ej: 3 segundos)
+    private BufferedImage imgPantallaCarga;
+
+    // pantalla game over
+    private BufferedImage imgGameOver;
+    private double tiempoGameOver = 0;
+    private double escalaGameOver = 0.0;
 
     public SpaceInvaders() {
         super("Retro Space Invaders", 800, 600);
@@ -107,9 +118,15 @@ public class SpaceInvaders extends Juego {
             imgProyectilHeroe   = ImageIO.read(this.getClass().getResource("imagenes/proyectilHeroe.png"));
             imgProyectilEnemigo = ImageIO.read(this.getClass().getResource("imagenes/proyectilEnemigo.png"));
 
+            // pantalla carga
+            imgPantallaCarga = ImageIO.read(this.getClass().getResource("imagenes/pantalla_carga_SI.png"));
+
+            // game over
+            imgGameOver = ImageIO.read(this.getClass().getResource("imagenes/game_over.png"));
+
+            //muerte enemigo
             BufferedImage muerteEnemigo = ImageIO.read(this.getClass().getResource("imagenes/muerte_enemigo.png"));
 
-            // Dentro del try {} de gameStartup()
             fuenteArcade = new java.util.HashMap<>();
             tiempoJuego = 0;
 
@@ -140,8 +157,6 @@ public class SpaceInvaders extends Juego {
             jugador.setImagenExplosion1(naveHeroeExplosion1);
             jugador.setImagenExplosion2(naveHeroeExplosion2);
 
-            //if (naveNodriza != null) naveNodriza.setImagen(naveNodriza); // Si instanciaron la Nave Nodriza
-
             for (Escudo escudo : escudos) {
                 escudo.setImagen(escudoIntacto);
             }
@@ -169,6 +184,34 @@ public class SpaceInvaders extends Juego {
 
     @Override
     public void gameUpdate(double delta) {
+        // === CONTROL DE TIEMPO DE LA PANTALLA DE CARGA ===
+        if (estadoActual == Estado.CARGA) {
+            acumuladorCarga += delta;
+            if (acumuladorCarga >= DURACION_CARGA) {
+                estadoActual = Estado.JUGANDO; // Rompe el ciclo y arranca el juego real
+            }
+            return; // IMPORTANTE: Bloquea el resto del juego mientras carga
+        }
+
+        // === CONTROL DE LA PANTALLA DE GAME OVER (NUEVO) ===
+        if (estadoActual == Estado.GAMEOVER) {
+            tiempoGameOver += delta;
+
+            // Efecto zoom del cartel
+            if (escalaGameOver < 1.0) {
+                escalaGameOver += delta * 2.0;
+                if (escalaGameOver > 1.0) escalaGameOver = 1.0;
+            }
+
+            // Escuchar teclado para reiniciar la partida
+            Keyboard teclado = this.getKeyboard();
+            if (teclado.isKeyPressed(KeyEvent.VK_ENTER) || teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
+                reiniciarJuego(); // El método que borra las listas y vuelve a hacer el startup
+            }
+            return; // IMPORTANTE: Congela la actualización del juego de fondo
+        }
+
+        // === LÓGICA DEL JUEGO ACTIVO ===
         Keyboard teclado = this.getKeyboard();
 
         // 1. Control de teclado y disparo del héroe (Bloqueado si está explotando)
@@ -177,7 +220,7 @@ public class SpaceInvaders extends Juego {
             else if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) jugador.moverDerecha();
             else                                              jugador.detener();
 
-            // Cooldown y lógica de disparos del héroe (Mudado acá adentro)
+            // Cooldown y lógica de disparos del héroe
             tiempoDisparo += delta;
             if (teclado.isKeyPressed(KeyEvent.VK_SPACE) && tiempoDisparo >= COOLDOWN_DISPARO) {
                 Proyectil p = jugador.disparar();
@@ -240,19 +283,23 @@ public class SpaceInvaders extends Juego {
         actualizarPuntaje();
         limpiarNoVisibles();
 
-        // 9. Verificación de GAME OVER (Por quedarse sin vidas)
-        // El bloque 'else' se borró porque la reaparición ahora la maneja jugador.actualizar()
+        // 9. Verificación de GAME OVER (Por quedarse sin vidas) - CAMBIADO
         if (!jugador.isVisible() && jugador.getVidas() <= 0) {
             System.out.println("GAME OVER - Te quedaste sin vidas");
-            this.stop();
+            estadoActual = Estado.GAMEOVER;
+            tiempoGameOver = 0;
+            escalaGameOver = 0.0;
+            return;
         }
 
-        // 10. Verificación de GAME OVER (Si los enemigos invaden la Tierra)
+        // 10. Verificación de GAME OVER (Si los enemigos invaden la Tierra) - CAMBIADO
         for (Enemigo e : oleada) {
             if (e.y + e.height >= 500) {
                 System.out.println("GAME OVER - Los enemigos llegaron a la línea límite");
-                this.stop();
-                break;
+                estadoActual = Estado.GAMEOVER;
+                tiempoGameOver = 0;
+                escalaGameOver = 0.0;
+                return;
             }
         }
 
@@ -265,7 +312,7 @@ public class SpaceInvaders extends Juego {
         // 12. Temporizador y movimiento de la Nave Nodriza
         tiempoNodriza += delta;
         if (tiempoNodriza >= intervaloNodriza) {
-            enemigoFinal = new NaveNodriza(-60, 30);
+            enemigoFinal = new NaveNodriza(-60, 45);
             enemigoFinal.setImagen(imgNaveNodriza);
             tiempoNodriza = 0;
         }
@@ -276,7 +323,7 @@ public class SpaceInvaders extends Juego {
         // 13. Actualizar estado del héroe (Procesa los timers y frames de la explosión)
         jugador.actualizar(delta);
 
-        // Suma la fracción de segundo que pasó en este frame
+        // Suma la fracción de segundo que pasó en este frame al HUD
         tiempoJuego += delta;
     }
 
@@ -288,17 +335,66 @@ public class SpaceInvaders extends Juego {
 
     @Override
     public void gameDraw(Graphics2D g) {
-        // Limpiar pantalla
+        // === 1. CONTROL DE LA PANTALLA DE CARGA ===
+        if (estadoActual == Estado.CARGA) {
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, getWidth(), getHeight()); // Fondo negro base
+
+            if (imgPantallaCarga != null) {
+                g.drawImage(imgPantallaCarga, 0, 0, getWidth(), getHeight(), null);
+            }
+            return;
+        }
+
+        // === 2. PANTALLA DE GAME OVER ABSOLUTA (Mudada acá arriba) ===
+        if (estadoActual == Estado.GAMEOVER) {
+            // Pintamos TODA la pantalla de negro absoluto primero (limpio, sin escalar)
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, getWidth(), getHeight());
+
+            // Guardamos la configuración gráfica original para los efectos
+            java.awt.geom.AffineTransform transformOriginal = g.getTransform();
+            java.awt.Composite compositeOriginal = g.getComposite();
+
+            // A) EFECTO AGRANDAR DESDE EL CENTRO (Afecta solo al cartel y al texto de abajo)
+            g.translate(400, 300);
+            g.scale(escalaGameOver, escalaGameOver);
+            g.translate(-400, -300);
+
+            // B) EFECTO PALPITAR BRILLO (Opacidad sutil en el logo)
+            float alphaPalpitar = (float) (0.65f + 0.35f * Math.sin(tiempoGameOver * 5.0));
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alphaPalpitar));
+
+            // Dibujamos el cartel de tus compañeros
+            if (imgGameOver != null) {
+                g.drawImage(imgGameOver, 250, 110, 300, 180, null);
+            }
+
+            // C) TEXTO DE REINICIO PARPADEANTE
+            g.setComposite(compositeOriginal); // Restablecemos opacidad al 100% para las letras
+            if ((int)(tiempoGameOver * 2.5) % 2 == 0) {
+                dibujarTextoRetro(g, "PRESS ENTER TO PLAY AGAIN", 176, 340);
+            }
+
+            // Restauramos la matriz original y cortamos el renderizado
+            g.setTransform(transformOriginal);
+            return; // IMPORTANTE: Al cortar acá, destruye el renderizado de la oleada vieja de abajo
+        }
+
+        // === 3. RENDERIZADO DEL JUEGO ACTIVO (Solo corre si estás jugando) ===
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
+
         // Enemigos
         for (Enemigo e : oleada) {
             e.dibujar(g);
         }
+
         // Escudos
         for (Escudo escudo : escudos) {
             escudo.dibujar(g);
         }
+
         // Proyectiles
         for (Proyectil p : proyectilesHeroe) {
             p.dibujar(g);
@@ -306,34 +402,27 @@ public class SpaceInvaders extends Juego {
         for (Proyectil p : proyectilesEnemigos) {
             p.dibujar(g);
         }
+
         // Jugador
         jugador.dibujar(g);
 
-        // nave nodriza
+        // Nave nodriza
         if (enemigoFinal != null && enemigoFinal.isVisible()) {
             enemigoFinal.dibujar(g);
         }
-        // ... (Debajo del jugador.dibujar(g)) ...
 
-        // 1. Línea verde divisoria clásica de los arcades
+        // === 4. RENDERIZADO INTERFAZ (HUD) ===
         g.setColor(Color.GREEN);
-        g.fillRect(0, 555, 800, 4); // Una línea de 4 píxeles de alto
+        g.fillRect(0, 555, 800, 4);
 
-        // 2. Formatear los datos en texto
-        // %04d hace que el puntaje siempre tenga 4 dígitos (ej: "0050")
         String strPuntaje = "SCORE " + String.format("%04d", puntaje);
+        String strTiempo  = "TIME "  + String.format("%03d", (int)tiempoJuego);
+        String strVidas   = "LIVES " + jugador.getVidas();
 
-        // Mostramos el tiempo truncado a entero
-        String strTiempo = "TIME " + String.format("%03d", (int)tiempoJuego);
-
-        String strVidas = "LIVES " + jugador.getVidas();
-
-        // 3. Pintar en pantalla usando tus assets en la franja inferior (Y = 570)
-        dibujarTextoRetro(g, strPuntaje, 40, 570);  // A la izquierda
-        dibujarTextoRetro(g, strTiempo, 330, 570);  // Al centro
-        dibujarTextoRetro(g, strVidas, 620, 570);   // A la derecha
+        dibujarTextoRetro(g, strPuntaje, 40, 570);
+        dibujarTextoRetro(g, strTiempo, 330, 570);
+        dibujarTextoRetro(g, strVidas, 620, 570);
     }
-
 
     private void dibujarTextoRetro(Graphics2D g, String texto, int x, int y) {
         texto = texto.toUpperCase(); // Nos aseguramos de buscar siempre en mayúsculas
@@ -436,6 +525,28 @@ public class SpaceInvaders extends Juego {
     @Override
     protected void actualizarPuntaje() {
         // Actualizar UI del puntaje actual
+    }
+
+    private void reiniciarJuego() {
+        // 1. Limpiamos todas las listas del juego viejo
+        oleada.clear();
+        escudos.clear();
+        proyectilesHeroe.clear();
+        proyectilesEnemigos.clear();
+        enemigoFinal = null;
+
+        // 2. Reseteamos los marcadores principales
+        puntaje = 0;
+        tiempoJuego = 0;
+        tiempoGameOver = 0;
+        escalaGameOver = 0.0;
+
+        // 3. Volvemos a ejecutar tu lógica de inicio de oleadas y jugador
+        // (Llamamos a tu método existente para rearmar el mapa desde cero)
+        gameStartup();
+
+        // 4. Cambiamos el estado directo a jugar (nos saltamos la carga inicial)
+        estadoActual = Estado.JUGANDO;
     }
 }
 
