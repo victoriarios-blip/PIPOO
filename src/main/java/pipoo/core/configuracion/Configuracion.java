@@ -37,7 +37,6 @@ public abstract class Configuracion {
 
 
     protected void persistirEnArchivo(Properties prop, String nombreArchivo) {
-        // usamos try-with-resources para asegurar el cierre automático del stream
         try (OutputStream out = Files.newOutputStream(Paths.get(nombreArchivo))) {
             // El método store guarda las claves y valores en formato .properties [7]
             prop.store(out, "Configuracion PIPOO - Archivo: " + nombreArchivo);

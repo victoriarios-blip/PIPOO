@@ -30,12 +30,20 @@ public class Pong extends Juego {
 
     //imagenes
     private BufferedImage[] imgNumeros;
-    //private BufferedImage[] imgNumerosNeon;
     private Rectangle2D.Double bordeSuperior;
     private Rectangle2D.Double bordeInferior;
+    private String skinCancha;
+    private String skinPelota;
+    private String skinPaleta;
+    private String rutaCancha, rutaPaleta, rutaPaleta2, rutaPelota, rutaDivisor;
 
     //sonido
     private GestorAudio gestorAudio = new GestorAudio();
+
+    //atributos para gestionar el tiempo de pantalla de carga
+    private BufferedImage imgLoading;
+    private double acumTiempo = 0.0;
+    private boolean enCarga = true;
 
     public Pong() {
         super("PIPOO PONG", 800, 600); // titulo y tamaño de ventana
@@ -46,10 +54,18 @@ public class Pong extends Juego {
     @Override
     public void gameStartup() {
         try {
+            //pantalla de carga
+            this.imgLoading = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/pantalla_carga.png"));
+
             ConfiguracionPong config = (ConfiguracionPong) this.getConfiguracion();
             pistaMusical = config.getPistaMusical(); //pueden ser ninguna, jeff the bat o keyboard cat
 
-            String skinPelota = config.getSkinPelota();
+            skinPelota = appProperties.getProperty("skinPelota", "Original");
+            skinPaleta = appProperties.getProperty("skinPaletas", "Original");
+            skinCancha = appProperties.getProperty("skinCancha", "Original");
+
+            //ranking
+            this.nombreJ1 = this.appProperties.getProperty("nombreJ1", "Invitado");
 
             //nombres de j1 y el j2/bot en el juego
             this.nombreJ1 = config.getNombreJ1();
@@ -71,13 +87,13 @@ public class Pong extends Juego {
             //bordesss
             int grosorBorde = 25;
             bordeSuperior = new Rectangle2D.Double(0, 0, getWidth(), grosorBorde);
-            bordeInferior = new Rectangle2D.Double(0, getHeight()-grosorBorde, getWidth(), grosorBorde);
+            bordeInferior = new Rectangle2D.Double(0, getHeight() - grosorBorde, getWidth(), grosorBorde);
 
 
             pelota = new Pelota(400, 300, 15, 15);
-            paleta1 = new Paleta(20, (double)getHeight() / 2 - 40, 15, 80);
-            paleta2 = new Paleta(getWidth() - 35, (double)getHeight()/2 - 40, 15, 80);
-            //marcador = new Marcador(200, 200, 200,200); //ver estos valores
+            paleta1 = new Paleta(20, (double) getHeight() / 2 - 40, 15, 80);
+            paleta2 = new Paleta(getWidth() - 35, (double) getHeight() / 2 - 40, 15, 80);
+
 
             //velocidad de la pelota
             pelota.setVelocidadX(350.00);
@@ -100,6 +116,12 @@ public class Pong extends Juego {
                         nombreArchivo = "sonidos/jeffthebat.wav";
                     } else if ("Keyboard Cat".equals(seleccion)) {
                         nombreArchivo = "sonidos/keyboard_cat.wav";
+                    } else if ("Koopa Troopa Beach".equals(seleccion)) {
+                        nombreArchivo = "sonidos/koopa_troopa_beach.wav";
+                    } else if ("Under The Sea".equals(seleccion)) {
+                        nombreArchivo = "sonidos/under_the_sea.wav";
+                    } else if ("Yoshi Island".equals(seleccion)) {
+                        nombreArchivo = "sonidos/yoshi_island.wav";
                     }
                     if (!nombreArchivo.isEmpty()) {
                         URL urlMusica = getClass().getResource(nombreArchivo);
@@ -118,41 +140,60 @@ public class Pong extends Juego {
             }
 
 
-
             //cargamos los assets (DEFAULT)
-
-            BufferedImage imgPelota = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/pelota_default.png"));
-            BufferedImage imgPaleta = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/paleta_default.png"));
-            this.imgCancha = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/cancha_default.png"));
-            this.imgDivisor = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/barra_del_medio.png"));
-            this.imgGameOver = ImageIO.read(getClass().getResource("/pipoo/pong/neon/game_over.png"));
-
-            //NEON
-/*
-            BufferedImage imgPelota = ImageIO.read(getClass().getResource("/pipoo/pong/neon/yellow_ball_neon.png"));
-            BufferedImage imgPaleta = ImageIO.read(getClass().getResource("/pipoo/pong/neon/red_bar_neon.png"));
-            this.imgCancha = ImageIO.read(getClass().getResource("/pipoo/pong/neon/cancha_neon.png"));
-            this.imgDivisor = ImageIO.read(getClass().getResource("/pipoo/pong/neon/barra_del_medio.png"));
-
- */
-            //puntos estilo default
-            imgNumeros = new BufferedImage[16];
-            for (int i = 0; i <= 15; i++) {
-                imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/" + i + ".png"));
+            // --- LOGICA PARA LA PELOTA ---
+            rutaPelota = "/pipoo/pong/imagenes/pelota_default.png";
+            if (skinPelota.equalsIgnoreCase("Shpong")) {
+                pelota = new Pelota(400, 300, 32, 32);
+                rutaPelota = "/pipoo/pong/shpong/saturno.png";
+            } else if (skinPelota.equals("Japong")) {
+                pelota = new Pelota(400, 300, 32, 32);
+                rutaPelota = "/pipoo/pong/japong/pelota_japong.png";
             }
-
-            //puntos estilo neon
-            /*
-            imgNumerosNeon = new BufferedImage[16];
-            for (int i = 0; i<= 15; i++) {
-                imgNumerosNeon[i] = ImageIO.read(getClass().getResource("/pipoo/pong/neon/" + i + ".png"));
-            }
-
-             */
+            BufferedImage imgPelota = ImageIO.read(getClass().getResource(rutaPelota));
             pelota.setImagen(imgPelota);
-            paleta1.setImagen(imgPaleta);
-            paleta2.setImagen(imgPaleta);
 
+            // --- LOGICA PARA LAS PALETAS ---
+            rutaPaleta = "/pipoo/pong/imagenes/paleta_default.png";
+            rutaPaleta2 = null;
+            if (skinPaleta.equalsIgnoreCase("Shpong")) {
+                rutaPaleta = "/pipoo/pong/shpong/nave_azul.png";
+                rutaPaleta2 = "/pipoo/pong/shpong/nave_azul_derecha.png";
+                paleta1 = new Paleta(20, (double) getHeight() / 2 - 40, 40, 80);
+                paleta2 = new Paleta(getWidth() - 45, (double) getHeight() / 2 - 40, 40, 80);
+            } else if (skinPaleta.equalsIgnoreCase("Japong")) {
+                rutaPaleta = "/pipoo/pong/japong/paleta_japong.png";
+            }
+            BufferedImage imgPaleta = ImageIO.read(getClass().getResource(rutaPaleta));
+            BufferedImage imgPaleta2 = (rutaPaleta2 != null) ? ImageIO.read(getClass().getResource(rutaPaleta2)) : imgPaleta;
+            paleta2.setImagen(imgPaleta);
+            paleta1.setImagen(imgPaleta2);
+
+            // --- LÓGICA PARA LA CANCHA ---
+            rutaCancha = "/pipoo/pong/imagenes/cancha_default.png"; // Default
+            rutaDivisor = "/pipoo/pong/imagenes/barra_del_medio.png";
+            this.imgNumeros = new BufferedImage[16];
+            if (skinCancha.equalsIgnoreCase("Shpong")) {
+                rutaCancha = "/pipoo/pong/shpong/cancha_shpong.png";
+                this.imgCancha = ImageIO.read(getClass().getResource(rutaCancha));
+                this.imgGameOver = ImageIO.read(getClass().getResource("/pipoo/pong/shpong/game_over_shpong.png"));
+                for (int i = 0; i <= 15; i++) {
+                    this.imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/shpong/" + i + ".png"));
+                }
+            } else if (skinCancha.equalsIgnoreCase("Japong")) {
+                rutaCancha = "/pipoo/pong/japong/cancha_japong.png";
+                this.imgCancha = ImageIO.read(getClass().getResource(rutaCancha));
+                for (int i = 0; i <= 15; i++) {
+                    this.imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/japong/" + i + ".png"));
+                }
+            } else {
+                // ELEMENTOS COMUNES (Divisor y Game Over)
+                this.imgDivisor = ImageIO.read(getClass().getResource(rutaDivisor));
+                this.imgGameOver = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/game_over.png"));
+                for (int i = 0; i <= 15; i++) {
+                    this.imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/imagenes/" + i + ".png"));
+                }
+            }
         } catch (IOException e){
             System.err.println("Error cargando assets de Pong " +e.getMessage());
 
@@ -167,88 +208,113 @@ public class Pong extends Juego {
 
     @Override
     public void gameUpdate(double delta) {
-        Keyboard teclado = this.getKeyboard();
-
-        // Controles jugador 1
-        if (teclado.isKeyPressed(KeyEvent.VK_W)) {
-            paleta1.moverArriba(delta);
-        }
-        if (teclado.isKeyPressed(KeyEvent.VK_S)) {
-            paleta1.moverAbajo(delta);
-        }
-
-        // Controles jugador 2 / BOT
-        if (this.jugador2 instanceof Bot) {
-            // Si es un BOT, ejecuta su logica
-            this.actualizarBOT(delta);
-        } else {
-            // Si no es un bot, es un humano
-            if (teclado.isKeyPressed(KeyEvent.VK_UP)) {
-                paleta2.moverArriba(delta);
-            } else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
-                paleta2.moverAbajo(delta);
+        if (enCarga) {
+            // --- ESTADO DE CARGA ---
+            acumTiempo += delta;
+            if (acumTiempo >= 3.0) {
+                enCarga = false;
             }
+        } else {
+            Keyboard teclado = this.getKeyboard();
+
+            // Movimiento Jugador 1
+            if (teclado.isKeyPressed(KeyEvent.VK_W)) {
+                paleta1.moverArriba(delta);
+            }
+            if (teclado.isKeyPressed(KeyEvent.VK_S)) {
+                paleta1.moverAbajo(delta);
+            }
+
+            // Lógica del Jugador 2 o BOT
+            if (this.jugador2 instanceof Bot) {
+                this.actualizarBOT(delta);
+            } else {
+                if (teclado.isKeyPressed(KeyEvent.VK_UP)) {
+                    paleta2.moverArriba(delta);
+                } else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
+                    paleta2.moverAbajo(delta);
+                }
+            }
+
+            pelota.mover(delta);
+            detectarColisiones();
+            actualizarPuntaje();
         }
-        pelota.mover(delta);
-        detectarColisiones();
-        actualizarPuntaje();
     }
 
     @Override
     public void gameDraw(Graphics2D g) {
-        //dibujamos el fondo
-        if (imgCancha != null) {
-            g.drawImage(imgCancha, 0, 0, getWidth(), getHeight(), null);
-        }
-        if (imgDivisor != null) {
-            int posX = (getWidth()/2) - (imgDivisor.getWidth() / 2);
-            g.drawImage(imgDivisor, posX, 1, imgDivisor.getWidth(), getHeight(), null);
-        }
+        if (enCarga) {
+            // pantalla de carga...
+            if (imgLoading != null) {
+                g.drawImage(imgLoading, 0, 0, getWidth(), getHeight(), null);
+            }
+        } else {
+            //si la carga es falsa, dibujamos todo
+            // fondo de la cancha
+            if (imgCancha != null) {
+                g.drawImage(imgCancha, 0, 0, getWidth(), getHeight(), null);
+            }
 
-        if (juegoFinalizado) {
-            g.drawImage(imgGameOver, 0,0, getWidth(), getHeight(), null);
-        }
+            // divisor de cancha
+            if (imgDivisor != null) {
+                int posX = (getWidth() / 2) - (imgDivisor.getWidth() / 2);
+                g.drawImage(imgDivisor, posX, 1, imgDivisor.getWidth(), getHeight(), null);
+            }
 
-        //bordes
-        g.setColor(Color.WHITE);
-        if (bordeSuperior != null) {
-            g.fill(bordeSuperior);
-        }
+            // game over
+            if (juegoFinalizado) {
+                g.drawImage(imgGameOver, 0, 0, getWidth(), getHeight(), null);
+            }
 
-        if (bordeInferior != null){
-            g.fill(bordeInferior);
-        }
+            // bordes
+            if (skinCancha.equalsIgnoreCase("Shpong")) {
+                GradientPaint gradiente = new GradientPaint(0, 0, new Color(60, 20, 160), getWidth() / 2, 0, new Color(20, 100, 220), true);
+                g.setPaint(gradiente);
+            } else {
+                g.setColor(Color.WHITE);
+            }
 
-        //usa puntosj1 y puntosj2 como indice
-        if (imgNumeros[puntosJ1] != null) {
-            g.drawImage(imgNumeros[puntosJ1], getWidth() / 4, 90, null);
-        }
-        if (imgNumeros[puntosJ2] != null) {
-            // Posicionamos la imagen del número actual del J2
-            g.drawImage(imgNumeros[puntosJ2], (getWidth() / 4) * 3, 90, null);
-        }
+            if (bordeSuperior != null) g.fill(bordeSuperior);
+            if (bordeInferior != null) g.fill(bordeInferior);
 
-        pelota.dibujar(g);
-        paleta1.dibujar(g);
-        paleta2.dibujar(g);
+            // marcador
+            if (imgNumeros[puntosJ1] != null) {
+                g.drawImage(imgNumeros[puntosJ1], getWidth() / 4, 90, null);
+            }
+            if (imgNumeros[puntosJ2] != null) {
+                g.drawImage(imgNumeros[puntosJ2], (getWidth() / 4) * 3, 90, null);
+            }
 
-        //dibujamos los nombres de los jugadores
-        g.setFont(new Font("Monospaced", Font.BOLD, 20));
-        g.setColor(Color.WHITE);
-        if (this.nombreJ1 != null){
-            g.drawString(this.nombreJ1, (getWidth()/4)-20, 75);
-        }
-        if (this.nombreJ2 != null) {
-            g.drawString(this.nombreJ2, (getWidth()/4)*3-45, 75);
-        }
+            pelota.dibujar(g);
+            paleta1.dibujar(g);
+            paleta2.dibujar(g);
 
+            // nombre de jugadores
+            g.setFont(new Font("Consolas", Font.BOLD, 20));
+            g.setColor(Color.WHITE);
+            if (this.nombreJ1 != null) g.drawString(this.nombreJ1, (getWidth() / 4) - 20, 75);
+            if (this.nombreJ2 != null) g.drawString(this.nombreJ2, (getWidth() / 4) * 3 - 45, 75);
+        }
     }
 
     @Override
     public void gameShutdown() {
         // SistemaDeJuego con ranking:
-        // sistemaDeJuego.guardarPuntaje("J1", marcador.getPuntosJ1());
-        // sistemaDeJuego.guardarPuntaje("J2", marcador.getPuntosJ2());
+        Ranking manager = new Ranking("ranking_pong.dat");
+        manager.cargarRanking();
+        String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+
+        //entrada para jugador 1
+        manager.agregarEntrada(new RankingEntry(this.nombreJ1, 1, this.puntosJ1, fecha));
+
+        // entrada jugador 2 (Solo si no es un BOT)
+        if (!(this.jugador2 instanceof Bot)) {
+            manager.agregarEntrada(new RankingEntry(this.nombreJ2, 1, this.puntosJ2, fecha));
+        }
+
+        manager.guardarRanking();
+
         gestorAudio.detenerMusica();
         pelota = null;
         paleta1 = null;

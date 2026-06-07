@@ -6,74 +6,101 @@ import java.awt.*;
 public class PanelConfiguracionLR extends JPanel {
     private ConfiguracionLR config;
 
-    //GUI
+    // GUI
     private JCheckBox chkSonido, chkPantalla;
     private JComboBox<String> comboSkinsPersonaje, comboMusica;
     private JButton btnGuardar, btnReset, btnVolver;
 
     public PanelConfiguracionLR(ConfiguracionLR config, JPanel contenedor, CardLayout cl) {
         this.config = config;
-        this.setLayout(new GridLayout(0, 2, 10, 10));
+        this.setLayout(new BorderLayout(10, 10));
 
-        // Inicializacion de componentes
-        chkSonido = new JCheckBox("Sonido General", config.isSonidoActivado());
+        // --- PANEL CENTRAL (formulario) ---
+        JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
+
+        // Checkboxes
+        chkSonido   = new JCheckBox("Sonido Activado",  config.isSonidoActivado());
         chkPantalla = new JCheckBox("Pantalla Completa", config.isPantallaCompleta());
 
-        // Selección de skins y música
-        String[] skins = {"Original", "Explorador", "Robot"};
-        comboSkinsPersonaje = new JComboBox<>(skins);
+        // Skins: "Original" y la nueva "DeGalaRunner"
+        comboSkinsPersonaje = new JComboBox<>(new String[]{"Original", "DeGalaRunner"});
 
-        String[] pistas = {"Tema LR Original", "Remix Retro", "Aventura"};
-        comboMusica = new JComboBox<>(pistas);
+        // Música
+        comboMusica = new JComboBox<>(new String[]{"Ninguna", "Tema LR Original", "The Mountain Retro"});
 
-        // agregar al panel
-        this.add(new JLabel("Audio:"));         this.add(chkSonido);
-        this.add(new JLabel("Modo de Pantalla:")); this.add(chkPantalla);
-        this.add(new JLabel("Skin Personaje:"));  this.add(comboSkinsPersonaje);
-        this.add(new JLabel("Pista Musical:"));    this.add(comboMusica);
+        // SECCIÓN: Video y Audio
+        panelFormulario.add(new JLabel("Modo de Pantalla:"));
+        panelFormulario.add(chkPantalla);
+        panelFormulario.add(new JLabel("Sonido:"));
+        panelFormulario.add(chkSonido);
 
-        //controles
-        this.add(new JLabel("CONTROLES (Fijos):")); this.add(new JLabel("Flechas: Mover"));
-        this.add(new JLabel("Cavar Pozo:"));        this.add(new JLabel("Barra Espaciadora"));
-        this.add(new JLabel("Audio (Efectos/Música):")); this.add(new JLabel("Q / W"));
+        // SECCIÓN: Personalización
+        panelFormulario.add(new JLabel("Skin Personaje:"));
+        panelFormulario.add(comboSkinsPersonaje);
+        panelFormulario.add(new JLabel("Pista Musical:"));
+        panelFormulario.add(comboMusica);
 
-        // --- 4. Botones de Acción ---
+        // SECCIÓN: Controles (informativos, fijos)
+        panelFormulario.add(new JLabel("Movimiento:"));
+        panelFormulario.add(new JLabel("Flechas direccionales"));
+        panelFormulario.add(new JLabel("Cavar Pozo:"));
+        panelFormulario.add(new JLabel("Barra Espaciadora"));
+        panelFormulario.add(new JLabel("Efectos Sonido ON/OFF"));
+        panelFormulario.add(new JLabel("Q"));
+        panelFormulario.add(new JLabel("Música de Fondo ON/OFF"));
+        panelFormulario.add(new JLabel("W"));
+        panelFormulario.add(new JLabel("Iniciar"));
+        panelFormulario.add(new JLabel("Enter"));
+
+
+
+
+
+
+
+
+
+
+
+
+        this.add(panelFormulario, BorderLayout.CENTER);
+
+        // --- PANEL DE BOTONES (sur) ---
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnGuardar = new JButton("Guardar");
-        btnReset = new JButton("Reset");
-        btnVolver = new JButton("Volver al Menú");
+        btnReset   = new JButton("Reset");
+        btnVolver  = new JButton("Volver al Menú");
 
-        // Lógica Guardar
+        panelBotones.add(btnGuardar);
+        panelBotones.add(btnReset);
+        panelBotones.add(btnVolver);
+        this.add(panelBotones, BorderLayout.SOUTH);
+
+        // --- LÓGICA DE BOTONES ---
+
         btnGuardar.addActionListener(e -> {
-            config.setSonidoActivado(chkSonido.isSelected());
             config.setPantallaCompleta(chkPantalla.isSelected());
+            config.setSonidoActivado(chkSonido.isSelected());
             config.setSkinPersonaje((String) comboSkinsPersonaje.getSelectedItem());
             config.setPistaMusical((String) comboMusica.getSelectedItem());
-
-            config.guardar(); // Persistencia en config_lr.properties
+            config.guardar();
             JOptionPane.showMessageDialog(this, "Configuración de Lode Runner guardada.");
         });
 
-        // Lógica Reset
         btnReset.addActionListener(e -> {
             config.reset();
-            actualizarGUI(); // Sincroniza visualmente
-            JOptionPane.showMessageDialog(this, "Valores de Lode Runner restaurados.");
+            config.guardar();
+            actualizarGUI();
+            JOptionPane.showMessageDialog(this, "Valores de Lode Runner restaurados por defecto.");
         });
 
-        // Lógica Volver
         btnVolver.addActionListener(e -> cl.show(contenedor, "INICIO"));
-
-        this.add(btnGuardar);
-        this.add(btnReset);
-        this.add(new JLabel("")); // Espacio
-        this.add(btnVolver);
-
         actualizarGUI();
     }
 
     private void actualizarGUI() {
-        chkSonido.setSelected(config.isSonidoActivado());
         chkPantalla.setSelected(config.isPantallaCompleta());
+        chkSonido.setSelected(config.isSonidoActivado());
         comboSkinsPersonaje.setSelectedItem(config.getSkinPersonaje());
         comboMusica.setSelectedItem(config.getPistaMusical());
     }

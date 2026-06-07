@@ -7,10 +7,12 @@ public class PanelConfiguracionPong extends JPanel {
     private ConfiguracionPong config;
     private JCheckBox chkSonido, chkPantalla, chkContraBot;
     private JComboBox<String> comboSkinsPaleta, comboSkinsCancha, comboSkinsPelota, comboMusica;
-    private JComboBox<Integer> comboPuntos; //entre 11 o 15
+    private JComboBox<String> comboPuntos; //entre 11, 15 o personalizado
     private JTextField txtNombreJ1;
     private JTextField txtNombreJ2;
-
+    private String seleccionPuntos, entrada;
+    private int puntos;
+    private int puntosPersonalizados = 11;
 
     private JTextField txtUpJ1, txtDownJ1, txtUpJ2, txtDownJ2;
     private JPanel parent;
@@ -32,17 +34,44 @@ public class PanelConfiguracionPong extends JPanel {
         //para que habilite escribir un nombre si no jugamos contra bot
         txtNombreJ2.setEnabled(!chkContraBot.isSelected());
 
-        String[] skins = {"Original", "Neon"};
+        String[] skins = {"Original", "Shpong", "Japong"};
         comboSkinsPaleta = new JComboBox<>(skins);
         comboSkinsPelota = new JComboBox<>(skins);
         comboSkinsCancha = new JComboBox<>(skins);
 
-        String[] canciones = {"Ninguna", "Jeff The Bat", "Keyboard Cat"};
+        String[] canciones = {"Ninguna", "Jeff The Bat", "Keyboard Cat", "Koopa Troopa Beach", "Under The Sea", "Yoshi Island"};
         comboMusica = new JComboBox<>(canciones);
 
         //11 o 15 puntos
-        Integer[] opcionesPuntos = {11, 15};
+        String[] opcionesPuntos = {"11", "15", "Personalizado"};
         comboPuntos = new JComboBox<>(opcionesPuntos);
+        comboPuntos.addActionListener(e -> {
+            String seleccion = comboPuntos.getSelectedItem().toString();
+
+            if (seleccion.equals("Personalizado")) {
+                String entrada = JOptionPane.showInputDialog(this,
+                        "Ingrese el puntaje máximo para ganar",
+                        "Puntaje Personalizado", JOptionPane.QUESTION_MESSAGE);
+
+                try {
+                    if (entrada != null && !entrada.isEmpty()) {
+                        int valor = Integer.parseInt(entrada);
+                        if (valor > 0) {
+                            puntosPersonalizados = valor;
+                        } else {
+                            throw new NumberFormatException();
+                        }
+                    } else {
+                        // Si cancela, volvemos al default
+                        comboPuntos.setSelectedIndex(0);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Entrada no válida. Se usará 11 por defecto.");
+                    puntosPersonalizados = 11;
+                    comboPuntos.setSelectedIndex(0);
+                }
+            }
+        });
 
         //Panel del centro
         JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
@@ -54,8 +83,7 @@ public class PanelConfiguracionPong extends JPanel {
         panelFormulario.add(txtNombreJ2);
         this.add(panelFormulario, BorderLayout.CENTER);
 
-        // --- 3. PANEL DE BOTONES (SUR) ---
-        // Agrupamos los botones de acción abajo para que no se estiren con el GridLayout [1, 2]
+        // --- PANEL DE BOTONES (SUR) ---
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         JButton btnGuardar = new JButton("Guardar");
         JButton btnReset = new JButton("Reset");
@@ -81,6 +109,8 @@ public class PanelConfiguracionPong extends JPanel {
         panelFormulario.add(comboSkinsPaleta);
         panelFormulario.add(new JLabel("Skin Pelota:"));
         panelFormulario.add(comboSkinsPelota);
+        panelFormulario.add(new JLabel("Escenario Cancha"));
+        panelFormulario.add(comboSkinsCancha);
 
         // SECCIÓN: Info de Controles
         panelFormulario.add(new JLabel("CONTROLES J1:"));
@@ -105,10 +135,17 @@ public class PanelConfiguracionPong extends JPanel {
 
         // Lógica Guardar
         btnGuardar.addActionListener(e -> {
-            String seleccionPuntos = comboPuntos.getSelectedItem().toString();
-            int puntos = Integer.parseInt(seleccionPuntos);
+            seleccionPuntos = comboPuntos.getSelectedItem().toString().trim();
+            int puntosFinales;
 
-            String pistaSeleccionada = (String) comboMusica.getSelectedItem();
+            if (seleccionPuntos.equals("Personalizado")) {
+                puntosFinales = puntosPersonalizados;
+            } else {
+                // Parseamos el 11 o 15 directamente
+                puntosFinales = Integer.parseInt(seleccionPuntos);
+            }
+
+        String pistaSeleccionada = (String) comboMusica.getSelectedItem();
             config.setPistaMusical(pistaSeleccionada);
 
             config.setNombreJ1(txtNombreJ1.getText());
@@ -118,8 +155,8 @@ public class PanelConfiguracionPong extends JPanel {
             config.setPantallaCompleta(chkPantalla.isSelected());
             config.setSkinPaletas((String) comboSkinsPaleta.getSelectedItem());
             config.setSkinPelota((String) comboSkinsPelota.getSelectedItem());
-            config.setPistaMusical((String) comboMusica.getSelectedItem());
-            config.setPuntosParaGanar(puntos);
+            config.setSkinCancha((String) comboSkinsCancha.getSelectedItem());
+            config.setPuntosParaGanar(puntosFinales);
 
             config.guardar();
 
@@ -129,6 +166,7 @@ public class PanelConfiguracionPong extends JPanel {
         // Lógica reset
         btnReset.addActionListener(e -> {
             config.reset();
+            config.guardar();
             actualizarGUI();
             boolean esBot = chkContraBot.isSelected();
             txtNombreJ2.setEnabled(!esBot);
@@ -139,8 +177,6 @@ public class PanelConfiguracionPong extends JPanel {
     }
 
 
-
-
     private void actualizarGUI() {
         txtNombreJ1.setText(config.getNombreJ1());
         txtNombreJ2.setText(config.getNombreJ2());
@@ -149,6 +185,7 @@ public class PanelConfiguracionPong extends JPanel {
         chkPantalla.setSelected(config.isPantallaCompleta());
         comboSkinsPaleta.setSelectedItem(config.getSkinPaletas());
         comboSkinsPelota.setSelectedItem(config.getSkinPelota());
+        comboSkinsCancha.setSelectedItem(config.getSkinCancha());
         comboMusica.setSelectedItem(config.getPistaMusical());
         comboPuntos.setSelectedItem(config.getPuntosParaGanar());
     }

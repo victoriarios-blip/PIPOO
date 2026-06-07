@@ -16,19 +16,19 @@ public class Guardia extends Runner {
     private static final double VELOCIDAD_ESC    = 1.0;
     private static final double VELOCIDAD_ESCAPE = 1.2;
     private static final double GRAVEDAD         = 3.0;
-    private static final int    TICKS_EN_POZO    = 75;
+    private static final int    TICKS_EN_POZO    = 150;
     private static final double TOLERANCIA_X     = 6.0;
     private static final double ANCHO_MUNDO      = 1200.0;
 
-    private Estado estado      = Estado.CAMINANDO;
-    private int    ticksEnPozo = 0;
+    private Estado estado= Estado.CAMINANDO;
+    private int ticksEnPozo = 0;
     private Escalera escaleraObjetivo = null;
 
-    private Heroe                   heroe;
-    private ArrayList<Escalera>     escaleras;
-    private ArrayList<Plataforma>   plataformas;
+    private Heroe heroe;
+    private ArrayList<Escalera> escaleras;
+    private ArrayList<Plataforma> plataformas;
     private ArrayList<BarraDeManos> barras;
-    private ArrayList<Pozo>         pozos;
+    private ArrayList<Pozo> pozos;
 
     private double  posicionInicialX;
     private double  posicionInicialY;
@@ -38,8 +38,8 @@ public class Guardia extends Runner {
 
     public Guardia(double x, double y, int width, int height, Heroe heroe) {
         super(x, y, width, height);
-        this.heroe            = heroe;
-        this.tieneOro         = false;
+        this.heroe= heroe;
+        this.tieneOro= false;
         this.posicionInicialX = x;
         this.posicionInicialY = y;
     }

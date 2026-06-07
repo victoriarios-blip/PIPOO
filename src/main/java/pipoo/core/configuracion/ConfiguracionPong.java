@@ -2,9 +2,6 @@ package pipoo.core.configuracion;
 
 
 import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Files; //api nio
-import java.nio.file.Paths; //api nio
 import java.util.Properties;
 import java.io.IOException;
 
@@ -21,7 +18,7 @@ public class ConfiguracionPong extends Configuracion {
     //constructor config pong
     public ConfiguracionPong() {
         // defino su propio nombre de archivo
-        super("config_pong.properties");
+        super("jgame.properties");
         this.pistaMusical = "Ninguna";
         this.leer();
 
@@ -51,7 +48,6 @@ public class ConfiguracionPong extends Configuracion {
     public void guardar() {
         Properties prop = new Properties();
 
-        // guardar parametros de la clase abstracta (comunes)
         prop.setProperty("fullScreen", String.valueOf(this.isPantallaCompleta()));
         prop.setProperty("sonidoActivado", String.valueOf(this.sonidoActivado));
         prop.setProperty("pistaMusical", this.pistaMusical);
@@ -79,29 +75,6 @@ public class ConfiguracionPong extends Configuracion {
 
     }
 
-    public void leer() {
-        // 1. Parámetros de audio y sistema
-        this.pistaMusical = propiedades.getProperty("pistaMusical", "Ninguna");
-        this.sonidoActivado = Boolean.parseBoolean(propiedades.getProperty("sonidoActivado", "true"));
-        this.pantallaCompleta = Boolean.parseBoolean(propiedades.getProperty("fullScreen", "false"));
-
-        // 2. Parámetros de personalización (Skins)
-        this.skinPelota = propiedades.getProperty("skinPelota", "Original");
-        this.skinPaletas = propiedades.getProperty("skinPaletas", "Original");
-        this.skinCancha = propiedades.getProperty("skinCancha", "Original");
-
-        // 3. Lógica de juego
-        this.puntosParaGanar = Integer.parseInt(propiedades.getProperty("puntosParaGanar", "11"));
-        this.contraBot = Boolean.parseBoolean(propiedades.getProperty("contraBot", "true"));
-        this.nombreJ2 = propiedades.getProperty("nombreJ2", "PIPOO BOT");
-
-        // 4. Teclas (Conversión de String a int)
-        this.teclaUpJ1 = Integer.parseInt(propiedades.getProperty("teclaUpJ1", "38"));
-        this.teclaDownJ1 = Integer.parseInt(propiedades.getProperty("teclaDownJ1", "40"));
-        this.teclaUpJ2 = Integer.parseInt(propiedades.getProperty("teclaUpJ2", "87"));
-        this.teclaDownJ2 = Integer.parseInt(propiedades.getProperty("teclaDownJ2", "83"));
-    }
-
     // Getters y Setters específicos de Pong para la GUI
     public int getPuntosParaGanar() { return puntosParaGanar; }
     public void setPuntosParaGanar(int puntos) { this.puntosParaGanar = puntos; }
@@ -122,9 +95,8 @@ public class ConfiguracionPong extends Configuracion {
     public boolean getContraBot() { return contraBot; }
     public void setContraBot(boolean contraBot) { this.contraBot = contraBot;}
 
-
-    public String getSkinCancha() { return skinPelota; }
-    public void setSkinCancha(String skinCancha) { this.skinPelota = skinCancha; }
+    public String getSkinCancha() { return skinCancha; }
+    public void setSkinCancha(String skinCancha) { this.skinCancha = skinCancha; }
 
     public int getTeclaUpJ1() { return teclaUpJ1; }
     public void setTeclaUpJ1(int teclaUpJ1) { this.teclaUpJ1 = teclaUpJ1; }
@@ -137,6 +109,31 @@ public class ConfiguracionPong extends Configuracion {
 
     public int getTeclaDownJ2() { return teclaDownJ2; }
     public void setTeclaDownJ2(int teclaDownJ2) { this.teclaDownJ2 = teclaDownJ2; }
+
+    public void leer() {
+        // Parametros de audio y sistema
+        this.pistaMusical = propiedades.getProperty("pistaMusical", "Ninguna");
+        this.sonidoActivado = Boolean.parseBoolean(propiedades.getProperty("sonidoActivado", "true"));
+        this.pantallaCompleta = Boolean.parseBoolean(propiedades.getProperty("fullScreen", "false"));
+
+        // Parametros de personalizacion (Skins)
+        this.skinPelota = propiedades.getProperty("skinPelota", "Original");
+        this.skinPaletas = propiedades.getProperty("skinPaletas", "Original");
+        this.skinCancha = propiedades.getProperty("skinCancha", "Original");
+
+        // Logica de juego
+        this.puntosParaGanar = Integer.parseInt(propiedades.getProperty("puntosParaGanar", "11"));
+        this.contraBot = Boolean.parseBoolean(propiedades.getProperty("contraBot", "true"));
+        this.nombreJ2 = propiedades.getProperty("nombreJ2", "PIPOO BOT");
+
+        // 4. Teclas (Conversión de String a int)
+        this.teclaUpJ1 = Integer.parseInt(propiedades.getProperty("teclaUpJ1", "38"));
+        this.teclaDownJ1 = Integer.parseInt(propiedades.getProperty("teclaDownJ1", "40"));
+        this.teclaUpJ2 = Integer.parseInt(propiedades.getProperty("teclaUpJ2", "87"));
+        this.teclaDownJ2 = Integer.parseInt(propiedades.getProperty("teclaDownJ2", "83"));
+    }
+
+
 
 }
 

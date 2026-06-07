@@ -2,7 +2,7 @@ package pipoo.core;
 
 import com.entropyinteractive.JGame;
 import pipoo.core.configuracion.Configuracion;
-import java.util.Properties;
+
 import java.awt.*;
 
 public abstract class Juego extends JGame {
@@ -40,4 +40,36 @@ public abstract class Juego extends JGame {
     public void aplicarModoPantalla(boolean pc) {
         this.appProperties.setProperty("fullscreen", pc ? "true" : "false");
     }
+
+    @Override
+    protected void readPropertiesFile() {
+        System.out.println("DEBUG: Iniciando búsqueda de configuración sincronizada ");
+
+        // PRIORIDAD ALTA: El archivo físico en la raíz (donde el Panel guarda)
+        java.io.File fileRaiz = new java.io.File("jgame.properties");
+
+        if (fileRaiz.exists()) {
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(fileRaiz)) {
+                this.appProperties.load(fis);
+                System.out.println("DEBUG: Cambios del usuario cargados desde la raiz ");
+                return;
+            } catch (Exception e) {
+                System.err.println("Error al leer archivo de raíz: " + e.getMessage());
+            }
+        }
+
+        // PRIORIDAD BAJA: El Classpath (Solo si no hay cambios del usuario en la raíz)
+        try (java.io.InputStream input = getClass().getClassLoader().getResourceAsStream("jgame.properties")) {
+            if (input != null) {
+                this.appProperties.load(input);
+                System.out.println("DEBUG: Cargada configuración por defecto del Classpath.");
+            } else {
+                System.err.println("ADVERTENCIA: No se encontró jgame.properties en ninguna ubicacion.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error al leer recursos: " + e.getMessage());
+        }
+    }
+
+
 }

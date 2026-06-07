@@ -10,6 +10,7 @@ public class Pozo  extends ElementoGrafico {
     private boolean estaCavando = true;
     private double timerCavado = 0;
     private BufferedImage imgAbierta;
+    private BufferedImage imgCerrandose;
 
     public Pozo(double x, double y, double width, double height) {
         super(x, y, width, height);
@@ -21,23 +22,32 @@ public class Pozo  extends ElementoGrafico {
         this.imgAbierta = imgAbierta;
         this.setImagen(imgFrag); // Comienza mostrando el fragmento
     }
+    public void setImagenCerrandose(BufferedImage img) {
+        this.imgCerrandose = img;
+    }
 
 
     public void actualizar(double delta) {
-        tiempoAbierto += delta; // delta es 1.0/60.0 por cada frame
+        tiempoAbierto += delta;
+
         if (estaCavando) {
             timerCavado += delta;
-            if (timerCavado >= 0.25) { // Dura 1/4 de segundo (podés ajustarlo)
+            if (timerCavado >= 0.25) {
                 estaCavando = false;
-                setImagen(imgAbierta); // Se abre completamente
+                setImagen(imgAbierta);
             }
-            return; // Salimos para que el tiempo de cerrado no corra todavía
+            return;
         }
-        // Regla: 5 segundos en total.
+
+        // 5 segundos en total.
         if (tiempoAbierto >= 5.0) {
-            estado = 2; // Se cierra por completo
+            estado = 2; // se cierra por completo
+
         } else if (tiempoAbierto >= 4.5) {
-            estado = 1; // Último medio segundo: se vuelve piso firme
+            estado = -1;
+            if (imgCerrandose != null) {
+                setImagen(imgCerrandose);
+            }
         }
     }
 
