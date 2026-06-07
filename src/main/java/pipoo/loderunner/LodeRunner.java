@@ -76,6 +76,12 @@ public class LodeRunner extends Juego {
     private double timerPasos = 0.15;
     private double timerEscalera = 0.18;
 
+    // Variables para el control de audio en vivo
+    private boolean sfxActivado;
+    private boolean bgmActivado;
+    private boolean keyQ = false;
+    private boolean keyW = false;
+
     public LodeRunner() {
         super("PIPOO LODE RUNNER", 800, 600);
     }
@@ -97,15 +103,24 @@ public class LodeRunner extends Juego {
         barras = new ArrayList<>();
 
         ConfiguracionLR config = (ConfiguracionLR) this.getConfiguracion();
+        String rutaSkin = "";
         if (config != null) {
             System.out.println("Skin: " + config.getSkinPersonaje());
-            // Guardamos la config en las variables globales como en Pong
             this.sonidoActivado = config.isSonidoActivado();
             this.pistaMusical = config.getPistaMusical();
+
+            if ("DeGalaRunner".equals(config.getSkinPersonaje())) {
+                rutaSkin = "gala_";
+            }
+
         } else {
             this.sonidoActivado = true;
             this.pistaMusical = "Tema LR Original";
         }
+
+        // Inicializamos los controles individuales según la configuración general al iniciar la partida
+        this.sfxActivado = this.sonidoActivado;
+        this.bgmActivado = this.sonidoActivado;
 
         // 3. CARGAR AUDIOS
         if (!sonidoActivado) {
@@ -152,23 +167,22 @@ public class LodeRunner extends Juego {
             try { imgBloqueRegenerandose = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/bloque_regenerandose.png")); } catch(Exception e){}
 
             // heroe
-            imgHeroeDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_mirando_der.png"));
-            imgHeroeIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_mirando_izq.png"));
-            imgHeroeEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_subiendo_escalera.png"));
-            imgHeroeColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_colgado_barramanos.png"));
+            imgHeroeDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_mirando_der.png"));
+            imgHeroeIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_mirando_izq.png"));
+            imgHeroeEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_subiendo_escalera.png"));
+            imgHeroeColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_colgado_barramanos.png"));
 
             framesMuerteHeroe = new BufferedImage[7];
             for (int i = 1; i <= 7; i++) {
-                framesMuerteHeroe[i-1] = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/heroe_muriendo_" + i + ".png"));
+                framesMuerteHeroe[i-1] = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_muriendo_" + i + ".png"));
             }
 
             // guardia
-            imgGuardiaDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_derecha_1.png"));
-            imgGuardiaIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_izquierda_1.png"));
-            imgGuardiaEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_en_escalera.png"));
-            imgGuardiaColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_izq_colgado.png"));
-            imgGuardiaAtrapado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/guardia_atrapado_pozo.png"));
-
+            imgGuardiaDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "guardia_derecha_1.png"));
+            imgGuardiaIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "guardia_izquierda_1.png"));
+            imgGuardiaEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "guardia_en_escalera.png"));
+            imgGuardiaColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "guardia_izq_colgado.png"));
+            imgGuardiaAtrapado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "guardia_atrapado_pozo.png"));
             // escenario
             imgEscCorta = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera corta.png"));
             imgEscMediana = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera mediana.png"));
@@ -444,7 +458,15 @@ public class LodeRunner extends Juego {
         try {
             audio.detenerMusica();
             if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
-                java.net.URL urlMusica = this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav");
+
+                // Elegimos la ruta del archivo según la pista configurada
+                String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav"; // Por defecto
+                if ("The Mountain Retro".equals(pistaMusical)) {
+                    rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav"; // Tu nuevo archivo .wav
+                }
+
+                java.net.URL urlMusica = this.getClass().getResource(rutaArchivoMusica);
+                System.out.println("DEBUG MÚSICA: " + urlMusica);
                 if (urlMusica != null) {
                     audio.reproducirMusica(urlMusica);
                 }
@@ -463,6 +485,39 @@ public class LodeRunner extends Juego {
         boolean actLeft = teclado.isKeyPressed(KeyEvent.VK_LEFT);
         boolean actRight = teclado.isKeyPressed(KeyEvent.VK_RIGHT);
         boolean actEnter = teclado.isKeyPressed(KeyEvent.VK_ENTER);
+        boolean actQ = teclado.isKeyPressed(KeyEvent.VK_Q);
+        boolean actW = teclado.isKeyPressed(KeyEvent.VK_W);
+
+        // LÓGICA: Tecla Q = Efectos de Sonido
+        if (actQ && !keyQ) {
+            sfxActivado = !sfxActivado;
+            System.out.println("Efectos de sonido: " + (sfxActivado ? "ON" : "OFF"));
+        }
+        keyQ = actQ;
+
+        // LÓGICA: Tecla W = Música de fondo
+        if (actW && !keyW) {
+            bgmActivado = !bgmActivado;
+            System.out.println("Música de fondo: " + (bgmActivado ? "ON" : "OFF"));
+
+            if (!bgmActivado) {
+                audio.detenerMusica();
+            } else {
+                // Reproducir la música correspondiente según el estado
+                try {
+                    if (estadoActual == EstadoJuego.MENU && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                        audio.reproducirMusica(this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav"));
+                    } else if (estadoActual == EstadoJuego.JUGANDO && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                        String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav";
+                        if ("The Mountain Retro".equals(pistaMusical)) {
+                            rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav";
+                        }
+                        audio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
+                    }
+                } catch (Exception e) {}
+            }
+        }
+        keyW = actW;
 
         // ESTADO: MENU PRINCIPAL
         if (estadoActual == EstadoJuego.MENU) {
@@ -684,7 +739,7 @@ public class LodeRunner extends Juego {
         if (heroe.getVelocidadX() != 0 && !heroe.isEstaCayendo() && !heroe.isEnEscalera()) {
             timerPasos += delta;
             if (timerPasos >= 0.25) {
-                if (sonidoActivado) audio.reproducirEfecto("pasos");
+                if (sfxActivado) audio.reproducirEfecto("pasos");
                 timerPasos = 0;
             }
         } else {
@@ -695,7 +750,7 @@ public class LodeRunner extends Juego {
         if (heroe.getVelocidadY() != 0 && heroe.isEnEscalera()) {
             timerEscalera += delta;
             if (timerEscalera >= 0.18) {
-                if (sonidoActivado) audio.reproducirEfecto("escalera");
+                if (sfxActivado) audio.reproducirEfecto("escalera");
                 timerEscalera = 0;
             }
         } else {
@@ -1013,7 +1068,7 @@ public class LodeRunner extends Juego {
                 itOro.remove();
                 score += 250;
                 orosRecolectadosNivel++;
-                if (sonidoActivado) audio.reproducirEfecto("oro");            }
+                if (sfxActivado) audio.reproducirEfecto("oro");            }
         }
 
         // heroe con escalera
@@ -1299,7 +1354,7 @@ public class LodeRunner extends Juego {
 
         if (atrapado) {
             System.out.println("¡El guardia atrapó al héroe! Pierdes una vida.");
-            if (sonidoActivado) audio.reproducirEfecto("miss");
+            if (sfxActivado) audio.reproducirEfecto("miss");
             heroe.iniciarMuerte();
         }
         lingotes.addAll(orosSoltados);
@@ -1312,7 +1367,8 @@ public class LodeRunner extends Juego {
         if (vidas <= 0) {
             System.out.println("¡GAME OVER! Te quedaste sin vidas.");
             audio.detenerMusica();
-            if (sonidoActivado) audio.reproducirEfecto("game_over");            juegoTerminado = true;
+            if (sfxActivado) audio.reproducirEfecto("game_over");
+            juegoTerminado = true;
             vidas = 0;
             estadoActual = EstadoJuego.GAMEOVER;
         } else {
@@ -1394,9 +1450,11 @@ public class LodeRunner extends Juego {
         nivel = 1;
 
         cargarNivel(nivel);
-        if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
-            audio.reproducirMusica(this.getClass().getResource("/pipoo/loderunner/audio/main_bgm.wav"));
+        String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav";
+        if ("The Mountain Retro".equals(pistaMusical)) {
+            rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav";
         }
+        audio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
         estadoActual = EstadoJuego.TRANSICION;
         timerTransicion = 2.5;
     }

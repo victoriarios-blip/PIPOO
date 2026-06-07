@@ -26,7 +26,7 @@ public class PanelConfiguracionLR extends JPanel {
         comboSkinsPersonaje = new JComboBox<>(new String[]{"Original", "DeGalaRunner"});
 
         // Música
-        comboMusica = new JComboBox<>(new String[]{"Ninguna", "Tema LR Original"});
+        comboMusica = new JComboBox<>(new String[]{"Ninguna", "Tema LR Original", "The Mountain Retro"});
 
         // SECCIÓN: Video y Audio
         panelFormulario.add(new JLabel("Modo de Pantalla:"));
@@ -45,7 +45,23 @@ public class PanelConfiguracionLR extends JPanel {
         panelFormulario.add(new JLabel("Flechas direccionales"));
         panelFormulario.add(new JLabel("Cavar Pozo:"));
         panelFormulario.add(new JLabel("Barra Espaciadora"));
-        panelFormulario.add(new JLabel("Efectos / Música:"));
+        panelFormulario.add(new JLabel("Efectos Sonido ON/OFF"));
+        panelFormulario.add(new JLabel("Q"));
+        panelFormulario.add(new JLabel("Música de Fondo ON/OFF"));
+        panelFormulario.add(new JLabel("W"));
+        panelFormulario.add(new JLabel("Iniciar"));
+        panelFormulario.add(new JLabel("Enter"));
+
+
+
+
+
+
+
+
+
+
+
 
         this.add(panelFormulario, BorderLayout.CENTER);
 
