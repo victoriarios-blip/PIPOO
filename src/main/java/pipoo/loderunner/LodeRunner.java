@@ -589,9 +589,26 @@ public class LodeRunner extends Juego {
         }
 
         if (pantallaVictoria) {
-            if (teclado.isKeyPressed(KeyEvent.VK_ENTER)) {
+            boolean actEsc = teclado.isKeyPressed(KeyEvent.VK_ESCAPE);
+
+            if (actEnter) {
                 pantallaVictoria = false;
-                avanzarSiguienteNivel();
+                if (nivel == 3) {
+                    estadoActual = EstadoJuego.MENU;
+                    try {
+                        audio.detenerMusica();
+                        if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                            java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
+                            if (urlMusicaMenu != null) audio.reproducirMusica(urlMusicaMenu);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error música menú: " + e.getMessage());
+                    }
+                } else {
+                    avanzarSiguienteNivel();
+                }
+            } else if (actEsc && nivel == 3) {
+                System.exit(0);
             }
             return;
         }
@@ -1039,9 +1056,18 @@ public class LodeRunner extends Juego {
             dibujarNumero(g, String.format("%06d", score), numX, fila4Y, 3.5);
 
             // NEXT STAGE
-            g.setColor(Color.LIGHT_GRAY);
-            g.setFont(new Font("Consolas", Font.PLAIN, 16));
-            g.drawString("PRESS ENTER TO NEXT STAGE", 290, 580);
+            if (nivel == 3) {
+                g.setFont(new Font("Consolas", Font.PLAIN, 18));
+                g.setColor(Color.WHITE);
+                g.drawString("PRESS ENTER TO RETURN TO MAIN MENU", 240, 580);
+                g.setColor(Color.RED);
+                g.drawString("PRESS ESC TO EXIT", 320, 600);
+            } else {
+                // texto normal para niveles 1 y 2
+                g.setColor(Color.LIGHT_GRAY);
+                g.setFont(new Font("Consolas", Font.PLAIN, 16));
+                g.drawString("PRESS ENTER TO NEXT STAGE", 290, 580);
+            }
         }
     }
 
