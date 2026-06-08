@@ -3,8 +3,6 @@ package pipoo.pong;
 import pipoo.core.*;
 import com.entropyinteractive.Keyboard;
 import pipoo.core.configuracion.ConfiguracionPong;
-import pipoo.core.recursos.Marcador;
-import pipoo.loderunner.Guardia;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -19,7 +17,6 @@ public class Pong extends Juego {
     private Pelota pelota;
     private Paleta paleta1, paleta2;
     private BufferedImage imgCancha, imgDivisor, imgGameOver;
-    private Marcador marcador;
     private int puntosJ1=0, puntosJ2=0;
     private boolean juegoFinalizado = false;
     private Jugador jugador1, jugador2;
@@ -356,7 +353,6 @@ public class Pong extends Juego {
         pelota = null;
         paleta1 = null;
         paleta2 = null;
-        marcador = null;
     }
 
     @Override
