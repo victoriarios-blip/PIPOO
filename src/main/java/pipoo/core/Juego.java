@@ -43,8 +43,6 @@ public abstract class Juego extends JGame {
 
     @Override
     protected void readPropertiesFile() {
-        System.out.println("DEBUG: Iniciando búsqueda de configuración sincronizada ");
-
         // PRIORIDAD ALTA: El archivo físico en la raíz (donde el Panel guarda)
         java.io.File fileRaiz = new java.io.File("jgame.properties");
 

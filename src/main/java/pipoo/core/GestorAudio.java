@@ -6,15 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GestorAudio {
-    private Clip musicaFondo; // Exclusivo para la música principal
-    private Map<String, Clip> efectos = new HashMap<>(); // Exclusivo para sonidos cortos
+    private Clip musicaFondo; // para la musica principal
+    private Map<String, Clip> efectos = new HashMap<>(); // para sonidos cortos
 
-    // ==========================================
-    //            EFECTOS DE SONIDO
-    // ==========================================
+
     public void precargarEfecto(String nombre, URL ruta) {
         if (ruta == null) {
-            System.err.println("ERROR: No se encontró el efecto: " + nombre);
+            System.err.println("ERROR: No se encontro el efecto: " + nombre);
             return;
         }
         try {
@@ -36,14 +34,12 @@ public class GestorAudio {
         }
     }
 
-    // ==========================================
-    //            MÚSICA DE FONDO
-    // ==========================================
+//musica de fondo
     public void reproducirMusica(URL ruta) {
         detenerMusica(); // Si había otra sonando, la apaga primero
 
         if (ruta == null) {
-            System.err.println("ERROR: No se encontró el archivo de música.");
+            System.err.println("ERROR: No se encontro el archivo de musica");
             return;
         }
         try {
@@ -52,7 +48,7 @@ public class GestorAudio {
             musicaFondo.open(audioIn);
             musicaFondo.loop(Clip.LOOP_CONTINUOUSLY); // Queda en bucle infinito
         } catch (Exception e) {
-            System.err.println("Error reproduciendo música: " + e.getMessage());
+            System.err.println("Error reproduciendo musica: " + e.getMessage());
         }
     }
 

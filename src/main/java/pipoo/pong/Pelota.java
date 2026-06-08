@@ -47,9 +47,9 @@ public class Pelota extends Movible implements Colisionable {
     public void rebotarVertical(double limiteY, boolean esTecho) {
         this.velocidadY = -this.velocidadY;  // ella misma maneja su estado
         if (esTecho) {
-            this.y = limiteY + 1; // La posiciona justo debajo del borde superior
+            this.y = limiteY + 1; // la posiciona justo debajo del borde superior
         } else {
-            this.y = limiteY - this.height - 1; // Justo arriba del borde inferior
+            this.y = limiteY - this.height - 1; // justo arriba del borde inferior
         }
     }
 

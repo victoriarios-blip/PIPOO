@@ -12,7 +12,7 @@ public abstract class Jugador {
         this.vidas = 0;
     }
 
-    // --- Getters y Setters exigidos por la cátedra para el Encapsulamiento ---
+    // Getters y Setters
     public String getNombre() {
         return nombre;
     }

@@ -26,10 +26,7 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     private ConfiguracionSI configSI = new ConfiguracionSI();
     private ConfiguracionLR configLR = new ConfiguracionLR();
 
-    private JPanel panelInicio, panelJuegos,
-            panelConfigGeneral, panelConfigP, panelConfigLR, panelConfigSI,
-            panelRankingP, panelRankingLR, panelRankingSI,
-            panelPong, panelLodeRunner, panelSpaceInvaders;
+    private JPanel panelInicio, panelJuegos, panelPong, panelLodeRunner, panelSpaceInvaders;
     private JTextArea areaTexto;
 
     public SistemaDeJuegos() {
@@ -154,7 +151,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     private void prepararJuego(Juego juego, Configuracion config) {
         if (config != null) {
             juego.setConfiguracion(config);
-            System.out.println("DEBUG: ¿Pantalla completa activa?: " + config.isPantallaCompleta());
             juego.aplicarModoPantalla(config.isPantallaCompleta());
         }
     }
@@ -186,8 +182,8 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         } else if (origen == btnConfigLR) {
             cardLayout.show(this, "CONFIG_LODE");
         }
+
         if (origen == btnRankingP || origen == btnRankingSI || origen == btnRankingLR) {
-            if (origen == btnRankingP || origen == btnRankingSI || origen == btnRankingLR) {
 
                 if (origen == btnRankingP) {
                     Ranking manager = new Ranking("ranking_pong.dat");
@@ -210,9 +206,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
                 this.areaTexto.setCaretPosition(0);
                 cardLayout.show(this, "PANTALLA_RANKING");
             }
-
-
-        }
         if (esLanzamientoDeJuego && juegoActual != null) {
             hiloJuego = new Thread(() -> juegoActual.run(1.0 / 60.0));
             hiloJuego.start();

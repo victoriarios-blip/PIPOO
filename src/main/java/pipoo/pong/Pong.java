@@ -145,8 +145,7 @@ public class Pong extends Juego {
             }
 
 
-            //cargamos los assets (DEFAULT)
-            // --- LOGICA PARA LA PELOTA ---
+            //cargamos las skins (DEFAULT, Modo SHPONG, Modo Japong)
             rutaPelota = "/pipoo/pong/imagenes/pelota_default.png";
             if (skinPelota.equalsIgnoreCase("Shpong")) {
                 pelota = new Pelota(400, 300, 32, 32);
@@ -158,7 +157,7 @@ public class Pong extends Juego {
             BufferedImage imgPelota = ImageIO.read(getClass().getResource(rutaPelota));
             pelota.setImagen(imgPelota);
 
-            // --- LOGICA PARA LAS PALETAS ---
+            // Skins para paletas dependiendo el modo
             rutaPaleta = "/pipoo/pong/imagenes/paleta_default.png";
             rutaPaleta2 = null;
             if (skinPaleta.equalsIgnoreCase("Shpong")) {
@@ -176,7 +175,7 @@ public class Pong extends Juego {
             paleta2.setImagen(imgPaleta);
             paleta1.setImagen(imgPaleta2);
 
-            // --- LÓGICA PARA LA CANCHA ---
+            // Skins de la cancha, puntaje y gameover dependiendo el modo
             rutaCancha = "/pipoo/pong/imagenes/cancha_default.png"; // Default
             rutaDivisor = "/pipoo/pong/imagenes/barra_del_medio.png";
             this.imgNumeros = new BufferedImage[16];
@@ -206,6 +205,7 @@ public class Pong extends Juego {
             System.err.println("Error cargando assets de Pong " +e.getMessage());
 
         }
+        //agregamos un window listener para cerrar la ventana
         this.getFrame().addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
@@ -234,7 +234,7 @@ public class Pong extends Juego {
                     paleta1.moverAbajo(delta);
                 }
 
-                // Lógica del Jugador 2 o BOT
+                // logica del Jugador 2 o BOT
                 if (this.jugador2 instanceof Bot) {
                     this.actualizarBOT(delta);
                 } else {
@@ -248,7 +248,7 @@ public class Pong extends Juego {
                 detectarColisiones();
                 actualizarPuntaje();
             } else {
-                // Si verificarFinDeJuego() devuelve true, cambiamos el estado
+                // si verificarFinDeJuego() devuelve true, cambiamos el estado
                 this.estadoActual = EstadoJuego.GAME_OVER;
                 pelota.setVelocidadX(0);
                 pelota.setVelocidadY(0);
@@ -268,7 +268,7 @@ public class Pong extends Juego {
     @Override
     public void gameDraw(Graphics2D g) {
         if (enCarga) {
-            // pantalla de carga...
+            // pantalla de carga
             if (imgLoading != null) {
                 g.drawImage(imgLoading, 0, 0, getWidth(), getHeight(), null);
             }
