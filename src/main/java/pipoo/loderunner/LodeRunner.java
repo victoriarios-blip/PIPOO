@@ -4,6 +4,9 @@ import com.entropyinteractive.Keyboard;
 import pipoo.core.GestorAudio;
 import pipoo.core.Juego;
 import java.awt.image.BufferedImage;
+
+import pipoo.core.Ranking;
+import pipoo.core.RankingEntry;
 import pipoo.core.configuracion.ConfiguracionLR;
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -64,6 +67,9 @@ public class LodeRunner extends Juego {
     private int score = 0;
     private int vidas = 5;
     private int nivel = 1;
+    private boolean modoArcade = false;
+    private int scoreAcumuladoArcade = 0;
+    private String nombreJugador = "Invitado";
 
     private int orosRecolectadosNivel = 0;
     private int guardiasAtrapadosNivel = 0;
@@ -105,6 +111,7 @@ public class LodeRunner extends Juego {
         ConfiguracionLR config = (ConfiguracionLR) this.getConfiguracion();
         String rutaSkin = "";
         if (config != null) {
+            this.nombreJugador = config.getNombreJ1() != null ? config.getNombreJ1() : "Invitado";
             System.out.println("Skin: " + config.getSkinPersonaje());
             this.sonidoActivado = config.isSonidoActivado();
             this.pistaMusical = config.getPistaMusical();
@@ -529,10 +536,13 @@ public class LodeRunner extends Juego {
                     nivel = 1;
                     score = 0;
                     vidas = 5;
+                    modoArcade = true;
+                    scoreAcumuladoArcade = 0;
                     cargarNivel(nivel);
                     estadoActual = EstadoJuego.TRANSICION;
                     timerTransicion = 2.5;
                 } else {
+                    modoArcade = false;
                     estadoActual = EstadoJuego.SELECCION;
                 }
             }
@@ -594,6 +604,16 @@ public class LodeRunner extends Juego {
             if (actEnter) {
                 pantallaVictoria = false;
                 if (nivel == 3) {
+                    // Guardar ranking ARCADE
+                    scoreAcumuladoArcade += score; // sumar el score del nivel 3
+                    String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+                    Ranking rankingArcade = new Ranking("ranking_lr.dat");
+                    rankingArcade.cargarRanking();
+                    rankingArcade.agregarEntrada(new RankingEntry(nombreJugador, 3, scoreAcumuladoArcade, fecha));
+                    rankingArcade.guardarRanking();
+                    System.out.println("Arcade completado. Score total: " + scoreAcumuladoArcade);
+                    scoreAcumuladoArcade = 0; // reset para la proxima partida
+
                     estadoActual = EstadoJuego.MENU;
                     try {
                         audio.detenerMusica();
@@ -608,6 +628,7 @@ public class LodeRunner extends Juego {
                     avanzarSiguienteNivel();
                 }
             } else if (actEsc && nivel == 3) {
+                guardarRankingArcade();
                 System.exit(0);
             }
             return;
@@ -1408,6 +1429,7 @@ public class LodeRunner extends Juego {
 
     @Override
     public void gameShutdown() {
+        audio.detenerMusica();
         System.out.println("Cerrando Lode Runner...");
     }
 
@@ -1455,14 +1477,33 @@ public class LodeRunner extends Juego {
         } catch (Exception e) {
             System.out.println("Error al reproducir audio de victoria: " + e.getMessage());
         }
-
+        if (!modoArcade) {
+            String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+            Ranking rankingNivel = new Ranking("ranking_lr.dat");
+            rankingNivel.cargarRanking();
+            rankingNivel.agregarEntrada(new RankingEntry(nombreJugador, nivel, score, fecha, "INDIVIDUAL"));
+            rankingNivel.guardarRanking();
+        }
         // activamos la pantalla intermedia de victoria
         pantallaVictoria = true;
     }
 
+    private void guardarRankingArcade() {
+        scoreAcumuladoArcade += score;
+        String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+        Ranking rankingArcade = new Ranking("ranking_lr.dat");
+        rankingArcade.cargarRanking();
+        rankingArcade.agregarEntrada(new RankingEntry(nombreJugador, 3, scoreAcumuladoArcade, fecha, "ARCADE"));
+        rankingArcade.guardarRanking();
+        System.out.println("Arcade completado. Score total: " + scoreAcumuladoArcade);
+        scoreAcumuladoArcade = 0;
+    }
+
+
     private void avanzarSiguienteNivel() {
         nivel++;
         vidas=vidas+1; //vida extra por pasar de nivel
+        if (modoArcade) scoreAcumuladoArcade += score;
         score=0;
         cargarNivel(nivel);
         estadoActual = EstadoJuego.TRANSICION;
