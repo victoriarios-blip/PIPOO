@@ -14,7 +14,7 @@ public class NaveNodriza extends Movible {
     public NaveNodriza(double x, double y) {
         super(x, y, 72, 27); // x3 como el resto de sprites
         this.velocidadX = 100;
-        this.valorPuntaje = (int)(Math.random() * 251) + 50;
+        this.valorPuntaje = 0;
     }
 
     @Override
@@ -52,6 +52,21 @@ public class NaveNodriza extends Movible {
         if (otro instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.HEROE) {
             this.destruida = true;
             this.velocidadX = 0; // Se frena en el lugar
+            int disparosActuales = SpaceInvaders.getContadorDisparos();
+            calcularPuntajeMisterioso(disparosActuales);
+        }
+    }
+
+    private void calcularPuntajeMisterioso(int disparos) {
+        // Regla matemática: Disparo 23, 38, 53, 68...
+        // Cumplen que (disparos - 23) es divisible por 15
+        if (disparos >= 23 && (disparos - 23) % 15 == 0) {
+            this.valorPuntaje = 300; // ¡Premio gordo!
+        } else {
+            // Valores clásicos fallbacks del arcade original (50, 100 o 150)
+            int[] deConsolacion = {50, 100, 150};
+            int indice = (int) (Math.random() * deConsolacion.length);
+            this.valorPuntaje = deConsolacion[indice];
         }
     }
 

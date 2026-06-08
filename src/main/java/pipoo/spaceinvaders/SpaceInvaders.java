@@ -18,18 +18,22 @@ public class SpaceInvaders extends Juego {
     // proyectiles
     private List<Proyectil> proyectilesEnemigos;
     private List<Proyectil> proyectilesHeroe;
+    private static int contadorDisparosTotales = 0;
+
+    public static int getContadorDisparos() { return contadorDisparosTotales; }
 
     // marcador
     private double tiempoJuego = 0; // Acumulador de segundos
     private java.util.Map<Character, java.awt.image.BufferedImage> fuenteArcade;
 
+    // niveles
+    private int nivel = 1; // Arranca en el nivel 1
+    private int cantidadAliensIniciales = 0; // Para saber cuántos se destruyeron
+    private double factorVelocidadGlobal = 1.0; // 1.0 es velocidad normal, irá subiendo
+
     //aparicion nave nodriza
     private double tiempoNodriza = 0;
     private static final double intervaloNodriza = 20; // aparece cada 20 segundos
-
-    // cooldown heroe
-    private double tiempoDisparo = 0;
-    private static final double COOLDOWN_DISPARO = 0.5; // segundos entre disparos
 
     // puntaje
     private int puntaje = 0;
@@ -49,6 +53,13 @@ public class SpaceInvaders extends Juego {
     private BufferedImage imgGameOver;
     private double tiempoGameOver = 0;
     private double escalaGameOver = 0.0;
+
+    // audio
+    private int pistaMusicalSeleccionada = 1; // 1 = Original, 2 = Alternativa (Por defecto arranca en 1)
+    private boolean sonidoActivado = true;    // Para mutear/desmuteas desde la configuración
+
+    // Clips de audio para la música y efectos
+    private javax.sound.sampled.Clip musicaFondo;
 
     public SpaceInvaders() {
         super("Retro Space Invaders", 800, 600);
@@ -80,7 +91,7 @@ public class SpaceInvaders extends Juego {
         for (int fila = 0; fila < 5; fila++) {
             for (int col = 0; col < 11; col++) {
                 double x = inicioX + (col * 58); // 48px sprite + 10px separación
-                double y = inicioY + (fila * 34); // 24px sprite + 10px separación
+                double y = inicioY + (fila * 34) + (nivel - 1) * 34; // 24px sprite + 10px separación, van bajando a mayor nivel
                 // ← acá falta agregar el enemigo!
                 if (fila == 0) oleada.add(new Pulpo(x, y));
                 else if (fila < 3) oleada.add(new Cangrejo(x, y));
@@ -180,6 +191,9 @@ public class SpaceInvaders extends Juego {
        for (Enemigo e : oleada) {
             e.setVelocidadX(40);
         }
+       cantidadAliensIniciales = oleada.size();
+
+        reproducirMusicaFondo();
     }
 
     @Override
@@ -188,27 +202,25 @@ public class SpaceInvaders extends Juego {
         if (estadoActual == Estado.CARGA) {
             acumuladorCarga += delta;
             if (acumuladorCarga >= DURACION_CARGA) {
-                estadoActual = Estado.JUGANDO; // Rompe el ciclo y arranca el juego real
+                estadoActual = Estado.JUGANDO;
             }
-            return; // IMPORTANTE: Bloquea el resto del juego mientras carga
+            return;
         }
 
-        // === CONTROL DE LA PANTALLA DE GAME OVER (NUEVO) ===
+        // === CONTROL DE LA PANTALLA DE GAME OVER ===
         if (estadoActual == Estado.GAMEOVER) {
             tiempoGameOver += delta;
 
-            // Efecto zoom del cartel
             if (escalaGameOver < 1.0) {
                 escalaGameOver += delta * 2.0;
                 if (escalaGameOver > 1.0) escalaGameOver = 1.0;
             }
 
-            // Escuchar teclado para reiniciar la partida
             Keyboard teclado = this.getKeyboard();
             if (teclado.isKeyPressed(KeyEvent.VK_ENTER) || teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
-                reiniciarJuego(); // El método que borra las listas y vuelve a hacer el startup
+                reiniciarJuego();
             }
-            return; // IMPORTANTE: Congela la actualización del juego de fondo
+            return;
         }
 
         // === LÓGICA DEL JUEGO ACTIVO ===
@@ -220,28 +232,33 @@ public class SpaceInvaders extends Juego {
             else if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) jugador.moverDerecha();
             else                                              jugador.detener();
 
-            // Cooldown y lógica de disparos del héroe
-            tiempoDisparo += delta;
-            if (teclado.isKeyPressed(KeyEvent.VK_SPACE) && tiempoDisparo >= COOLDOWN_DISPARO) {
+            // lógica de disparos del héroe (Garantiza bala única en pantalla)
+            if (teclado.isKeyPressed(KeyEvent.VK_SPACE) && proyectilesHeroe.isEmpty()) {
                 Proyectil p = jugador.disparar();
                 if (p != null) {
                     p.setImagen(imgProyectilHeroe);
                     proyectilesHeroe.add(p);
-                    tiempoDisparo = 0;
+                    contadorDisparosTotales++;
                 }
             }
         } else {
-            // Si la nave está en plena explosión, se congela
             jugador.detener();
         }
 
         // El movimiento físico de la nave se aplica siempre
         jugador.mover(delta);
 
-        // 2. Movimiento y animación de la oleada enemiga
+        // === NUEVA UBICACIÓN: CÁLCULO DE ACELERACIÓN DE LA HORDA ===
+        if (!oleada.isEmpty()) {
+            double porcentajeDestruido = 1.0 - ((double) oleada.size() / cantidadAliensIniciales);
+            // Va de 1.0 a 3.0 según bajan los enemigos
+            factorVelocidadGlobal = 1.0 + (porcentajeDestruido * 2.0);
+        }
+
+        // 2. Movimiento y animación de la oleada enemiga (Con velocidad acelerada)
         for (Enemigo enemigo : oleada) {
-            enemigo.mover(delta);
-            enemigo.actualizarFrame(delta);
+            enemigo.mover(delta * factorVelocidadGlobal);
+            enemigo.actualizarFrame(delta * factorVelocidadGlobal);
         }
 
         // 3. Detección de bordes de los enemigos
@@ -278,24 +295,26 @@ public class SpaceInvaders extends Juego {
             escudo.resetFrame();
         }
 
-        // 8. Procesar colisiones, puntajes y limpieza de entidades muertas/fuera de pantalla
+        // 8. Procesar colisiones, puntajes y limpieza de entidades
         detectarColisiones();
         actualizarPuntaje();
         limpiarNoVisibles();
 
-        // 9. Verificación de GAME OVER (Por quedarse sin vidas) - CAMBIADO
+        // 9. Verificación de GAME OVER (Por quedarse sin vidas)
         if (!jugador.isVisible() && jugador.getVidas() <= 0) {
             System.out.println("GAME OVER - Te quedaste sin vidas");
+            if (musicaFondo != null) musicaFondo.stop();
             estadoActual = Estado.GAMEOVER;
             tiempoGameOver = 0;
             escalaGameOver = 0.0;
             return;
         }
 
-        // 10. Verificación de GAME OVER (Si los enemigos invaden la Tierra) - CAMBIADO
+        // 10. Verificación de GAME OVER (Si los enemigos invaden la Tierra)
         for (Enemigo e : oleada) {
             if (e.y + e.height >= 500) {
                 System.out.println("GAME OVER - Los enemigos llegaron a la línea límite");
+                if (musicaFondo != null) musicaFondo.stop();
                 estadoActual = Estado.GAMEOVER;
                 tiempoGameOver = 0;
                 escalaGameOver = 0.0;
@@ -303,10 +322,10 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 11. Verificación de VICTORIA
+        // 11. Verificación de VICTORIA (Progreso de nivel)
         if (oleada.isEmpty()) {
-            System.out.println("¡GANASTE! Limpiaste la oleada");
-            this.stop();
+            System.out.println("¡Nivel " + nivel + " completado!");
+            avanzarDeNivel();
         }
 
         // 12. Temporizador y movimiento de la Nave Nodriza
@@ -320,11 +339,33 @@ public class SpaceInvaders extends Juego {
             enemigoFinal.mover(delta);
         }
 
-        // 13. Actualizar estado del héroe (Procesa los timers y frames de la explosión)
+        // 13. Actualizar estado del héroe (Procesa los timers de la explosión)
         jugador.actualizar(delta);
 
-        // Suma la fracción de segundo que pasó en este frame al HUD
+        // Suma la fracción de segundo al HUD
         tiempoJuego += delta;
+    }
+
+    private void avanzarDeNivel() {
+        nivel++; // Subimos el nivel
+        factorVelocidadGlobal = 1.0; // ← ¡AGREGADO ACÁ! El nuevo nivel arranca a velocidad normal
+
+        // Limpiamos proyectiles flotantes del nivel anterior
+        proyectilesHeroe.clear();
+        proyectilesEnemigos.clear();
+        enemigoFinal = null;
+
+        // Reseteamos el clon del jugador a la posición central (manteniendo sus vidas intactas)
+        jugador.setX(380);
+        jugador.setY(525);
+        jugador.setVisible(true);
+
+        // Volvemos a vaciar y rearmar escudos y enemigos
+        oleada.clear();
+        escudos.clear();
+
+        // Llamamos a tu startup para volver a poblar las listas con el nuevo Y calculado
+        gameStartup();
     }
 
     void limpiarNoVisibles() {
@@ -444,6 +485,45 @@ public class SpaceInvaders extends Juego {
         }
     }
 
+    private String getRutaMusicaSeleccionada() {
+        switch (pistaMusicalSeleccionada) {
+            case 2:
+                return "pipoo/spaceinvaders/audio/musica_alternativa.wav"; // Tu pista 2
+            case 1:
+            default:
+                return "pipoo/spaceinvaders/audio/musica_original.wav";    // Tu pista 1 (Original)
+        }
+    }
+
+    private void reproducirMusicaFondo() {
+        if (!sonidoActivado) return; // Si configuraron el juego en "Mute", no hace nada
+
+        try {
+            // Si ya había una música sonando (por ejemplo, de una partida anterior), la frenamos
+            if (musicaFondo != null && musicaFondo.isRunning()) {
+                musicaFondo.stop();
+            }
+
+            // Buscamos la ruta de la pista elegida
+            String ruta = getRutaMusicaSeleccionada();
+            java.net.URL url = this.getClass().getClassLoader().getResource(ruta);
+
+            if (url != null) {
+                javax.sound.sampled.AudioInputStream audioStream = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
+                musicaFondo = javax.sound.sampled.AudioSystem.getClip();
+                musicaFondo.open(audioStream);
+
+                // Hace que la pista vuelva a empezar automáticamente al terminar
+                musicaFondo.loop(javax.sound.sampled.Clip.LOOP_CONTINUOUSLY);
+                musicaFondo.start();
+            } else {
+                System.out.println("ERROR: No se encontró el archivo de música en: " + ruta);
+            }
+        } catch (Exception e) {
+            System.out.println("Error al reproducir música de fondo: " + e.getMessage());
+        }
+    }
+
     @Override
     public void gameShutdown() {
         // Guardar puntajes
@@ -535,17 +615,21 @@ public class SpaceInvaders extends Juego {
         proyectilesEnemigos.clear();
         enemigoFinal = null;
 
-        // 2. Reseteamos los marcadores principales
+        // 2. Reseteamos los marcadores principales y de animación
         puntaje = 0;
         tiempoJuego = 0;
         tiempoGameOver = 0;
         escalaGameOver = 0.0;
 
-        // 3. Volvemos a ejecutar tu lógica de inicio de oleadas y jugador
-        // (Llamamos a tu método existente para rearmar el mapa desde cero)
+        // 3. RESETEOS CLAVE (¡Van sí o sí antes del startup!)
+        nivel = 1;
+        contadorDisparosTotales = 0;
+        factorVelocidadGlobal = 1.0; // Evita que la partida nueva empiece a fondo si moriste con 1 alien vivo
+
+        // 4. Rearmamos el mapa desde cero con los valores limpios
         gameStartup();
 
-        // 4. Cambiamos el estado directo a jugar (nos saltamos la carga inicial)
+        // 5. Cambiamos el estado directo a jugar
         estadoActual = Estado.JUGANDO;
     }
 }
