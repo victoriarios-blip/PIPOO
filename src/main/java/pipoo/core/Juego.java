@@ -6,7 +6,7 @@ import pipoo.core.configuracion.Configuracion;
 import java.awt.*;
 
 public abstract class Juego extends JGame {
-    protected int dificultad;
+
     protected Configuracion configuracion;
 
 

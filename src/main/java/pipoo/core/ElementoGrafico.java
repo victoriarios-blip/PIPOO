@@ -14,9 +14,10 @@ public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double i
     public void dibujar(Graphics2D g) {
         if (visible && bufferImage != null) {
             // Se añaden (int)this.width y (int)this.height para forzar la escala
-            g.drawImage(this.bufferImage, (int)this.x, (int)this.y, (int)this.width, (int)this.height, null);
+            g.drawImage(this.bufferImage, (int) this.x, (int) this.y, (int) this.width, (int) this.height, null);
         }
     }
+
     public void setImagen(BufferedImage nuevaImagen) {
         this.bufferImage = nuevaImagen;
     }
@@ -34,10 +35,5 @@ public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double i
         if (otro == null) return false;
         // Al heredar de Rectangle2D, 'this' se puede pasar a intersects
         return this.intersects(otro.getBounds());
-    }
-
-    @Override
-    public Rectangle2D getLimites() {
-        return this.getBounds();
     }
 }
