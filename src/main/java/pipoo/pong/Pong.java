@@ -4,6 +4,7 @@ import pipoo.core.*;
 import com.entropyinteractive.Keyboard;
 import pipoo.core.configuracion.ConfiguracionPong;
 import pipoo.core.recursos.Marcador;
+import pipoo.loderunner.Guardia;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -44,6 +45,10 @@ public class Pong extends Juego {
     private BufferedImage imgLoading;
     private double acumTiempo = 0.0;
     private boolean enCarga = true;
+
+    //Estado de juego
+    public enum EstadoJuego {JUGANDO, GAME_OVER}
+    private EstadoJuego estadoActual = EstadoJuego.JUGANDO;
 
     public Pong() {
         super("PIPOO PONG", 800, 600); // titulo y tamaño de ventana
@@ -211,15 +216,15 @@ public class Pong extends Juego {
 
     @Override
     public void gameUpdate(double delta) {
+        Keyboard teclado = this.getKeyboard();
         if (enCarga) {
-            // --- ESTADO DE CARGA ---
+            // ESTADO DE CARGA
             acumTiempo += delta;
             if (acumTiempo >= 3.0) {
                 enCarga = false;
             }
-        } else {
+        } else if (estadoActual == EstadoJuego.JUGANDO) {
             if (!verificarFinDeJuego()) {
-                Keyboard teclado = this.getKeyboard();
 
                 // Movimiento Jugador 1
                 if (teclado.isKeyPressed(KeyEvent.VK_W)) {
@@ -239,10 +244,23 @@ public class Pong extends Juego {
                         paleta2.moverAbajo(delta);
                     }
                 }
-
                 pelota.mover(delta);
                 detectarColisiones();
                 actualizarPuntaje();
+            } else {
+                // Si verificarFinDeJuego() devuelve true, cambiamos el estado
+                this.estadoActual = EstadoJuego.GAME_OVER;
+                pelota.setVelocidadX(0);
+                pelota.setVelocidadY(0);
+                paleta1.setVelocidadY(0);
+                paleta2.setVelocidadY(0);
+            }
+        }
+        else if (estadoActual == EstadoJuego.GAME_OVER) {
+            // GAME OVER
+            // Si el jugador presiona ESC, cerramos el juego para volver a PIPOO
+            if (teclado.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+                this.stop(); // Llama a gameShutdown()
             }
         }
     }
@@ -300,6 +318,20 @@ public class Pong extends Juego {
             g.setColor(Color.WHITE);
             if (this.nombreJ1 != null) g.drawString(this.nombreJ1, (getWidth() / 4) - 20, 75);
             if (this.nombreJ2 != null) g.drawString(this.nombreJ2, (getWidth() / 4) * 3 - 45, 75);
+
+            if (juegoFinalizado) {
+                g.setColor(Color.WHITE);
+
+                g.setFont(new Font("Consolas", Font.BOLD, 22));
+
+                String instruccion = "Presione ESC para volver a PIPOO";
+
+                int xInstruccion = (getWidth() / 2) - 190;
+                int yInstruccion = (getHeight() / 2) + 200;
+
+                g.drawString(instruccion, xInstruccion, yInstruccion);
+            }
+
         }
     }
 
@@ -329,7 +361,7 @@ public class Pong extends Juego {
 
     @Override
     protected void detectarColisiones() {
-        // Reboteeeee con borde superior
+        // Reboteee con borde superior
         if (pelota.intersects(bordeSuperior)) {
             pelota.rebotarVertical(0, true);
             pelota.y = bordeSuperior.y + bordeSuperior.height + 1;
