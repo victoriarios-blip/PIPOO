@@ -162,7 +162,9 @@ public class Pong extends Juego {
                 paleta1 = new Paleta(20, (double) getHeight() / 2 - 40, 40, 80);
                 paleta2 = new Paleta(getWidth() - 45, (double) getHeight() / 2 - 40, 40, 80);
             } else if (skinPaleta.equalsIgnoreCase("Japong")) {
-                rutaPaleta = "/pipoo/pong/japong/paleta_japong.png";
+                rutaPaleta = "/pipoo/pong/japong/paleta_japong2.png";
+                paleta1 = new Paleta(20, (double) getHeight() / 2 - 40, 50, 90);
+                paleta2 = new Paleta(getWidth() - 45, (double) getHeight() / 2 - 40, 50, 90);
             }
             BufferedImage imgPaleta = ImageIO.read(getClass().getResource(rutaPaleta));
             BufferedImage imgPaleta2 = (rutaPaleta2 != null) ? ImageIO.read(getClass().getResource(rutaPaleta2)) : imgPaleta;
@@ -183,6 +185,7 @@ public class Pong extends Juego {
             } else if (skinCancha.equalsIgnoreCase("Japong")) {
                 rutaCancha = "/pipoo/pong/japong/cancha_japong.png";
                 this.imgCancha = ImageIO.read(getClass().getResource(rutaCancha));
+                this.imgGameOver = ImageIO.read(getClass().getResource("/pipoo/pong/japong/game_over_japong.png"));
                 for (int i = 0; i <= 15; i++) {
                     this.imgNumeros[i] = ImageIO.read(getClass().getResource("/pipoo/pong/japong/" + i + ".png"));
                 }
@@ -215,30 +218,32 @@ public class Pong extends Juego {
                 enCarga = false;
             }
         } else {
-            Keyboard teclado = this.getKeyboard();
+            if (!verificarFinDeJuego()) {
+                Keyboard teclado = this.getKeyboard();
 
-            // Movimiento Jugador 1
-            if (teclado.isKeyPressed(KeyEvent.VK_W)) {
-                paleta1.moverArriba(delta);
-            }
-            if (teclado.isKeyPressed(KeyEvent.VK_S)) {
-                paleta1.moverAbajo(delta);
-            }
-
-            // Lógica del Jugador 2 o BOT
-            if (this.jugador2 instanceof Bot) {
-                this.actualizarBOT(delta);
-            } else {
-                if (teclado.isKeyPressed(KeyEvent.VK_UP)) {
-                    paleta2.moverArriba(delta);
-                } else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
-                    paleta2.moverAbajo(delta);
+                // Movimiento Jugador 1
+                if (teclado.isKeyPressed(KeyEvent.VK_W)) {
+                    paleta1.moverArriba(delta);
                 }
-            }
+                if (teclado.isKeyPressed(KeyEvent.VK_S)) {
+                    paleta1.moverAbajo(delta);
+                }
 
-            pelota.mover(delta);
-            detectarColisiones();
-            actualizarPuntaje();
+                // Lógica del Jugador 2 o BOT
+                if (this.jugador2 instanceof Bot) {
+                    this.actualizarBOT(delta);
+                } else {
+                    if (teclado.isKeyPressed(KeyEvent.VK_UP)) {
+                        paleta2.moverArriba(delta);
+                    } else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
+                        paleta2.moverAbajo(delta);
+                    }
+                }
+
+                pelota.mover(delta);
+                detectarColisiones();
+                actualizarPuntaje();
+            }
         }
     }
 

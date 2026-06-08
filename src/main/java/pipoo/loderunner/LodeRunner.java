@@ -4,6 +4,9 @@ import com.entropyinteractive.Keyboard;
 import pipoo.core.GestorAudio;
 import pipoo.core.Juego;
 import java.awt.image.BufferedImage;
+
+import pipoo.core.Ranking;
+import pipoo.core.RankingEntry;
 import pipoo.core.configuracion.ConfiguracionLR;
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -13,7 +16,7 @@ import java.util.Iterator;
 
 public class LodeRunner extends Juego {
 
-    // MAQUINA DE ESTADOS
+    //estados del juego
     public enum EstadoJuego { MENU, SELECCION, TRANSICION, JUGANDO, GAMEOVER}
     private EstadoJuego estadoActual = EstadoJuego.MENU;
 
@@ -64,6 +67,9 @@ public class LodeRunner extends Juego {
     private int score = 0;
     private int vidas = 5;
     private int nivel = 1;
+    private boolean modoArcade = false;
+    private int scoreAcumuladoArcade = 0;
+    private String nombreJugador = "Invitado";
 
     private int orosRecolectadosNivel = 0;
     private int guardiasAtrapadosNivel = 0;
@@ -76,7 +82,7 @@ public class LodeRunner extends Juego {
     private double timerPasos = 0.15;
     private double timerEscalera = 0.18;
 
-    // Variables para el control de audio en vivo
+    // variables para el control de audio en ejecucion
     private boolean sfxActivado;
     private boolean bgmActivado;
     private boolean keyQ = false;
@@ -105,6 +111,7 @@ public class LodeRunner extends Juego {
         ConfiguracionLR config = (ConfiguracionLR) this.getConfiguracion();
         String rutaSkin = "";
         if (config != null) {
+            this.nombreJugador = config.getNombreJ1() != null ? config.getNombreJ1() : "Invitado";
             System.out.println("Skin: " + config.getSkinPersonaje());
             this.sonidoActivado = config.isSonidoActivado();
             this.pistaMusical = config.getPistaMusical();
@@ -118,7 +125,7 @@ public class LodeRunner extends Juego {
             this.pistaMusical = "Tema LR Original";
         }
 
-        // Inicializamos los controles individuales según la configuración general al iniciar la partida
+        // inicializamos los controles individuales segun la configuracion general al iniciar la partida
         this.sfxActivado = this.sonidoActivado;
         this.bgmActivado = this.sonidoActivado;
 
@@ -127,14 +134,14 @@ public class LodeRunner extends Juego {
             audio.detenerMusica();
         } else {
             try {
-                // Precargamos los efectos SÓLO si el sonido está activado
+                // precargamos los efectos SOLO si el sonido esta activado
                 audio.precargarEfecto("pasos", this.getClass().getResource("/pipoo/loderunner/audio/pasos.wav"));
                 audio.precargarEfecto("escalera", this.getClass().getResource("/pipoo/loderunner/audio/escalera.wav"));
                 audio.precargarEfecto("oro", this.getClass().getResource("/pipoo/loderunner/audio/oro.wav"));
                 audio.precargarEfecto("miss", this.getClass().getResource("/pipoo/loderunner/audio/miss.wav"));
                 audio.precargarEfecto("game_over", this.getClass().getResource("/pipoo/loderunner/audio/game_over.wav"));
 
-                // Reproducimos la música del menú SÓLO si no eligió "Ninguna"
+                // Reproducimos la música del menu SOLO si no eligio "ninguna"
                 if (pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
                     java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
                     if (urlMusicaMenu != null) {
@@ -341,8 +348,8 @@ public class LodeRunner extends Juego {
                 Lingote n2o8 = new Lingote(950, 140, 30, 30);n2o8.setImagen(imgOro);lingotes.add(n2o8);
 
                 //heroe
-                heroeStartX = 400; // Nace en el medio
-                heroeStartY = 470; // Apoyado en el piso base
+                heroeStartX = 400;
+                heroeStartY = 470;
 
                 //guardias (3)
                 posGuardias.add(new Point(190, 320));
@@ -416,8 +423,8 @@ public class LodeRunner extends Juego {
                 Lingote n3o7 = new Lingote(580, 110, 30, 30);n3o7.setImagen(imgOro);lingotes.add(n3o7);
 
                 //heroe
-                heroeStartX = 400; // Nace en el medio
-                heroeStartY = 470; // Apoyado en el piso base
+                heroeStartX = 400;
+                heroeStartY = 470;
 
                 //guardias (3)
                 posGuardias.add(new Point(250, 200));
@@ -457,7 +464,7 @@ public class LodeRunner extends Juego {
 
         try {
             audio.detenerMusica();
-            if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+            if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
 
                 // Elegimos la ruta del archivo según la pista configurada
                 String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav"; // Por defecto
@@ -488,14 +495,14 @@ public class LodeRunner extends Juego {
         boolean actQ = teclado.isKeyPressed(KeyEvent.VK_Q);
         boolean actW = teclado.isKeyPressed(KeyEvent.VK_W);
 
-        // LÓGICA: Tecla Q = Efectos de Sonido
+        // tecla Q = efectos de sonido
         if (actQ && !keyQ) {
             sfxActivado = !sfxActivado;
             System.out.println("Efectos de sonido: " + (sfxActivado ? "ON" : "OFF"));
         }
         keyQ = actQ;
 
-        // LÓGICA: Tecla W = Música de fondo
+        // tecla W = musica de fondo
         if (actW && !keyW) {
             bgmActivado = !bgmActivado;
             System.out.println("Música de fondo: " + (bgmActivado ? "ON" : "OFF"));
@@ -503,7 +510,7 @@ public class LodeRunner extends Juego {
             if (!bgmActivado) {
                 audio.detenerMusica();
             } else {
-                // Reproducir la música correspondiente según el estado
+                // reproducir la musica correspondiente segun el estado
                 try {
                     if (estadoActual == EstadoJuego.MENU && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
                         audio.reproducirMusica(this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav"));
@@ -529,10 +536,13 @@ public class LodeRunner extends Juego {
                     nivel = 1;
                     score = 0;
                     vidas = 5;
+                    modoArcade = true;
+                    scoreAcumuladoArcade = 0;
                     cargarNivel(nivel);
                     estadoActual = EstadoJuego.TRANSICION;
                     timerTransicion = 2.5;
                 } else {
+                    modoArcade = false;
                     estadoActual = EstadoJuego.SELECCION;
                 }
             }
@@ -574,7 +584,7 @@ public class LodeRunner extends Juego {
 
                 try {
                     audio.detenerMusica();
-                    if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                    if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
                         java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
                         if (urlMusicaMenu != null) audio.reproducirMusica(urlMusicaMenu);
                     }
@@ -589,9 +599,37 @@ public class LodeRunner extends Juego {
         }
 
         if (pantallaVictoria) {
-            if (teclado.isKeyPressed(KeyEvent.VK_ENTER)) {
+            boolean actEsc = teclado.isKeyPressed(KeyEvent.VK_ESCAPE);
+
+            if (actEnter) {
                 pantallaVictoria = false;
-                avanzarSiguienteNivel();
+                if (nivel == 3) {
+                    // Guardar ranking ARCADE
+                    scoreAcumuladoArcade += score; // sumar el score del nivel 3
+                    String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+                    Ranking rankingArcade = new Ranking("ranking_lr.dat");
+                    rankingArcade.cargarRanking();
+                    rankingArcade.agregarEntrada(new RankingEntry(nombreJugador, 3, scoreAcumuladoArcade, fecha));
+                    rankingArcade.guardarRanking();
+                    System.out.println("Arcade completado. Score total: " + scoreAcumuladoArcade);
+                    scoreAcumuladoArcade = 0; // reset para la proxima partida
+
+                    estadoActual = EstadoJuego.MENU;
+                    try {
+                        audio.detenerMusica();
+                        if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+                            java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
+                            if (urlMusicaMenu != null) audio.reproducirMusica(urlMusicaMenu);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error música menú: " + e.getMessage());
+                    }
+                } else {
+                    avanzarSiguienteNivel();
+                }
+            } else if (actEsc && nivel == 3) {
+                guardarRankingArcade();
+                System.exit(0);
             }
             return;
         }
@@ -959,11 +997,11 @@ public class LodeRunner extends Juego {
 
             g.setColor(Color.WHITE);
             g.setFont(new Font("Consolas", Font.BOLD, 20));
-            g.drawString("PRESS ENTER TO MAIN MENU", 230, y + nuevoAlto + 40);
+            g.drawString("PRESS ENTER TO MAIN MENU", 270, y + nuevoAlto - 20);
 
             g.setColor(Color.LIGHT_GRAY);
             g.setFont(new Font("Consolas", Font.BOLD, 20));
-            g.drawString("PRESS ESC TO EXIT", 325, y + nuevoAlto + 65);
+            g.drawString("PRESS ESC TO EXIT", 325, y + nuevoAlto + 15);
         }
 
         // PANTALLA DE VICTORIA
@@ -1039,9 +1077,18 @@ public class LodeRunner extends Juego {
             dibujarNumero(g, String.format("%06d", score), numX, fila4Y, 3.5);
 
             // NEXT STAGE
-            g.setColor(Color.LIGHT_GRAY);
-            g.setFont(new Font("Consolas", Font.PLAIN, 16));
-            g.drawString("PRESS ENTER TO NEXT STAGE", 290, 610);
+            if (nivel == 3) {
+                g.setFont(new Font("Consolas", Font.PLAIN, 18));
+                g.setColor(Color.WHITE);
+                g.drawString("PRESS ENTER TO RETURN TO MAIN MENU", 240, 580);
+                g.setColor(Color.RED);
+                g.drawString("PRESS ESC TO EXIT", 320, 600);
+            } else {
+                // texto normal para niveles 1 y 2
+                g.setColor(Color.LIGHT_GRAY);
+                g.setFont(new Font("Consolas", Font.PLAIN, 16));
+                g.drawString("PRESS ENTER TO NEXT STAGE", 290, 580);
+            }
         }
     }
 
@@ -1382,6 +1429,7 @@ public class LodeRunner extends Juego {
 
     @Override
     public void gameShutdown() {
+        audio.detenerMusica();
         System.out.println("Cerrando Lode Runner...");
     }
 
@@ -1429,15 +1477,34 @@ public class LodeRunner extends Juego {
         } catch (Exception e) {
             System.out.println("Error al reproducir audio de victoria: " + e.getMessage());
         }
-
+        if (!modoArcade) {
+            String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+            Ranking rankingNivel = new Ranking("ranking_lr.dat");
+            rankingNivel.cargarRanking();
+            rankingNivel.agregarEntrada(new RankingEntry(nombreJugador, nivel, score, fecha, "INDIVIDUAL"));
+            rankingNivel.guardarRanking();
+        }
         // activamos la pantalla intermedia de victoria
         pantallaVictoria = true;
     }
 
+    private void guardarRankingArcade() {
+        scoreAcumuladoArcade += score;
+        String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+        Ranking rankingArcade = new Ranking("ranking_lr.dat");
+        rankingArcade.cargarRanking();
+        rankingArcade.agregarEntrada(new RankingEntry(nombreJugador, 3, scoreAcumuladoArcade, fecha, "ARCADE"));
+        rankingArcade.guardarRanking();
+        System.out.println("Arcade completado. Score total: " + scoreAcumuladoArcade);
+        scoreAcumuladoArcade = 0;
+    }
+
+
     private void avanzarSiguienteNivel() {
         nivel++;
-        vidas++;
-
+        vidas=vidas+1; //vida extra por pasar de nivel
+        if (modoArcade) scoreAcumuladoArcade += score;
+        score=0;
         cargarNivel(nivel);
         estadoActual = EstadoJuego.TRANSICION;
         timerTransicion = 2.5;
@@ -1450,11 +1517,14 @@ public class LodeRunner extends Juego {
         nivel = 1;
 
         cargarNivel(nivel);
-        String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav";
-        if ("The Mountain Retro".equals(pistaMusical)) {
-            rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav";
+        if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
+            String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav";
+            if ("The Mountain Retro".equals(pistaMusical)) {
+                rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav";
+            }
+            audio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
         }
-        audio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
+
         estadoActual = EstadoJuego.TRANSICION;
         timerTransicion = 2.5;
     }

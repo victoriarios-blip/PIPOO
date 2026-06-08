@@ -187,24 +187,36 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
             cardLayout.show(this, "CONFIG_LODE");
         }
         if (origen == btnRankingP || origen == btnRankingSI || origen == btnRankingLR) {
-            String archivo = "";
-            // Determinamos qué archivo cargar según el botón presionado
-            if (origen == btnRankingP) archivo = "ranking_pong.dat";
-            else if (origen == btnRankingSI) archivo = "ranking_si.dat";
-            else if (origen == btnRankingLR) archivo = "ranking_lr.dat";
+            if (origen == btnRankingP || origen == btnRankingSI || origen == btnRankingLR) {
 
-            Ranking manager = new Ranking(archivo);
-            manager.cargarRanking();
-            this.areaTexto.setText(manager.toStrOrdenado());
-            this.areaTexto.setCaretPosition(0); // Scroll arriba
-            cardLayout.show(this, "PANTALLA_RANKING");
+                if (origen == btnRankingP) {
+                    Ranking manager = new Ranking("ranking_pong.dat");
+                    manager.cargarRanking();
+                    this.areaTexto.setText(manager.toStrOrdenado());
+
+                } else if (origen == btnRankingSI) {
+                    Ranking manager = new Ranking("ranking_si.dat");
+                    manager.cargarRanking();
+                    this.areaTexto.setText(manager.toStrOrdenado());
+
+                } else if (origen == btnRankingLR) {
+                    Ranking lr = new Ranking("ranking_lr.dat");
+                    lr.cargarRanking();
+                    this.areaTexto.setText(
+                            lr.toStrOrdenado("TOP 10 --- ARCADE MODE ", "ARCADE") + "\n\n" + lr.toStrOrdenado("TOP 10 --- STAGE MODE", "INDIVIDUAL")
+                    );
+                }
+
+                this.areaTexto.setCaretPosition(0);
+                cardLayout.show(this, "PANTALLA_RANKING");
+            }
+
+
         }
-
         if (esLanzamientoDeJuego && juegoActual != null) {
             hiloJuego = new Thread(() -> juegoActual.run(1.0 / 60.0));
             hiloJuego.start();
         }
-
     }
 
     public static void main(String[] args) {

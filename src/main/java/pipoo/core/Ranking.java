@@ -80,6 +80,38 @@ public class Ranking {
         return sb.toString();
     }
 
+    public List<RankingEntry> obtenerTopePorModo(int cantidad, String modo) {
+        List<RankingEntry> filtrada = new ArrayList<>();
+        for (RankingEntry e : listaRankingEntry) {
+            if (modo.equals(e.getModo())) filtrada.add(e);
+        }
+        filtrada.sort((e1, e2) -> Integer.compare(e2.getPuntaje(), e1.getPuntaje()));
+        int fin = Math.min(cantidad, filtrada.size());
+        return new ArrayList<>(filtrada.subList(0, fin));
+    }
+
+    public String toStrOrdenado(String titulo, String modo) {
+        List<RankingEntry> top10 = obtenerTopePorModo(10, modo);
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("=====================================================\n");
+        sb.append("   ").append(titulo).append("\n");
+        sb.append("=====================================================\n\n");
+
+        sb.append(String.format("%-5s | %-15s | %-8s | %-6s | %-10s\n",
+                "Pos", "Jugador", "Puntos", "Nivel", "Fecha"));
+        sb.append("---------------------------------------------------------------\n");
+
+        int pos = 1;
+        for (RankingEntry entry : top10) {sb.append(String.format("%-5d | %-15s | %-8d | %-6d | %-10s\n", pos, entry.getNombreJugador(), entry.getPuntaje(), entry.getNivel(), entry.getFecha()));
+            pos++;
+        }
+
+        if (top10.isEmpty()) sb.append("\n   ¡Aún no hay récords grabados!\n");
+
+        return sb.toString();
+    }
+
 
 
 }
