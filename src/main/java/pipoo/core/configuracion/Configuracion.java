@@ -34,6 +34,7 @@ public abstract class Configuracion {
     // metodos obligatorios para las demas configuraciones
     protected abstract void guardar();
     protected abstract void reset();
+    protected abstract void leer();
 
 
     protected void persistirEnArchivo(Properties prop, String nombreArchivo) {

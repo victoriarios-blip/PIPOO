@@ -79,7 +79,7 @@ public class Pong extends Juego {
             this.jugador1 = new Humano(config.getNombreJ1());
 
             if (config.getContraBot()) {
-                this.jugador2 = new Bot("PIPOO-Bot", 20.0);
+                this.jugador2 = new Bot("PIPOO-Bot", 30.0);
             } else {
                 this.jugador2 = new Humano(config.getNombreJ2());
             }

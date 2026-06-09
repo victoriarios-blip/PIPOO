@@ -62,6 +62,7 @@ public class ConfiguracionSI extends Configuracion {
         persistirEnArchivo(prop, "jgame.properties");
     }
 
+    @Override
     public void leer() {
         try (InputStream in = Files.newInputStream(Paths.get("jgame.properties"))) {
             propiedades.load(in);

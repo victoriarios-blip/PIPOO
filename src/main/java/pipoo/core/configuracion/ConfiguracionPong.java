@@ -110,6 +110,7 @@ public class ConfiguracionPong extends Configuracion {
     public int getTeclaDownJ2() { return teclaDownJ2; }
     public void setTeclaDownJ2(int teclaDownJ2) { this.teclaDownJ2 = teclaDownJ2; }
 
+    @Override
     public void leer() {
         // Parametros de audio y sistema
         this.pistaMusical = propiedades.getProperty("pistaMusical", "Ninguna");
@@ -126,7 +127,7 @@ public class ConfiguracionPong extends Configuracion {
         this.contraBot = Boolean.parseBoolean(propiedades.getProperty("contraBot", "true"));
         this.nombreJ2 = propiedades.getProperty("nombreJ2", "PIPOO BOT");
 
-        // 4. Teclas (Conversión de String a int)
+        // Teclas (Conversión de String a int)
         this.teclaUpJ1 = Integer.parseInt(propiedades.getProperty("teclaUpJ1", "38"));
         this.teclaDownJ1 = Integer.parseInt(propiedades.getProperty("teclaDownJ1", "40"));
         this.teclaUpJ2 = Integer.parseInt(propiedades.getProperty("teclaUpJ2", "87"));
