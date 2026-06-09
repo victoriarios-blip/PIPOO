@@ -202,7 +202,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
                             lr.toStrOrdenado("TOP 10 --- ARCADE MODE ", "ARCADE") + "\n\n" + lr.toStrOrdenado("TOP 10 --- STAGE MODE", "INDIVIDUAL")
                     );
                 }
-
                 this.areaTexto.setCaretPosition(0);
                 cardLayout.show(this, "PANTALLA_RANKING");
             }

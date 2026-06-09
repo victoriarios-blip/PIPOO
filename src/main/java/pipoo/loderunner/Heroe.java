@@ -40,14 +40,8 @@ public class Heroe extends Runner{
         this.enEscalera = false;
     }
 
-    public void setEnBarra(boolean enBarra) {
-        this.enBarra = enBarra;
-    }
-    public boolean isEnBarra() {
-        return this.enBarra;
-    }
-
     //animacion muerte
+
     public void setImagenMuriendo(int indice, BufferedImage img) {
         if(indice >= 0 && indice < 7) {
             this.imagenesMuerte[indice] = img;
@@ -60,7 +54,6 @@ public class Heroe extends Runner{
         setVelocidadX(0);
         setVelocidadY(0);
     }
-
     public boolean isEstaMuriendo() {
         return estaMuriendo;
     }
@@ -93,6 +86,10 @@ public class Heroe extends Runner{
 
     }
 
+    public void recolectarOro() {
+        this.cantOro++;
+    }
+
     public void setVelocidadX(double velocidadX) {
         this.velocidadX = velocidadX;
     }
@@ -105,13 +102,17 @@ public class Heroe extends Runner{
     public double getVelocidadX() {
         return this.velocidadX;
     }
-
-    public void cavar() {
-        System.out.println("Héroe cavando...");
+    public void setEnBarra(boolean enBarra) {
+        this.enBarra = enBarra;
     }
-
-    public void recolectarOro() {
-        this.cantOro++;
+    public boolean isEnBarra() {
+        return this.enBarra;
+    }
+    public boolean isEnEscalera() {
+        return enEscalera;
+    }
+    public void setEnEscalera(boolean enEscalera) {
+        this.enEscalera = enEscalera;
     }
 
 
@@ -135,13 +136,6 @@ public class Heroe extends Runner{
         } else if (this.velocidadY != 0 && isEnEscalera() && imagenEscalera != null) {
             super.setImagen(imagenEscalera); // trepando
         }
-    }
-
-    public boolean isEnEscalera() {
-        return enEscalera;
-    }
-    public void setEnEscalera(boolean enEscalera) {
-        this.enEscalera = enEscalera;
     }
 
     @Override
