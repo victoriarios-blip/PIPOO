@@ -241,7 +241,6 @@ public class Guardia extends Runner {
     public double getVelocidadY()          { return this.velocidadY; }
     public Estado getEstado()              { return estado; }
     public void   setEstado(Estado e)      { this.estado = e; }
-    public boolean isEnEscalera()          { return estado == Estado.SUBIENDO_ESCALERA || estado == Estado.BAJANDO_ESCALERA; }
     public boolean isEnBarra()             { return estado == Estado.EN_BARRA; }
 
     //  transicion de escalera a barra)
@@ -264,9 +263,7 @@ public class Guardia extends Runner {
         }
     }
 
-    public void setEnEscalera(boolean v) {
-        if (!v && isEnEscalera()) estado = Estado.CAMINANDO;
-    }
+
     public boolean isTieneOro(){ return tieneOro; }
     public void    setTieneOro(boolean v) { this.tieneOro = v; }
 
@@ -281,10 +278,6 @@ public class Guardia extends Runner {
     public void setImgColgado(BufferedImage img)  { this.imgColgado  = img; }
     public void setImgAtrapado(BufferedImage img) { this.imgAtrapado = img; }
 
-    public BufferedImage getImgDer()      { return imgDer; }
-    public BufferedImage getImgIzq()      { return imgIzq; }
-    public BufferedImage getImgEscalera() { return imgEscalera; }
-    public BufferedImage getImgColgado()  { return imgColgado; }
 
     @Override public boolean colisionaCon(ElementoGrafico otro)     { return false; }
     @Override public void reaccionarAColision(ElementoGrafico otro) { }

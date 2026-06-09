@@ -12,7 +12,4 @@ public class Bot extends Jugador{
         return margenError;
     }
 
-    public void setMargenError(double margenError) {
-        this.margenError = margenError;
-    }
 }

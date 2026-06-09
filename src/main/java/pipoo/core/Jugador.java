@@ -12,30 +12,5 @@ public abstract class Jugador {
         this.vidas = 0;
     }
 
-    // Getters y Setters
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public int getPuntaje() {
-        return puntaje;
-    }
-
-    public void setPuntaje(int puntaje) {
-        this.puntaje = puntaje;
-    }
-
-    public int getVidas() {
-        return vidas;
-    }
-
-    public void setVidas(int vidas) {
-        this.vidas = vidas;
-    }
-
 
 }

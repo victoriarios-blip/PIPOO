@@ -14,7 +14,7 @@ public class PanelConfiguracionSI extends JPanel {
         this.config = config;
         this.setLayout(new BorderLayout(10, 10));
 
-        // 1. Formulario central de configuraciones
+        // Formulario central de configuraciones
         JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
 
         txtNombreJ1 = new JTextField(config.getNombreJ1(), 10);
@@ -36,7 +36,7 @@ public class PanelConfiguracionSI extends JPanel {
 
         this.add(panelFormulario, BorderLayout.CENTER);
 
-        // 2. Barra de botones inferior (Sur)
+        // Barra de botones inferior (Sur)
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnGuardar = new JButton("Guardar");
         btnReset = new JButton("Reset");
@@ -47,7 +47,7 @@ public class PanelConfiguracionSI extends JPanel {
         panelBotones.add(btnVolver);
         this.add(panelBotones, BorderLayout.SOUTH);
 
-        // --- ASIGNACIÓN DE OYENTES Y LÓGICA ---
+        // -ASIGNACIÓN DE OYENTES Y LÓGICA
         btnVolver.addActionListener(e -> cl.show(contenedor, "INICIO"));
 
         btnGuardar.addActionListener(e -> {

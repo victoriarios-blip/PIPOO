@@ -16,16 +16,6 @@ public class Escalera extends ElementoGrafico {
         }
     }
 
-
-    public boolean isSalidaFinal() {
-        return salidaFinal;
-    }
-
-    public void setSalidaFinal(boolean salidaFinal) {
-        this.salidaFinal = salidaFinal;
-    }
-
-
     @Override
     public void reaccionarAColision(ElementoGrafico otro) {
 
