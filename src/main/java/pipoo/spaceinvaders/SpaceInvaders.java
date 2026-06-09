@@ -18,8 +18,6 @@ public class SpaceInvaders extends Juego {
     private NaveNodriza enemigoFinal;
     private String nombreJ1;
 
-
-
     // proyectiles
     private List<Proyectil> proyectilesEnemigos;
     private List<Proyectil> proyectilesHeroe;
@@ -57,19 +55,19 @@ public class SpaceInvaders extends Juego {
     private static final double DURACION_CARGA = 3.0; // Duración en segundos (ej: 3 segundos)
     private BufferedImage imgPantallaCarga;
 
+    //skins
+    private int skinSeleccionada = 1;
+
     // pantalla game over
     private BufferedImage imgGameOver;
     private double tiempoGameOver = 0;
     private double escalaGameOver = 0.0;
 
-    // audio
-    private int pistaMusicalSeleccionada = 1; // 1 = Original, 2 = Alternativa (Por defecto arranca en 1)
-    private boolean sonidoActivado = true;// Para mutear/desmuteas desde la configuración
+    // audio (Configuración y relojes)
+    private int pistaMusicalSeleccionada = 1; // 1 = Original, 2 = Alternativa
+    private boolean sonidoActivado = true;    // Para mutear/desmuteas desde la configuración
     private double tiempoMarcha = 0;
     private double tiempoUfoSonido = 0;
-
-    // Clips de audio para la música y efectos
-    private javax.sound.sampled.Clip musicaFondo;
 
     public SpaceInvaders() {
         super("PIPOO SPACE INVADERS", 800, 600);
@@ -77,8 +75,47 @@ public class SpaceInvaders extends Juego {
 
     @Override
     public void gameStartup() {
-        if (estadoActual == Estado.CARGA && (musicaFondo == null || !musicaFondo.isRunning())) {
-            reproducirMusica("pipoo/spaceinvaders/audio/pantallacarga.wav", true);
+        // === 1. LEER LA CONFIGURACIÓN INMEDIATAMENTE (MUDADO AL PRINCIPIO) ===
+        ConfiguracionSI config = (ConfiguracionSI) this.getConfiguracion();
+        if (config != null) {
+            this.nombreJ1 = config.getNombreJ1();
+            this.sonidoActivado = config.isSonidoActivado();
+
+            // Mapeo de la Skin elegida al flag numérico de tu juego
+            String skinElegida = config.getSkinModo();
+            if (skinElegida != null && skinElegida.equals("Color")) {
+                this.skinSeleccionada = 2;
+            } else if (skinElegida != null && skinElegida.equals("Halloween")) {
+                this.skinSeleccionada = 3;
+            } else {
+                this.skinSeleccionada = 1; // Default / Original
+            }
+
+            // Mapeo de la pista musical elegida
+            String musicaElegida = config.getPistaMusical();
+            if (musicaElegida != null && musicaElegida.equals("Tema 2 (Alternativo)")) {
+                this.pistaMusicalSeleccionada = 2;
+            } else {
+                this.pistaMusicalSeleccionada = 1;
+            }
+        } else {
+            this.nombreJ1 = this.appProperties.getProperty("nombreJ1", "Invitado");
+        }
+
+        // === 2. PRECARGA DE EFECTOS EN EL GESTOR COMPARTIDO ===
+        gestorAudio.precargarEfecto("playagain", this.getClass().getResource("audio/playagain.wav"));
+        gestorAudio.precargarEfecto("shoot", this.getClass().getResource("audio/shoot.wav"));
+        gestorAudio.precargarEfecto("explosion", this.getClass().getResource("audio/explosion.wav"));
+        gestorAudio.precargarEfecto("spaceinvaderdead", this.getClass().getResource("audio/spaceinvaderdead.wav"));
+        gestorAudio.precargarEfecto("ufo_lowpitch", this.getClass().getResource("audio/ufo_lowpitch.wav"));
+        gestorAudio.precargarEfecto("fastinvader1", this.getClass().getResource("audio/fastinvader1.wav"));
+        gestorAudio.precargarEfecto("fastinvader2", this.getClass().getResource("audio/fastinvader2.wav"));
+        gestorAudio.precargarEfecto("fastinvader3", this.getClass().getResource("audio/fastinvader3.wav"));
+        gestorAudio.precargarEfecto("fastinvader4", this.getClass().getResource("audio/fastinvader4.wav"));
+
+        // === 3. REPRODUCCIÓN DE MÚSICA DE CARGA ===
+        if (estadoActual == Estado.CARGA && sonidoActivado) {
+            gestorAudio.reproducirMusica(this.getClass().getResource("audio/pantallacarga.wav"));
         }
 
         java.net.URL test = this.getClass().getResource("/pipoo/spaceinvaders/imagenes/pulpo1.png");
@@ -104,67 +141,63 @@ public class SpaceInvaders extends Juego {
 
         for (int fila = 0; fila < 5; fila++) {
             for (int col = 0; col < 11; col++) {
-                double x = inicioX + (col * 58); // 48px sprite + 10px separación
-                double y = inicioY + (fila * 34) + (nivel - 1) * 34; // 24px sprite + 10px separación, van bajando a mayor nivel
-                // ← acá falta agregar el enemigo!
+                double x = inicioX + (col * 58);
+                double y = inicioY + (fila * 34) + (nivel - 1) * 34;
+
                 if (fila == 0) oleada.add(new Pulpo(x, y));
                 else if (fila < 3) oleada.add(new Cangrejo(x, y));
                 else oleada.add(new Calamar(x, y));
             }
         }
 
-        // carga de assets
+        // === 4. CARGA DE ASSETS CON SUFIJO DE SKIN DINÁMICO ===
         try {
-            BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeIntacta.png"));
-            BufferedImage naveHeroeExplosion1 = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeExplosion1.png"));
-            BufferedImage naveHeroeExplosion2 = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeExplosion2.png"));
+            String sufijo = "";
+            if (skinSeleccionada == 2) {
+                sufijo = "Color";
+            } else if (skinSeleccionada == 3) {
+                sufijo = "HW";
+            }
 
-            imgNaveNodriza = ImageIO.read(this.getClass().getResource("imagenes/naveNodriza.png"));
+            // Carga de imágenes usando el sufijo de la skin elegida
+            BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeIntacta" + sufijo + ".png"));
+            BufferedImage naveHeroeExplosion1 = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeExplosion1" + sufijo + ".png"));
+            BufferedImage naveHeroeExplosion2 = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeExplosion2" + sufijo + ".png"));
 
-            // enemigos (2 frames cada uno)
-            BufferedImage pulpo1 = ImageIO.read(this.getClass().getResource("imagenes/pulpo1.png"));
-            BufferedImage pulpo2 = ImageIO.read(this.getClass().getResource("imagenes/pulpo2.png"));
+            imgNaveNodriza = ImageIO.read(this.getClass().getResource("imagenes/naveNodriza" + sufijo + ".png"));
 
-            BufferedImage cangrejo1 = ImageIO.read(this.getClass().getResource("imagenes/cangrejo1.png"));
-            BufferedImage cangrejo2 = ImageIO.read(this.getClass().getResource("imagenes/cangrejo2.png"));
+            BufferedImage pulpo1 = ImageIO.read(this.getClass().getResource("imagenes/pulpo1" + sufijo + ".png"));
+            BufferedImage pulpo2 = ImageIO.read(this.getClass().getResource("imagenes/pulpo2" + sufijo + ".png"));
 
-            BufferedImage calamar1 = ImageIO.read(this.getClass().getResource("imagenes/calamar1.png"));
-            BufferedImage calamar2 = ImageIO.read(this.getClass().getResource("imagenes/calamar2.png"));
+            BufferedImage cangrejo1 = ImageIO.read(this.getClass().getResource("imagenes/cangrejo1" + sufijo + ".png"));
+            BufferedImage cangrejo2 = ImageIO.read(this.getClass().getResource("imagenes/cangrejo2" + sufijo + ".png"));
 
-            BufferedImage proyectilHeroe = ImageIO.read(this.getClass().getResource("imagenes/proyectilHeroe.png"));
-            BufferedImage proyectilEnemigo = ImageIO.read(this.getClass().getResource("imagenes/proyectilEnemigo.png"));
+            BufferedImage calamar1 = ImageIO.read(this.getClass().getResource("imagenes/calamar1" + sufijo + ".png"));
+            BufferedImage calamar2 = ImageIO.read(this.getClass().getResource("imagenes/calamar2" + sufijo + ".png"));
 
-            BufferedImage escudoIntacto = ImageIO.read(this.getClass().getResource("imagenes/escudoIntacto.png"));
-            BufferedImage escudo1daño = ImageIO.read(this.getClass().getResource("imagenes/escudo1daño.png"));
-            BufferedImage escudo2daño = ImageIO.read(this.getClass().getResource("imagenes/escudo2daño.png"));
-            BufferedImage escudo3daño = ImageIO.read(this.getClass().getResource("imagenes/escudo3daño.png"));
-            BufferedImage escudo4daño = ImageIO.read(this.getClass().getResource("imagenes/escudo4daño.png"));
+            imgProyectilHeroe   = ImageIO.read(this.getClass().getResource("imagenes/proyectilHeroe" + sufijo + ".png"));
+            imgProyectilEnemigo = ImageIO.read(this.getClass().getResource("imagenes/proyectilEnemigo" + sufijo + ".png"));
 
-            imgProyectilHeroe   = ImageIO.read(this.getClass().getResource("imagenes/proyectilHeroe.png"));
-            imgProyectilEnemigo = ImageIO.read(this.getClass().getResource("imagenes/proyectilEnemigo.png"));
+            BufferedImage escudoIntacto = ImageIO.read(this.getClass().getResource("imagenes/escudoIntacto" + sufijo + ".png"));
+            BufferedImage escudo1daño = ImageIO.read(this.getClass().getResource("imagenes/escudo1daño" + sufijo + ".png"));
+            BufferedImage escudo2daño = ImageIO.read(this.getClass().getResource("imagenes/escudo2daño" + sufijo + ".png"));
+            BufferedImage escudo3daño = ImageIO.read(this.getClass().getResource("imagenes/escudo3daño" + sufijo + ".png"));
+            BufferedImage escudo4daño = ImageIO.read(this.getClass().getResource("imagenes/escudo4daño" + sufijo + ".png"));
 
-            // pantalla carga
             imgPantallaCarga = ImageIO.read(this.getClass().getResource("imagenes/pantalla_carga_SI.png"));
-
-            // game over
             imgGameOver = ImageIO.read(this.getClass().getResource("imagenes/game_over.png"));
-
-            //muerte enemigo
-            BufferedImage muerteEnemigo = ImageIO.read(this.getClass().getResource("imagenes/muerte_enemigo.png"));
+            BufferedImage muerteEnemigo = ImageIO.read(this.getClass().getResource("imagenes/muerte_enemigo" + sufijo + ".png"));
 
             fuenteArcade = new java.util.HashMap<>();
             tiempoJuego = 0;
 
-        //números del 0 al 9 (asumiendo que se llaman "0.png", "1.png", etc.)
             for (int i = 0; i <= 9; i++) {
                 char numero = (char) ('0' + i);
                 BufferedImage imgNum = ImageIO.read(this.getClass().getResource("imagenes/" + i + ".png"));
                 fuenteArcade.put(numero, imgNum);
             }
 
-        // letras de la A a la Z
             for (char c = 'A'; c <= 'Z'; c++) {
-                // Si tus archivos están en minúsculas (ej: "a.png"), usamos toLowerCase()
                 String nombreArchivo = String.valueOf(c).toLowerCase() + ".png";
                 BufferedImage imgLetra = ImageIO.read(this.getClass().getResource("imagenes/" + nombreArchivo));
                 fuenteArcade.put(c, imgLetra);
@@ -176,17 +209,13 @@ public class SpaceInvaders extends Juego {
                 escudo.setEscudo2daño(escudo2daño);
                 escudo.setEscudo3daño(escudo3daño);
                 escudo.setEscudo4daño(escudo4daño);
+                escudo.setImagen(escudoIntacto);
             }
 
             jugador.setImagenIntacta(naveHeroe);
             jugador.setImagenExplosion1(naveHeroeExplosion1);
             jugador.setImagenExplosion2(naveHeroeExplosion2);
 
-            for (Escudo escudo : escudos) {
-                escudo.setImagen(escudoIntacto);
-            }
-
-            // 3. Asignación de ambos frames a los enemigos usando el nuevo método
             for (Enemigo e : oleada) {
                 if (e instanceof Pulpo) {
                     e.setImagenes(pulpo1, pulpo2);
@@ -202,17 +231,10 @@ public class SpaceInvaders extends Juego {
             System.out.println("Error cargando los assets: " + e.getMessage());
         }
 
-       for (Enemigo e : oleada) {
+        for (Enemigo e : oleada) {
             e.setVelocidadX(40);
         }
-       cantidadAliensIniciales = oleada.size();
-
-        ConfiguracionSI config = (ConfiguracionSI) this.getConfiguracion();
-        if (config != null && config.getNombreJ1() != null) {
-            this.nombreJ1 = config.getNombreJ1();
-        } else {
-            this.nombreJ1 = this.appProperties.getProperty("nombreJ1", "Invitado");
-        }
+        cantidadAliensIniciales = oleada.size();
     }
 
     @Override
@@ -222,7 +244,9 @@ public class SpaceInvaders extends Juego {
             acumuladorCarga += delta;
             if (acumuladorCarga >= DURACION_CARGA) {
                 estadoActual = Estado.JUGANDO;
-                reproducirMusica(getRutaMusicaSeleccionada(), true);
+                if (sonidoActivado) {
+                    gestorAudio.reproducirMusica(getUrlMusicaSeleccionada());
+                }
             }
             return;
         }
@@ -247,13 +271,11 @@ public class SpaceInvaders extends Juego {
         // === LÓGICA DEL JUEGO ACTIVO ===
         Keyboard teclado = this.getKeyboard();
 
-        // 1. Control de teclado y disparo del héroe (Bloqueado si está explotando)
         if (!jugador.isMuriendo()) {
             if (teclado.isKeyPressed(KeyEvent.VK_LEFT))       jugador.moverIzquierda();
             else if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) jugador.moverDerecha();
             else                                              jugador.detener();
 
-            // lógica de disparos del héroe (Garantiza bala única en pantalla)
             if (teclado.isKeyPressed(KeyEvent.VK_SPACE) && proyectilesHeroe.isEmpty()) {
                 Proyectil p = jugador.disparar();
                 if (p != null) {
@@ -267,31 +289,26 @@ public class SpaceInvaders extends Juego {
             jugador.detener();
         }
 
-        // El movimiento físico de la nave se aplica siempre
         jugador.mover(delta);
 
-        // === NUEVA UBICACIÓN: CÁLCULO DE ACELERACIÓN DE LA HORDA ===
         if (!oleada.isEmpty()) {
             double porcentajeDestruido = 1.0 - ((double) oleada.size() / cantidadAliensIniciales);
-            // Va de 1.0 a 3.0 según bajan los enemigos
             factorVelocidadGlobal = 1.0 + (porcentajeDestruido * 2.0);
         }
 
-        // 2. Movimiento y animación de la oleada enemiga (Con velocidad acelerada)
         for (Enemigo enemigo : oleada) {
             enemigo.mover(delta * factorVelocidadGlobal);
             enemigo.actualizarFrame(delta * factorVelocidadGlobal);
         }
 
         tiempoMarcha += delta * factorVelocidadGlobal;
-        if (tiempoMarcha >= 0.8) { // Cada 0.8 segundos relativos
+        if (tiempoMarcha >= 0.8) {
             reproducirEfecto("fastinvader" + pasoMarcha);
             pasoMarcha++;
-            if (pasoMarcha > 4) pasoMarcha = 1; // Ciclo de sonidos del 1 al 4
-            tiempoMarcha = 0; // Reinicia el cronómetro de la marcha
+            if (pasoMarcha > 4) pasoMarcha = 1;
+            tiempoMarcha = 0;
         }
 
-        // 3. Detección de bordes de los enemigos
         boolean tocoBorde = false;
         for (Enemigo e : oleada) {
             if (e.x <= 0 || e.x + e.width >= 800) {
@@ -300,14 +317,12 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 4. Si un alien tocó el borde, baja toda la formación e invierte dirección
         if (tocoBorde) {
             for (Enemigo e : oleada) {
                 e.bajarFila(20);
             }
         }
 
-        // 5. Lógica de disparo aleatorio de los enemigos
         for (Enemigo enemigo : oleada) {
             Proyectil p = enemigo.disparar();
             if (p != null) {
@@ -316,16 +331,13 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 6. Actualizar posición de todos los proyectiles en pantalla
         for (Proyectil p : proyectilesEnemigos) { p.mover(delta); }
         for (Proyectil p : proyectilesHeroe)    { p.mover(delta); }
 
-        // 7. Resetear flags de daño de los escudos
         for (Escudo escudo : escudos) {
             escudo.resetFrame();
         }
 
-        // 8. Procesar colisiones, puntajes y limpieza de entidades
         detectarColisiones();
         actualizarPuntaje();
         limpiarNoVisibles();
@@ -333,7 +345,7 @@ public class SpaceInvaders extends Juego {
         // 9. Verificación de GAME OVER (Por quedarse sin vidas)
         if (!jugador.isVisible() && jugador.getVidas() <= 0) {
             System.out.println("GAME OVER - Te quedaste sin vidas");
-            detenerMusica();
+            gestorAudio.detenerMusica();
             reproducirEfecto("explosion");
             estadoActual = Estado.GAMEOVER;
             tiempoGameOver = 0;
@@ -345,7 +357,7 @@ public class SpaceInvaders extends Juego {
         for (Enemigo e : oleada) {
             if (e.y + e.height >= 500) {
                 System.out.println("GAME OVER - Los enemigos llegaron a la línea límite");
-                detenerMusica();
+                gestorAudio.detenerMusica();
                 reproducirEfecto("explosion");
                 estadoActual = Estado.GAMEOVER;
                 tiempoGameOver = 0;
@@ -354,13 +366,11 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 11. Verificación de VICTORIA (Progreso de nivel)
         if (oleada.isEmpty()) {
             System.out.println("¡Nivel " + nivel + " completado!");
             avanzarDeNivel();
         }
 
-        // 12. Temporizador y movimiento de la Nave Nodriza
         tiempoNodriza += delta;
         if (tiempoNodriza >= intervaloNodriza) {
             enemigoFinal = new NaveNodriza(-60, 45);
@@ -369,54 +379,47 @@ public class SpaceInvaders extends Juego {
         }
         if (enemigoFinal != null && enemigoFinal.isVisible()) {
             enemigoFinal.mover(delta);
-        }
-        tiempoUfoSonido += delta;
-        if (tiempoUfoSonido >= 0.25) { // Se ejecuta cada 0.25s para simular un sonido continuo
-            reproducirEfecto("ufo_lowpitch");
-            tiempoUfoSonido = 0;
+
+            tiempoUfoSonido += delta;
+            if (tiempoUfoSonido >= 0.25) {
+                reproducirEfecto("ufo_lowpitch");
+                tiempoUfoSonido = 0;
+            }
         }
 
-        // 13. Actualizar estado del héroe (Procesa los timers de la explosión)
         jugador.actualizar(delta);
-
-        // Suma la fracción de segundo al HUD
         tiempoJuego += delta;
     }
 
     private void avanzarDeNivel() {
-        nivel++; // Subimos el nivel
-        factorVelocidadGlobal = 1.0; // ← ¡AGREGADO ACÁ! El nuevo nivel arranca a velocidad normal
+        nivel++;
+        factorVelocidadGlobal = 1.0;
 
-        // Limpiamos proyectiles flotantes del nivel anterior
         proyectilesHeroe.clear();
         proyectilesEnemigos.clear();
         enemigoFinal = null;
 
-        // Reseteamos el clon del jugador a la posición central (manteniendo sus vidas intactas)
         jugador.setX(380);
         jugador.setY(525);
         jugador.setVisible(true);
 
-        // Volvemos a vaciar y rearmar escudos y enemigos
         oleada.clear();
         escudos.clear();
 
-        // Llamamos a tu startup para volver a poblar las listas con el nuevo Y calculado
         gameStartup();
     }
 
     void limpiarNoVisibles() {
         proyectilesEnemigos.removeIf(p -> !p.isVisible() || p.y > 600);
-        proyectilesHeroe.removeIf(p -> !p.isVisible() || p.y < 0); // ← sale por arriba
+        proyectilesHeroe.removeIf(p -> !p.isVisible() || p.y < 0);
         oleada.removeIf(e -> !e.isVisible());
     }
 
     @Override
     public void gameDraw(Graphics2D g) {
-        // === 1. CONTROL DE LA PANTALLA DE CARGA ===
         if (estadoActual == Estado.CARGA) {
             g.setColor(Color.BLACK);
-            g.fillRect(0, 0, getWidth(), getHeight()); // Fondo negro base
+            g.fillRect(0, 0, getWidth(), getHeight());
 
             if (imgPantallaCarga != null) {
                 g.drawImage(imgPantallaCarga, 0, 0, getWidth(), getHeight(), null);
@@ -424,72 +427,47 @@ public class SpaceInvaders extends Juego {
             return;
         }
 
-        // === 2. PANTALLA DE GAME OVER ABSOLUTA (Mudada acá arriba) ===
         if (estadoActual == Estado.GAMEOVER) {
-            // Pintamos TODA la pantalla de negro absoluto primero (limpio, sin escalar)
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, getWidth(), getHeight());
 
-            // Guardamos la configuración gráfica original para los efectos
             java.awt.geom.AffineTransform transformOriginal = g.getTransform();
             java.awt.Composite compositeOriginal = g.getComposite();
 
-            // A) EFECTO AGRANDAR DESDE EL CENTRO (Afecta solo al cartel y al texto de abajo)
             g.translate(400, 300);
             g.scale(escalaGameOver, escalaGameOver);
             g.translate(-400, -300);
 
-            // B) EFECTO PALPITAR BRILLO (Opacidad sutil en el logo)
             float alphaPalpitar = (float) (0.65f + 0.35f * Math.sin(tiempoGameOver * 5.0));
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alphaPalpitar));
 
-            // Dibujamos el cartel de tus compañeros
             if (imgGameOver != null) {
                 g.drawImage(imgGameOver, 250, 110, 300, 180, null);
             }
 
-            // C) TEXTO DE REINICIO PARPADEANTE
-            g.setComposite(compositeOriginal); // Restablecemos opacidad al 100% para las letras
+            g.setComposite(compositeOriginal);
             if ((int)(tiempoGameOver * 2.5) % 2 == 0) {
                 dibujarTextoRetro(g, "PRESS ENTER TO PLAY AGAIN", 176, 340);
             }
 
-            // Restauramos la matriz original y cortamos el renderizado
             g.setTransform(transformOriginal);
-            return; // IMPORTANTE: Al cortar acá, destruye el renderizado de la oleada vieja de abajo
+            return;
         }
 
-        // === 3. RENDERIZADO DEL JUEGO ACTIVO (Solo corre si estás jugando) ===
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
 
-        // Enemigos
-        for (Enemigo e : oleada) {
-            e.dibujar(g);
-        }
+        for (Enemigo e : oleada)          { e.dibujar(g); }
+        for (Escudo escudo : escudos)     { escudo.dibujar(g); }
+        for (Proyectil p : proyectilesHeroe)   { p.dibujar(g); }
+        for (Proyectil p : proyectilesEnemigos){ p.dibujar(g); }
 
-        // Escudos
-        for (Escudo escudo : escudos) {
-            escudo.dibujar(g);
-        }
-
-        // Proyectiles
-        for (Proyectil p : proyectilesHeroe) {
-            p.dibujar(g);
-        }
-        for (Proyectil p : proyectilesEnemigos) {
-            p.dibujar(g);
-        }
-
-        // Jugador
         jugador.dibujar(g);
 
-        // Nave nodriza
         if (enemigoFinal != null && enemigoFinal.isVisible()) {
             enemigoFinal.dibujar(g);
         }
 
-        // === 4. RENDERIZADO INTERFAZ (HUD) ===
         g.setColor(Color.GREEN);
         g.fillRect(0, 555, 800, 4);
 
@@ -503,85 +481,34 @@ public class SpaceInvaders extends Juego {
     }
 
     private void dibujarTextoRetro(Graphics2D g, String texto, int x, int y) {
-        texto = texto.toUpperCase(); // Nos aseguramos de buscar siempre en mayúsculas
-        int anchoCaracter = 16;      // Tamaño en píxeles al que se va a dibujar cada letra
+        texto = texto.toUpperCase();
+        int anchoCaracter = 16;
         int altoCaracter = 16;
-        int espaciado = 2;           // Píxeles de separación entre letras
+        int espaciado = 2;
 
         for (int i = 0; i < texto.length(); i++) {
             char caracter = texto.charAt(i);
 
-            if (caracter != ' ') { // Si no es un espacio en blanco, dibujamos el sprite
+            if (caracter != ' ') {
                 BufferedImage img = fuenteArcade.get(caracter);
                 if (img != null) {
                     g.drawImage(img, x, y, anchoCaracter, altoCaracter, null);
                 }
             }
-            // Avanzamos la X para el siguiente caracter (incluso si era un espacio)
             x += anchoCaracter + espaciado;
         }
     }
 
-    private String getRutaMusicaSeleccionada() {
-        return (pistaMusicalSeleccionada == 2) ?
-                "pipoo/spaceinvaders/audio/theme2.wav" :
-                "pipoo/spaceinvaders/audio/theme1.wav";
+    // gestion audio ft. gestorAudio
+    private java.net.URL getUrlMusicaSeleccionada() {
+        String archivo = (pistaMusicalSeleccionada == 2) ? "audio/theme2.wav" : "audio/theme1.wav";
+        return this.getClass().getResource(archivo);
     }
 
-    private void reproducirMusica(String rutaRecurso, boolean loops) {
-        if (!sonidoActivado) return;
-        try {
-            if (musicaFondo != null && musicaFondo.isRunning()) {
-                musicaFondo.stop();
-                musicaFondo.close();
-            }
-            java.net.URL url = this.getClass().getClassLoader().getResource(rutaRecurso);
-            if (url != null) {
-                javax.sound.sampled.AudioInputStream ais = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
-                musicaFondo = javax.sound.sampled.AudioSystem.getClip();
-                musicaFondo.open(ais);
-                if (loops) {
-                    musicaFondo.loop(javax.sound.sampled.Clip.LOOP_CONTINUOUSLY);
-                }
-                musicaFondo.start();
-            }
-        } catch (Exception e) {
-            System.out.println("Error al reproducir música (" + rutaRecurso + "): " + e.getMessage());
+    private void reproducirEfecto(String nombre) {
+        if (sonidoActivado) {
+            gestorAudio.reproducirEfecto(nombre);
         }
-    }
-
-    private void detenerMusica() {
-        if (musicaFondo != null) {
-            if (musicaFondo.isRunning()) {
-                musicaFondo.stop();
-            }
-            musicaFondo.close(); // Cierra el archivo y libera el canal de audio
-            musicaFondo = null;  // Limpia la variable por seguridad
-        }
-    }
-
-    private void reproducirEfecto(String nombreAudio) {
-        if (!sonidoActivado) return;
-        new Thread(() -> {
-            try {
-                String ruta = "pipoo/spaceinvaders/audio/" + nombreAudio + ".wav";
-                java.net.URL url = this.getClass().getClassLoader().getResource(ruta);
-                if (url != null) {
-                    javax.sound.sampled.AudioInputStream ais = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
-                    javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
-                    clip.open(ais);
-                    clip.start();
-                    // Monitorea el fin del sonido para liberar la memoria de la compu
-                    clip.addLineListener(event -> {
-                        if (event.getType() == javax.sound.sampled.LineEvent.Type.STOP) {
-                            clip.close();
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                System.out.println("Error en efecto SFX (" + nombreAudio + "): " + e.getMessage());
-            }
-        }).start();
     }
 
     @Override
@@ -592,18 +519,16 @@ public class SpaceInvaders extends Juego {
         manager.agregarEntrada(new RankingEntry(this.nombreJ1, this.nivel, this.puntaje, fecha));
         manager.guardarRanking();
 
-        detenerMusica();
-
+        gestorAudio.detenerMusica();
     }
 
     @Override
     protected void detectarColisiones() {
-        // 1. Proyectiles del héroe vs enemigos
         for (Proyectil proyectil : proyectilesHeroe) {
             if (!proyectil.isVisible()) continue;
             for (Enemigo enemigo : oleada) {
                 if (!enemigo.isVisible()) continue;
-                if (proyectil.colisionaCon(enemigo)) { // ← enemigo llama colisionaCon, igual que escudo
+                if (proyectil.colisionaCon(enemigo)) {
                     proyectil.reaccionarAColision(enemigo);
                     reproducirEfecto("spaceinvaderdead");
                     enemigo.reaccionarAColision(proyectil);
@@ -612,7 +537,6 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 2. Proyectiles del héroe vs escudos
         for (Proyectil proyectil : proyectilesHeroe) {
             if (!proyectil.isVisible()) continue;
             for (Escudo escudo : escudos) {
@@ -624,7 +548,6 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 3. Proyectiles enemigos vs jugador
         for (Proyectil proyectil : proyectilesEnemigos) {
             if (!proyectil.isVisible()) continue;
             if (proyectil.colisionaCon(jugador)) {
@@ -633,7 +556,6 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 4. Proyectiles enemigos vs escudos
         for (Proyectil proyectil : proyectilesEnemigos) {
             if (!proyectil.isVisible()) continue;
             for (Escudo escudo : escudos) {
@@ -645,7 +567,6 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 5. Proyectiles entre sí
         for (Proyectil ph : proyectilesHeroe) {
             if (!ph.isVisible()) continue;
             for (Proyectil pe : proyectilesEnemigos) {
@@ -657,7 +578,6 @@ public class SpaceInvaders extends Juego {
             }
         }
 
-        // 6. Proyectil héroe vs NaveNodriza
         if (enemigoFinal != null && enemigoFinal.isVisible()) {
             for (Proyectil proyectil : proyectilesHeroe) {
                 if (!proyectil.isVisible()) continue;
@@ -671,12 +591,9 @@ public class SpaceInvaders extends Juego {
     }
 
     @Override
-    protected void actualizarPuntaje() {
-        // Actualizar UI del puntaje actual
-    }
+    protected void actualizarPuntaje() { }
 
     private void reiniciarJuego() {
-        // 1. Limpiamos todas las listas del juego viejo
         oleada.clear();
         escudos.clear();
         proyectilesHeroe.clear();
@@ -686,22 +603,16 @@ public class SpaceInvaders extends Juego {
         pasoMarcha = 1;
         tiempoUfoSonido = 0;
 
-        // 2. Reseteamos los marcadores principales y de animación
         puntaje = 0;
         tiempoJuego = 0;
         tiempoGameOver = 0;
         escalaGameOver = 0.0;
 
-        // 3. RESETEOS CLAVE (¡Van sí o sí antes del startup!)
         nivel = 1;
         contadorDisparosTotales = 0;
-        factorVelocidadGlobal = 1.0; // Evita que la partida nueva empiece a fondo si moriste con 1 alien vivo
+        factorVelocidadGlobal = 1.0;
 
-        // 4. Rearmamos el mapa desde cero con los valores limpios
         gameStartup();
-
-        // 5. Cambiamos el estado directo a jugar
         estadoActual = Estado.JUGANDO;
     }
 }
-
