@@ -9,6 +9,8 @@ public class PanelConfiguracionSI extends JPanel {
     private JComboBox<String> comboSkinsNave, comboSkinsAliens, comboMusica, comboVelocidad;
     private JButton btnGuardar, btnReset, btnVolver;
 
+
+
     public PanelConfiguracionSI(ConfiguracionSI config, JPanel contenedor, CardLayout cl) {
         this.config = config;
         this.setLayout(new GridLayout(0, 2, 10, 10)); // Grilla para etiquetas y componentes
@@ -62,5 +64,6 @@ public class PanelConfiguracionSI extends JPanel {
         this.add(new JLabel("")); // Espacio
         this.add(btnVolver);
     }
+
 }
 

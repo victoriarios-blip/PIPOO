@@ -16,12 +16,6 @@ public class Escalera extends ElementoGrafico {
         }
     }
 
-    public void crecer() {
-        // si agarró todo el oro, aparece una escalera de salida
-        this.y -= 30; // sube posición Y
-        this.height += 30; // aumenta altura
-    }
-
 
     public boolean isSalidaFinal() {
         return salidaFinal;

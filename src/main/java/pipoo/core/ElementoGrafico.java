@@ -36,8 +36,4 @@ public abstract class ElementoGrafico extends java.awt.geom.Rectangle2D.Double i
         return this.intersects(otro.getBounds());
     }
 
-    @Override
-    public Rectangle2D getLimites() {
-        return this.getBounds();
-    }
 }

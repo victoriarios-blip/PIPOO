@@ -2,6 +2,8 @@ package pipoo.spaceinvaders;
 
 import com.entropyinteractive.Keyboard;
 import pipoo.core.*;
+import pipoo.core.configuracion.ConfiguracionSI;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -14,6 +16,9 @@ public class SpaceInvaders extends Juego {
     private List<Enemigo> oleada;
     private List<Escudo> escudos;
     private NaveNodriza enemigoFinal;
+    private String nombreJ1;
+
+
 
     // proyectiles
     private List<Proyectil> proyectilesEnemigos;
@@ -201,6 +206,13 @@ public class SpaceInvaders extends Juego {
             e.setVelocidadX(40);
         }
        cantidadAliensIniciales = oleada.size();
+
+        ConfiguracionSI config = (ConfiguracionSI) this.getConfiguracion();
+        if (config != null && config.getNombreJ1() != null) {
+            this.nombreJ1 = config.getNombreJ1();
+        } else {
+            this.nombreJ1 = this.appProperties.getProperty("nombreJ1", "Invitado");
+        }
     }
 
     @Override
@@ -574,7 +586,14 @@ public class SpaceInvaders extends Juego {
 
     @Override
     public void gameShutdown() {
-        // Guardar puntajes
+        Ranking manager = new Ranking("ranking_si.dat");
+        manager.cargarRanking();
+        String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+        manager.agregarEntrada(new RankingEntry(this.nombreJ1, this.nivel, this.puntaje, fecha));
+        manager.guardarRanking();
+
+        detenerMusica();
+
     }
 
     @Override

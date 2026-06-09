@@ -7,8 +7,8 @@ import java.awt.*;
 
 public abstract class Juego extends JGame {
 
+    protected GestorAudio gestorAudio= new GestorAudio();
     protected Configuracion configuracion;
-
 
     public Juego(String titulo, int ancho, int alto) {
         super(titulo, ancho, alto);
