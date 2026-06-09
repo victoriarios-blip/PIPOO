@@ -113,7 +113,6 @@ public class Heroe extends Runner{
     public void recolectarOro() {
         this.cantOro++;
     }
-    public int getCantOro() { return cantOro; }
 
 
     @Override
