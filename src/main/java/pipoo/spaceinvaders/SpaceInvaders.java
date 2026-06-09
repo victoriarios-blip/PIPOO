@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.image.BufferedImage;
+import javax.swing.*;
 
 public class SpaceInvaders extends Juego {
     // Entidades principales
@@ -500,12 +501,33 @@ public class SpaceInvaders extends Juego {
 
     @Override
     public void gameShutdown() {
+        // 1. Instanciamos y cargamos el archivo de récords
         Ranking manager = new Ranking("ranking_si.dat");
         manager.cargarRanking();
+
+        // 2. Formateamos la fecha actual de la compu
         String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
-        manager.agregarEntrada(new RankingEntry(this.nombreJ1, this.nivel, this.puntaje, fecha));
+
+        // 3. Grabamos usando el constructor de 5 parámetros seteando el modo "SPACE"
+        // Esto guarda: Nombre, Nivel, Puntaje, Fecha y Modo de juego
+        manager.agregarEntrada(new RankingEntry(this.nombreJ1, this.nivel, this.puntaje, fecha, "SPACE"));
         manager.guardarRanking();
 
+        // 4. REQUISITO: Presentar el ranking en la interfaz al finalizar la partida
+        // Creamos un JTextArea flotante con estética arcade (Fondo negro, texto blanco)
+        JTextArea areaRanking = new JTextArea(manager.toStrOrdenado("PARTIDA FINALIZADA - TOP 10 GLOBAL", "SPACE"));
+        areaRanking.setFont(new Font("Monospaced", Font.PLAIN, 14)); // Crucial para mantener las columnas alineadas
+        areaRanking.setBackground(Color.BLACK);
+        areaRanking.setForeground(Color.WHITE);
+        areaRanking.setEditable(false);
+
+        // Mostramos el panel al jugador antes de destruir la ventana del juego
+        JOptionPane.showMessageDialog(null,
+                new JScrollPane(areaRanking),
+                "PIPOO ARCADE - RANKING",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        // 5. Apagamos los hilos de audio de forma segura
         gestorAudio.detenerMusica();
     }
 
