@@ -1,6 +1,4 @@
-package pipoo.core.recursos;
-
-import pipoo.core.ElementoGrafico;
+package pipoo.core;
 
 public class Borde extends ElementoGrafico {
     public Borde(double x, double y, double width, double height) {
