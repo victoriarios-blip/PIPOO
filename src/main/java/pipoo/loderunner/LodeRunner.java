@@ -11,7 +11,10 @@ import pipoo.core.configuracion.ConfiguracionLR;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 
 public class LodeRunner extends Juego {
@@ -76,7 +79,6 @@ public class LodeRunner extends Juego {
     private double animacionVictoriaY = 0;
 
     // AUDIO
-    private GestorAudio audio = new GestorAudio();
     private boolean sonidoActivado;
     private String pistaMusical;
     private double timerPasos = 0.15;
@@ -131,21 +133,21 @@ public class LodeRunner extends Juego {
 
         // 3. CARGAR AUDIOS
         if (!sonidoActivado) {
-            audio.detenerMusica();
+            gestorAudio.detenerMusica();
         } else {
             try {
                 // precargamos los efectos SOLO si el sonido esta activado
-                audio.precargarEfecto("pasos", this.getClass().getResource("/pipoo/loderunner/audio/pasos.wav"));
-                audio.precargarEfecto("escalera", this.getClass().getResource("/pipoo/loderunner/audio/escalera.wav"));
-                audio.precargarEfecto("oro", this.getClass().getResource("/pipoo/loderunner/audio/oro.wav"));
-                audio.precargarEfecto("miss", this.getClass().getResource("/pipoo/loderunner/audio/miss.wav"));
-                audio.precargarEfecto("game_over", this.getClass().getResource("/pipoo/loderunner/audio/game_over.wav"));
+                gestorAudio.precargarEfecto("pasos", this.getClass().getResource("/pipoo/loderunner/audio/pasos.wav"));
+                gestorAudio.precargarEfecto("escalera", this.getClass().getResource("/pipoo/loderunner/audio/escalera.wav"));
+                gestorAudio.precargarEfecto("oro", this.getClass().getResource("/pipoo/loderunner/audio/oro.wav"));
+                gestorAudio.precargarEfecto("miss", this.getClass().getResource("/pipoo/loderunner/audio/miss.wav"));
+                gestorAudio.precargarEfecto("game_over", this.getClass().getResource("/pipoo/loderunner/audio/game_over.wav"));
 
                 // Reproducimos la música del menu SOLO si no eligio "ninguna"
                 if (pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
-                    java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
+                    URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
                     if (urlMusicaMenu != null) {
-                        audio.reproducirMusica(urlMusicaMenu);
+                        gestorAudio.reproducirMusica(urlMusicaMenu);
                     }
                 }
             } catch (Exception e) {
@@ -463,7 +465,7 @@ public class LodeRunner extends Juego {
         }
 
         try {
-            audio.detenerMusica();
+            gestorAudio.detenerMusica();
             if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
 
                 // Elegimos la ruta del archivo según la pista configurada
@@ -472,10 +474,10 @@ public class LodeRunner extends Juego {
                     rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav"; // Tu nuevo archivo .wav
                 }
 
-                java.net.URL urlMusica = this.getClass().getResource(rutaArchivoMusica);
+                URL urlMusica = this.getClass().getResource(rutaArchivoMusica);
                 System.out.println("DEBUG MÚSICA: " + urlMusica);
                 if (urlMusica != null) {
-                    audio.reproducirMusica(urlMusica);
+                    gestorAudio.reproducirMusica(urlMusica);
                 }
             }
         } catch (Exception e) {
@@ -508,18 +510,18 @@ public class LodeRunner extends Juego {
             System.out.println("Música de fondo: " + (bgmActivado ? "ON" : "OFF"));
 
             if (!bgmActivado) {
-                audio.detenerMusica();
+                gestorAudio.detenerMusica();
             } else {
                 // reproducir la musica correspondiente segun el estado
                 try {
                     if (estadoActual == EstadoJuego.MENU && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
-                        audio.reproducirMusica(this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav"));
+                        gestorAudio.reproducirMusica(this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav"));
                     } else if (estadoActual == EstadoJuego.JUGANDO && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
                         String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav";
                         if ("The Mountain Retro".equals(pistaMusical)) {
                             rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav";
                         }
-                        audio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
+                        gestorAudio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
                     }
                 } catch (Exception e) {}
             }
@@ -583,10 +585,10 @@ public class LodeRunner extends Juego {
                 juegoTerminado = false;
 
                 try {
-                    audio.detenerMusica();
+                    gestorAudio.detenerMusica();
                     if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
-                        java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
-                        if (urlMusicaMenu != null) audio.reproducirMusica(urlMusicaMenu);
+                        URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
+                        if (urlMusicaMenu != null) gestorAudio.reproducirMusica(urlMusicaMenu);
                     }
                 } catch (Exception e) {
                     System.out.println("Error reiniciando música menú: " + e.getMessage());
@@ -606,7 +608,7 @@ public class LodeRunner extends Juego {
                 if (nivel == 3) {
                     // Guardar ranking ARCADE
                     scoreAcumuladoArcade += score; // sumar el score del nivel 3
-                    String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+                    String fecha = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
                     Ranking rankingArcade = new Ranking("ranking_lr.dat");
                     rankingArcade.cargarRanking();
                     rankingArcade.agregarEntrada(new RankingEntry(nombreJugador, 3, scoreAcumuladoArcade, fecha));
@@ -616,10 +618,10 @@ public class LodeRunner extends Juego {
 
                     estadoActual = EstadoJuego.MENU;
                     try {
-                        audio.detenerMusica();
+                        gestorAudio.detenerMusica();
                         if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
-                            java.net.URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
-                            if (urlMusicaMenu != null) audio.reproducirMusica(urlMusicaMenu);
+                            URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
+                            if (urlMusicaMenu != null) gestorAudio.reproducirMusica(urlMusicaMenu);
                         }
                     } catch (Exception e) {
                         System.out.println("Error música menú: " + e.getMessage());
@@ -705,7 +707,6 @@ public class LodeRunner extends Juego {
 
         // Cavar pozos
         if (teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
-            heroe.cavar();
             int columnaHeroe = (int) ((heroe.x + (heroe.width / 2.0)) / 30);
             int columnaObjetivo = columnaHeroe + (ultimaDireccion > 0 ? 1 : -1);
             double puntoImpactoX = (columnaObjetivo * 30) + 15;
@@ -777,7 +778,7 @@ public class LodeRunner extends Juego {
         if (heroe.getVelocidadX() != 0 && !heroe.isEstaCayendo() && !heroe.isEnEscalera()) {
             timerPasos += delta;
             if (timerPasos >= 0.25) {
-                if (sfxActivado) audio.reproducirEfecto("pasos");
+                if (sfxActivado) gestorAudio.reproducirEfecto("pasos");
                 timerPasos = 0;
             }
         } else {
@@ -788,7 +789,7 @@ public class LodeRunner extends Juego {
         if (heroe.getVelocidadY() != 0 && heroe.isEnEscalera()) {
             timerEscalera += delta;
             if (timerEscalera >= 0.18) {
-                if (sfxActivado) audio.reproducirEfecto("escalera");
+                if (sfxActivado) gestorAudio.reproducirEfecto("escalera");
                 timerEscalera = 0;
             }
         } else {
@@ -1115,7 +1116,7 @@ public class LodeRunner extends Juego {
                 itOro.remove();
                 score += 250;
                 orosRecolectadosNivel++;
-                if (sfxActivado) audio.reproducirEfecto("oro");            }
+                if (sfxActivado) gestorAudio.reproducirEfecto("oro");            }
         }
 
         // heroe con escalera
@@ -1400,8 +1401,7 @@ public class LodeRunner extends Juego {
         }
 
         if (atrapado) {
-            System.out.println("¡El guardia atrapó al héroe! Pierdes una vida.");
-            if (sfxActivado) audio.reproducirEfecto("miss");
+            if (sfxActivado) gestorAudio.reproducirEfecto("miss");
             heroe.iniciarMuerte();
         }
         lingotes.addAll(orosSoltados);
@@ -1412,9 +1412,8 @@ public class LodeRunner extends Juego {
         vidas--;
 
         if (vidas <= 0) {
-            System.out.println("¡GAME OVER! Te quedaste sin vidas.");
-            audio.detenerMusica();
-            if (sfxActivado) audio.reproducirEfecto("game_over");
+            gestorAudio.detenerMusica();
+            if (sfxActivado) gestorAudio.reproducirEfecto("game_over");
             juegoTerminado = true;
             vidas = 0;
             estadoActual = EstadoJuego.GAMEOVER;
@@ -1429,7 +1428,7 @@ public class LodeRunner extends Juego {
 
     @Override
     public void gameShutdown() {
-        audio.detenerMusica();
+        gestorAudio.detenerMusica();
         System.out.println("Cerrando Lode Runner...");
     }
 
@@ -1467,18 +1466,18 @@ public class LodeRunner extends Juego {
         int puntosTiempo = tiempoFinal * 10;
         score += puntosTiempo;
         try {
-            audio.detenerMusica(); // Corta el BGM del juego normal
+            gestorAudio.detenerMusica(); // Corta el BGM del juego normal
             if (sonidoActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
-                java.net.URL urlVictoria = this.getClass().getResource("/pipoo/loderunner/audio/stage_clear.wav");
+                URL urlVictoria = this.getClass().getResource("/pipoo/loderunner/audio/stage_clear.wav");
                 if (urlVictoria != null) {
-                    audio.reproducirMusica(urlVictoria);
+                    gestorAudio.reproducirMusica(urlVictoria);
                 }
             }
         } catch (Exception e) {
             System.out.println("Error al reproducir audio de victoria: " + e.getMessage());
         }
         if (!modoArcade) {
-            String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+            String fecha = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
             Ranking rankingNivel = new Ranking("ranking_lr.dat");
             rankingNivel.cargarRanking();
             rankingNivel.agregarEntrada(new RankingEntry(nombreJugador, nivel, score, fecha, "INDIVIDUAL"));
@@ -1522,7 +1521,7 @@ public class LodeRunner extends Juego {
             if ("The Mountain Retro".equals(pistaMusical)) {
                 rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav";
             }
-            audio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
+            gestorAudio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
         }
 
         estadoActual = EstadoJuego.TRANSICION;
