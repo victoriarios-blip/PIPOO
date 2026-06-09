@@ -10,11 +10,9 @@ public class PanelConfiguracionPong extends JPanel {
     private JComboBox<String> comboPuntos; //entre 11, 15 o personalizado
     private JTextField txtNombreJ1;
     private JTextField txtNombreJ2;
-    private String seleccionPuntos, entrada;
-    private int puntos;
+    private String seleccionPuntos;
     private int puntosPersonalizados = 11;
 
-    private JTextField txtUpJ1, txtDownJ1, txtUpJ2, txtDownJ2;
     private JPanel parent;
     private CardLayout cl;
 
