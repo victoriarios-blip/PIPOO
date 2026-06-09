@@ -35,8 +35,6 @@ public class Pong extends Juego {
     private String skinPaleta;
     private String rutaCancha, rutaPaleta, rutaPaleta2, rutaPelota, rutaDivisor;
 
-    //sonido
-    private GestorAudio gestorAudio = new GestorAudio();
 
     //atributos para gestionar el tiempo de pantalla de carga
     private BufferedImage imgLoading;
