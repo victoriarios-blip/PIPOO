@@ -8,12 +8,6 @@ public class Bot extends Jugador{
         this.margenError = margenError;
     }
 
-    // Constructor por defecto para el oponente de la CPU
-    public Bot() {
-        super("CPU");
-        this.margenError = 20.0; // Valor por defecto para la dificultad
-    }
-
     public double getMargenError() {
         return margenError;
     }

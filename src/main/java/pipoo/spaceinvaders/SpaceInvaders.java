@@ -12,97 +12,94 @@ import java.util.List;
 import java.awt.image.BufferedImage;
 
 public class SpaceInvaders extends Juego {
+    // Entidades principales
     private NaveHeroe jugador;
     private List<Enemigo> oleada;
     private List<Escudo> escudos;
     private NaveNodriza enemigoFinal;
-    private String nombreJ1;
-
-    // proyectiles
     private List<Proyectil> proyectilesEnemigos;
     private List<Proyectil> proyectilesHeroe;
-    private static int contadorDisparosTotales = 0;
 
-    public static int getContadorDisparos() { return contadorDisparosTotales; }
-
-    // marcador
-    private double tiempoJuego = 0; // Acumulador de segundos
-    private java.util.Map<Character, java.awt.image.BufferedImage> fuenteArcade;
-
-    // niveles
-    private int nivel = 1; // Arranca en el nivel 1
-    private int cantidadAliensIniciales = 0; // Para saber cuántos se destruyeron
-    private double factorVelocidadGlobal = 1.0; // 1.0 es velocidad normal, irá subiendo
-
-    //aparicion nave nodriza
-    private double tiempoNodriza = 0;
-    private static final double intervaloNodriza = 20; // aparece cada 20 segundos
-
-    // puntaje
+    // Estado, Niveles y Marcadores
+    private enum Estado { CARGA, JUGANDO, GAMEOVER }
+    private Estado estadoActual = Estado.CARGA;
+    private String nombreJ1;
     private int puntaje = 0;
+    private int nivel = 1;
+    private double tiempoJuego = 0;
+    private static int contadorDisparosTotales = 0;
+    private int cantidadAliensIniciales = 0;
+    private double factorVelocidadGlobal = 1.0;
 
-    // marcha enemigos
-    private int pasoMarcha = 1;
+    // Control Visual y Animaciones
+    private int skinSeleccionada = 1; // 1 = Original, 2 = Color, 3 = HW
+    private double acumuladorCarga = 0;
+    private static final double DURACION_CARGA = 5.0;
+    private double tiempoGameOver = 0;
+    private double escalaGameOver = 0.0;
+    private java.util.Map<Character, BufferedImage> fuenteArcade;
 
+    // Assets gráficos de uso recurrente
     private BufferedImage imgProyectilHeroe;
     private BufferedImage imgProyectilEnemigo;
     private BufferedImage imgNaveNodriza;
-
-    // pantalla de carga
-    private enum Estado { CARGA, JUGANDO, GAMEOVER }
-    private Estado estadoActual = Estado.CARGA; // Arranca en modo carga
-    private double acumuladorCarga = 0;
-    private static final double DURACION_CARGA = 3.0; // Duración en segundos (ej: 3 segundos)
     private BufferedImage imgPantallaCarga;
-
-    //skins
-    private int skinSeleccionada = 1;
-
-    // pantalla game over
     private BufferedImage imgGameOver;
-    private double tiempoGameOver = 0;
-    private double escalaGameOver = 0.0;
 
-    // audio (Configuración y relojes)
-    private int pistaMusicalSeleccionada = 1; // 1 = Original, 2 = Alternativa
-    private boolean sonidoActivado = true;    // Para mutear/desmuteas desde la configuración
+    // Audio y Controles Dinámicos
+    private int pistaMusicalSeleccionada = 1;
+    private boolean sonidoActivado = true;
     private double tiempoMarcha = 0;
+    private double tiempoNodriza = 0;
     private double tiempoUfoSonido = 0;
+    private int pasoMarcha = 1;
+    private static final double intervaloNodriza = 20;
+
+    // Códigos de Teclado asignados dinámicamente
+    private int teclaIzq;
+    private int teclaDer;
+    private int teclaDisparo;
 
     public SpaceInvaders() {
         super("PIPOO SPACE INVADERS", 800, 600);
     }
 
+    public static int getContadorDisparos() { return contadorDisparosTotales; }
+
     @Override
     public void gameStartup() {
-        // === 1. LEER LA CONFIGURACIÓN INMEDIATAMENTE (MUDADO AL PRINCIPIO) ===
+        // === 1. ASIGNACIÓN INMEDIATA DE CONFIGURACIONES Y CONTROLES ===
         ConfiguracionSI config = (ConfiguracionSI) this.getConfiguracion();
+        double velocidadBaseAliens = 40;
         if (config != null) {
             this.nombreJ1 = config.getNombreJ1();
             this.sonidoActivado = config.isSonidoActivado();
+            this.teclaIzq = config.getTeclaIzq();
+            this.teclaDer = config.getTeclaDer();
+            this.teclaDisparo = config.getTeclaDisparo();
 
-            // Mapeo de la Skin elegida al flag numérico de tu juego
+            String velElegida = config.getVelocidadInvasores();
+            if ("Lenta".equals(velElegida)) {
+                velocidadBaseAliens = 20; // Bastante pasivos
+            } else if ("Rápida".equals(velElegida)) {
+                velocidadBaseAliens = 65; // Arrancan picantes
+            }
+
             String skinElegida = config.getSkinModo();
-            if (skinElegida != null && skinElegida.equals("Color")) {
-                this.skinSeleccionada = 2;
-            } else if (skinElegida != null && skinElegida.equals("Halloween")) {
-                this.skinSeleccionada = 3;
-            } else {
-                this.skinSeleccionada = 1; // Default / Original
-            }
+            if ("Color".equals(skinElegida))        this.skinSeleccionada = 2;
+            else if ("Halloween".equals(skinElegida)) this.skinSeleccionada = 3;
+            else                                      this.skinSeleccionada = 1;
 
-            // Mapeo de la pista musical elegida
             String musicaElegida = config.getPistaMusical();
-            if (musicaElegida != null && musicaElegida.equals("Tema 2 (Alternativo)")) {
-                this.pistaMusicalSeleccionada = 2;
-            } else {
-                this.pistaMusicalSeleccionada = 1;
-            }
+            this.pistaMusicalSeleccionada = "Tema 2 (Alternativo)".equals(musicaElegida) ? 2 : 1;
         } else {
             this.nombreJ1 = this.appProperties.getProperty("nombreJ1", "Invitado");
+            this.teclaIzq = 37;      // Valores por defecto ante fallas (Flechas)
+            this.teclaDer = 39;
+            this.teclaDisparo = 32;
         }
 
-        // === 2. PRECARGA DE EFECTOS EN EL GESTOR COMPARTIDO ===
+        // === 2. PRECARGA E INDEXACIÓN DE EFECTOS SFX ===
         gestorAudio.precargarEfecto("playagain", this.getClass().getResource("audio/playagain.wav"));
         gestorAudio.precargarEfecto("shoot", this.getClass().getResource("audio/shoot.wav"));
         gestorAudio.precargarEfecto("explosion", this.getClass().getResource("audio/explosion.wav"));
@@ -113,16 +110,13 @@ public class SpaceInvaders extends Juego {
         gestorAudio.precargarEfecto("fastinvader3", this.getClass().getResource("audio/fastinvader3.wav"));
         gestorAudio.precargarEfecto("fastinvader4", this.getClass().getResource("audio/fastinvader4.wav"));
 
-        // === 3. REPRODUCCIÓN DE MÚSICA DE CARGA ===
         if (estadoActual == Estado.CARGA && sonidoActivado) {
             gestorAudio.reproducirMusica(this.getClass().getResource("audio/pantallacarga.wav"));
         }
 
-        java.net.URL test = this.getClass().getResource("/pipoo/spaceinvaders/imagenes/pulpo1.png");
-        System.out.println("PATH TEST: " + test);
-
         System.out.println("Iniciando Space Invaders...");
 
+        // === 3. INICIALIZACIÓN DE LISTAS Y ENTIDADES ===
         oleada = new ArrayList<>();
         escudos = new ArrayList<>();
         proyectilesEnemigos = new ArrayList<>();
@@ -135,7 +129,6 @@ public class SpaceInvaders extends Juego {
             escudos.add(new Escudo(x, 410));
         }
 
-        // oleada enemiga (5 filas x 11 columnas)
         int inicioX = (800 - 638) / 2;
         int inicioY = 50;
 
@@ -144,22 +137,18 @@ public class SpaceInvaders extends Juego {
                 double x = inicioX + (col * 58);
                 double y = inicioY + (fila * 34) + (nivel - 1) * 34;
 
-                if (fila == 0) oleada.add(new Pulpo(x, y));
-                else if (fila < 3) oleada.add(new Cangrejo(x, y));
-                else oleada.add(new Calamar(x, y));
+                if (fila == 0)      oleada.add(new Pulpo(x, y));
+                else if (fila < 3)  oleada.add(new Cangrejo(x, y));
+                else                oleada.add(new Calamar(x, y));
             }
         }
 
-        // === 4. CARGA DE ASSETS CON SUFIJO DE SKIN DINÁMICO ===
+        // === 4. BUFFERING Y CARGA DE ASSETS (CON FILTRO DE SKINS) ===
         try {
             String sufijo = "";
-            if (skinSeleccionada == 2) {
-                sufijo = "Color";
-            } else if (skinSeleccionada == 3) {
-                sufijo = "HW";
-            }
+            if (skinSeleccionada == 2)      sufijo = "Color";
+            else if (skinSeleccionada == 3) sufijo = "HW";
 
-            // Carga de imágenes usando el sufijo de la skin elegida
             BufferedImage naveHeroe = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeIntacta" + sufijo + ".png"));
             BufferedImage naveHeroeExplosion1 = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeExplosion1" + sufijo + ".png"));
             BufferedImage naveHeroeExplosion2 = ImageIO.read(this.getClass().getResource("imagenes/naveHeroeExplosion2" + sufijo + ".png"));
@@ -217,13 +206,9 @@ public class SpaceInvaders extends Juego {
             jugador.setImagenExplosion2(naveHeroeExplosion2);
 
             for (Enemigo e : oleada) {
-                if (e instanceof Pulpo) {
-                    e.setImagenes(pulpo1, pulpo2);
-                } else if (e instanceof Cangrejo) {
-                    e.setImagenes(cangrejo1, cangrejo2);
-                } else if (e instanceof Calamar) {
-                    e.setImagenes(calamar1, calamar2);
-                }
+                if (e instanceof Pulpo)         e.setImagenes(pulpo1, pulpo2);
+                else if (e instanceof Cangrejo) e.setImagenes(cangrejo1, cangrejo2);
+                else if (e instanceof Calamar)  e.setImagenes(calamar1, calamar2);
                 e.setImagenMuerte(muerteEnemigo);
             }
 
@@ -232,14 +217,14 @@ public class SpaceInvaders extends Juego {
         }
 
         for (Enemigo e : oleada) {
-            e.setVelocidadX(40);
+            e.setVelocidadX(velocidadBaseAliens);
         }
         cantidadAliensIniciales = oleada.size();
     }
 
     @Override
     public void gameUpdate(double delta) {
-        // === CONTROL DE TIEMPO DE LA PANTALLA DE CARGA ===
+        // === CONTROL: PANTALLA DE CARGA ===
         if (estadoActual == Estado.CARGA) {
             acumuladorCarga += delta;
             if (acumuladorCarga >= DURACION_CARGA) {
@@ -251,32 +236,37 @@ public class SpaceInvaders extends Juego {
             return;
         }
 
-        // === CONTROL DE LA PANTALLA DE GAME OVER ===
+        // === CONTROL: GAME OVER ===
         if (estadoActual == Estado.GAMEOVER) {
             tiempoGameOver += delta;
-
             if (escalaGameOver < 1.0) {
                 escalaGameOver += delta * 2.0;
                 if (escalaGameOver > 1.0) escalaGameOver = 1.0;
             }
-
             Keyboard teclado = this.getKeyboard();
+            if (teclado.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+                gestorAudio.detenerMusica(); // Apagamos cualquier rastro de sonido
+                this.stop();                 // Detiene el bucle y cierra la ventana actual
+                return;
+            }
             if (teclado.isKeyPressed(KeyEvent.VK_ENTER) || teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
                 reproducirEfecto("playagain");
                 reiniciarJuego();
             }
+
             return;
         }
 
-        // === LÓGICA DEL JUEGO ACTIVO ===
+        // === CONTROL: GAMEPLAY ACTIVO ===
         Keyboard teclado = this.getKeyboard();
 
         if (!jugador.isMuriendo()) {
-            if (teclado.isKeyPressed(KeyEvent.VK_LEFT))       jugador.moverIzquierda();
-            else if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) jugador.moverDerecha();
-            else                                              jugador.detener();
+            // Escucha dinámica de teclas configuradas por el usuario
+            if (teclado.isKeyPressed(teclaIzq))       jugador.moverIzquierda();
+            else if (teclado.isKeyPressed(teclaDer))  jugador.moverDerecha();
+            else                                      jugador.detener();
 
-            if (teclado.isKeyPressed(KeyEvent.VK_SPACE) && proyectilesHeroe.isEmpty()) {
+            if (teclado.isKeyPressed(teclaDisparo) && proyectilesHeroe.isEmpty()) {
                 Proyectil p = jugador.disparar();
                 if (p != null) {
                     p.setImagen(imgProyectilHeroe);
@@ -301,6 +291,7 @@ public class SpaceInvaders extends Juego {
             enemigo.actualizarFrame(delta * factorVelocidadGlobal);
         }
 
+        // Paso rítmico de los aliens
         tiempoMarcha += delta * factorVelocidadGlobal;
         if (tiempoMarcha >= 0.8) {
             reproducirEfecto("fastinvader" + pasoMarcha);
@@ -318,9 +309,7 @@ public class SpaceInvaders extends Juego {
         }
 
         if (tocoBorde) {
-            for (Enemigo e : oleada) {
-                e.bajarFila(20);
-            }
+            for (Enemigo e : oleada) { e.bajarFila(20); }
         }
 
         for (Enemigo enemigo : oleada) {
@@ -334,15 +323,13 @@ public class SpaceInvaders extends Juego {
         for (Proyectil p : proyectilesEnemigos) { p.mover(delta); }
         for (Proyectil p : proyectilesHeroe)    { p.mover(delta); }
 
-        for (Escudo escudo : escudos) {
-            escudo.resetFrame();
-        }
+        for (Escudo escudo : escudos) { escudo.resetFrame(); }
 
         detectarColisiones();
         actualizarPuntaje();
         limpiarNoVisibles();
 
-        // 9. Verificación de GAME OVER (Por quedarse sin vidas)
+        // Verificación de derrota por destrucción
         if (!jugador.isVisible() && jugador.getVidas() <= 0) {
             System.out.println("GAME OVER - Te quedaste sin vidas");
             gestorAudio.detenerMusica();
@@ -353,10 +340,10 @@ public class SpaceInvaders extends Juego {
             return;
         }
 
-        // 10. Verificación de GAME OVER (Si los enemigos invaden la Tierra)
+        // Verificación de derrota por invasión territorial
         for (Enemigo e : oleada) {
             if (e.y + e.height >= 500) {
-                System.out.println("GAME OVER - Los enemigos llegaron a la línea límite");
+                System.out.println("GAME OVER - Los enemigos llegaron al límite");
                 gestorAudio.detenerMusica();
                 reproducirEfecto("explosion");
                 estadoActual = Estado.GAMEOVER;
@@ -371,6 +358,7 @@ public class SpaceInvaders extends Juego {
             avanzarDeNivel();
         }
 
+        // Control Nave Nodriza
         tiempoNodriza += delta;
         if (tiempoNodriza >= intervaloNodriza) {
             enemigoFinal = new NaveNodriza(-60, 45);
@@ -420,7 +408,6 @@ public class SpaceInvaders extends Juego {
         if (estadoActual == Estado.CARGA) {
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, getWidth(), getHeight());
-
             if (imgPantallaCarga != null) {
                 g.drawImage(imgPantallaCarga, 0, 0, getWidth(), getHeight(), null);
             }
@@ -448,6 +435,7 @@ public class SpaceInvaders extends Juego {
             g.setComposite(compositeOriginal);
             if ((int)(tiempoGameOver * 2.5) % 2 == 0) {
                 dibujarTextoRetro(g, "PRESS ENTER TO PLAY AGAIN", 176, 340);
+                dibujarTextoRetro(g, "PRESS ESC TO EXIT TO MENU", 176, 380); // ← ¡NUEVA LÍNEA!
             }
 
             g.setTransform(transformOriginal);
@@ -468,6 +456,7 @@ public class SpaceInvaders extends Juego {
             enemigoFinal.dibujar(g);
         }
 
+        // Renderizado del HUD
         g.setColor(Color.GREEN);
         g.fillRect(0, 555, 800, 4);
 
@@ -488,7 +477,6 @@ public class SpaceInvaders extends Juego {
 
         for (int i = 0; i < texto.length(); i++) {
             char caracter = texto.charAt(i);
-
             if (caracter != ' ') {
                 BufferedImage img = fuenteArcade.get(caracter);
                 if (img != null) {
@@ -499,7 +487,6 @@ public class SpaceInvaders extends Juego {
         }
     }
 
-    // gestion audio ft. gestorAudio
     private java.net.URL getUrlMusicaSeleccionada() {
         String archivo = (pistaMusicalSeleccionada == 2) ? "audio/theme2.wav" : "audio/theme1.wav";
         return this.getClass().getResource(archivo);

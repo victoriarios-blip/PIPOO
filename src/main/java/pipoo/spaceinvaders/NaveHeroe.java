@@ -2,7 +2,7 @@ package pipoo.spaceinvaders;
 
 import pipoo.core.ElementoGrafico;
 import pipoo.core.Movible;
-import pipoo.core.recursos.Borde;
+import pipoo.core.Borde;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

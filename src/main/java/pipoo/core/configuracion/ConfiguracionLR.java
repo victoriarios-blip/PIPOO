@@ -26,6 +26,7 @@ public class ConfiguracionLR extends Configuracion {
         this.teclaEnter = 10;    // Enter
     }
 
+    @Override
     public void leer() {
         // Intentamos cargar el archivo; si no existe, nos quedamos con los valores del reset()
         try (FileInputStream in = new FileInputStream(this.nombreArchivo)) {
