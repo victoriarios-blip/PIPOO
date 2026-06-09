@@ -38,6 +38,9 @@ public class SpaceInvaders extends Juego {
     // puntaje
     private int puntaje = 0;
 
+    // marcha enemigos
+    private int pasoMarcha = 1;
+
     private BufferedImage imgProyectilHeroe;
     private BufferedImage imgProyectilEnemigo;
     private BufferedImage imgNaveNodriza;
@@ -56,17 +59,23 @@ public class SpaceInvaders extends Juego {
 
     // audio
     private int pistaMusicalSeleccionada = 1; // 1 = Original, 2 = Alternativa (Por defecto arranca en 1)
-    private boolean sonidoActivado = true;    // Para mutear/desmuteas desde la configuración
+    private boolean sonidoActivado = true;// Para mutear/desmuteas desde la configuración
+    private double tiempoMarcha = 0;
+    private double tiempoUfoSonido = 0;
 
     // Clips de audio para la música y efectos
     private javax.sound.sampled.Clip musicaFondo;
 
     public SpaceInvaders() {
-        super("Retro Space Invaders", 800, 600);
+        super("PIPOO SPACE INVADERS", 800, 600);
     }
 
     @Override
     public void gameStartup() {
+        if (estadoActual == Estado.CARGA && (musicaFondo == null || !musicaFondo.isRunning())) {
+            reproducirMusica("pipoo/spaceinvaders/audio/pantallacarga.wav", true);
+        }
+
         java.net.URL test = this.getClass().getResource("/pipoo/spaceinvaders/imagenes/pulpo1.png");
         System.out.println("PATH TEST: " + test);
 
@@ -192,8 +201,6 @@ public class SpaceInvaders extends Juego {
             e.setVelocidadX(40);
         }
        cantidadAliensIniciales = oleada.size();
-
-        reproducirMusicaFondo();
     }
 
     @Override
@@ -203,6 +210,7 @@ public class SpaceInvaders extends Juego {
             acumuladorCarga += delta;
             if (acumuladorCarga >= DURACION_CARGA) {
                 estadoActual = Estado.JUGANDO;
+                reproducirMusica(getRutaMusicaSeleccionada(), true);
             }
             return;
         }
@@ -218,6 +226,7 @@ public class SpaceInvaders extends Juego {
 
             Keyboard teclado = this.getKeyboard();
             if (teclado.isKeyPressed(KeyEvent.VK_ENTER) || teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
+                reproducirEfecto("playagain");
                 reiniciarJuego();
             }
             return;
@@ -239,6 +248,7 @@ public class SpaceInvaders extends Juego {
                     p.setImagen(imgProyectilHeroe);
                     proyectilesHeroe.add(p);
                     contadorDisparosTotales++;
+                    reproducirEfecto("shoot");
                 }
             }
         } else {
@@ -259,6 +269,14 @@ public class SpaceInvaders extends Juego {
         for (Enemigo enemigo : oleada) {
             enemigo.mover(delta * factorVelocidadGlobal);
             enemigo.actualizarFrame(delta * factorVelocidadGlobal);
+        }
+
+        tiempoMarcha += delta * factorVelocidadGlobal;
+        if (tiempoMarcha >= 0.8) { // Cada 0.8 segundos relativos
+            reproducirEfecto("fastinvader" + pasoMarcha);
+            pasoMarcha++;
+            if (pasoMarcha > 4) pasoMarcha = 1; // Ciclo de sonidos del 1 al 4
+            tiempoMarcha = 0; // Reinicia el cronómetro de la marcha
         }
 
         // 3. Detección de bordes de los enemigos
@@ -303,7 +321,8 @@ public class SpaceInvaders extends Juego {
         // 9. Verificación de GAME OVER (Por quedarse sin vidas)
         if (!jugador.isVisible() && jugador.getVidas() <= 0) {
             System.out.println("GAME OVER - Te quedaste sin vidas");
-            if (musicaFondo != null) musicaFondo.stop();
+            detenerMusica();
+            reproducirEfecto("explosion");
             estadoActual = Estado.GAMEOVER;
             tiempoGameOver = 0;
             escalaGameOver = 0.0;
@@ -314,7 +333,8 @@ public class SpaceInvaders extends Juego {
         for (Enemigo e : oleada) {
             if (e.y + e.height >= 500) {
                 System.out.println("GAME OVER - Los enemigos llegaron a la línea límite");
-                if (musicaFondo != null) musicaFondo.stop();
+                detenerMusica();
+                reproducirEfecto("explosion");
                 estadoActual = Estado.GAMEOVER;
                 tiempoGameOver = 0;
                 escalaGameOver = 0.0;
@@ -337,6 +357,11 @@ public class SpaceInvaders extends Juego {
         }
         if (enemigoFinal != null && enemigoFinal.isVisible()) {
             enemigoFinal.mover(delta);
+        }
+        tiempoUfoSonido += delta;
+        if (tiempoUfoSonido >= 0.25) { // Se ejecuta cada 0.25s para simular un sonido continuo
+            reproducirEfecto("ufo_lowpitch");
+            tiempoUfoSonido = 0;
         }
 
         // 13. Actualizar estado del héroe (Procesa los timers de la explosión)
@@ -486,42 +511,65 @@ public class SpaceInvaders extends Juego {
     }
 
     private String getRutaMusicaSeleccionada() {
-        switch (pistaMusicalSeleccionada) {
-            case 2:
-                return "pipoo/spaceinvaders/audio/musica_alternativa.wav"; // Tu pista 2
-            case 1:
-            default:
-                return "pipoo/spaceinvaders/audio/musica_original.wav";    // Tu pista 1 (Original)
+        return (pistaMusicalSeleccionada == 2) ?
+                "pipoo/spaceinvaders/audio/theme2.wav" :
+                "pipoo/spaceinvaders/audio/theme1.wav";
+    }
+
+    private void reproducirMusica(String rutaRecurso, boolean loops) {
+        if (!sonidoActivado) return;
+        try {
+            if (musicaFondo != null && musicaFondo.isRunning()) {
+                musicaFondo.stop();
+                musicaFondo.close();
+            }
+            java.net.URL url = this.getClass().getClassLoader().getResource(rutaRecurso);
+            if (url != null) {
+                javax.sound.sampled.AudioInputStream ais = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
+                musicaFondo = javax.sound.sampled.AudioSystem.getClip();
+                musicaFondo.open(ais);
+                if (loops) {
+                    musicaFondo.loop(javax.sound.sampled.Clip.LOOP_CONTINUOUSLY);
+                }
+                musicaFondo.start();
+            }
+        } catch (Exception e) {
+            System.out.println("Error al reproducir música (" + rutaRecurso + "): " + e.getMessage());
         }
     }
 
-    private void reproducirMusicaFondo() {
-        if (!sonidoActivado) return; // Si configuraron el juego en "Mute", no hace nada
-
-        try {
-            // Si ya había una música sonando (por ejemplo, de una partida anterior), la frenamos
-            if (musicaFondo != null && musicaFondo.isRunning()) {
+    private void detenerMusica() {
+        if (musicaFondo != null) {
+            if (musicaFondo.isRunning()) {
                 musicaFondo.stop();
             }
-
-            // Buscamos la ruta de la pista elegida
-            String ruta = getRutaMusicaSeleccionada();
-            java.net.URL url = this.getClass().getClassLoader().getResource(ruta);
-
-            if (url != null) {
-                javax.sound.sampled.AudioInputStream audioStream = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
-                musicaFondo = javax.sound.sampled.AudioSystem.getClip();
-                musicaFondo.open(audioStream);
-
-                // Hace que la pista vuelva a empezar automáticamente al terminar
-                musicaFondo.loop(javax.sound.sampled.Clip.LOOP_CONTINUOUSLY);
-                musicaFondo.start();
-            } else {
-                System.out.println("ERROR: No se encontró el archivo de música en: " + ruta);
-            }
-        } catch (Exception e) {
-            System.out.println("Error al reproducir música de fondo: " + e.getMessage());
+            musicaFondo.close(); // Cierra el archivo y libera el canal de audio
+            musicaFondo = null;  // Limpia la variable por seguridad
         }
+    }
+
+    private void reproducirEfecto(String nombreAudio) {
+        if (!sonidoActivado) return;
+        new Thread(() -> {
+            try {
+                String ruta = "pipoo/spaceinvaders/audio/" + nombreAudio + ".wav";
+                java.net.URL url = this.getClass().getClassLoader().getResource(ruta);
+                if (url != null) {
+                    javax.sound.sampled.AudioInputStream ais = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
+                    javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
+                    clip.open(ais);
+                    clip.start();
+                    // Monitorea el fin del sonido para liberar la memoria de la compu
+                    clip.addLineListener(event -> {
+                        if (event.getType() == javax.sound.sampled.LineEvent.Type.STOP) {
+                            clip.close();
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                System.out.println("Error en efecto SFX (" + nombreAudio + "): " + e.getMessage());
+            }
+        }).start();
     }
 
     @Override
@@ -538,6 +586,7 @@ public class SpaceInvaders extends Juego {
                 if (!enemigo.isVisible()) continue;
                 if (proyectil.colisionaCon(enemigo)) { // ← enemigo llama colisionaCon, igual que escudo
                     proyectil.reaccionarAColision(enemigo);
+                    reproducirEfecto("spaceinvaderdead");
                     enemigo.reaccionarAColision(proyectil);
                     puntaje += enemigo.getValorPuntaje();
                 }
@@ -614,6 +663,9 @@ public class SpaceInvaders extends Juego {
         proyectilesHeroe.clear();
         proyectilesEnemigos.clear();
         enemigoFinal = null;
+        tiempoMarcha = 0;
+        pasoMarcha = 1;
+        tiempoUfoSonido = 0;
 
         // 2. Reseteamos los marcadores principales y de animación
         puntaje = 0;
