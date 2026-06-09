@@ -21,7 +21,7 @@ public class Paleta extends Movible implements Colisionable {
         this.y += (this.velocidadY * delta);
         // Limitar que la paleta no se salga de la pantalla
         if (this.y < 0) this.y = 0;
-        if (this.y + this.height > 600) this.y = 600 - this.height;
+        if (this.y + this.height > 600) this.y = 600-this.height;
     }
 
     @Override

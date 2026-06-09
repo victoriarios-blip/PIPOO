@@ -6,7 +6,7 @@ import pipoo.core.configuracion.Configuracion;
 import java.awt.*;
 
 public abstract class Juego extends JGame {
-    protected int dificultad;
+
     protected Configuracion configuracion;
 
 
@@ -43,8 +43,6 @@ public abstract class Juego extends JGame {
 
     @Override
     protected void readPropertiesFile() {
-        System.out.println("DEBUG: Iniciando búsqueda de configuración sincronizada ");
-
         // PRIORIDAD ALTA: El archivo físico en la raíz (donde el Panel guarda)
         java.io.File fileRaiz = new java.io.File("jgame.properties");
 

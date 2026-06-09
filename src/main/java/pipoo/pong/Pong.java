@@ -3,7 +3,6 @@ package pipoo.pong;
 import pipoo.core.*;
 import com.entropyinteractive.Keyboard;
 import pipoo.core.configuracion.ConfiguracionPong;
-import pipoo.core.recursos.Marcador;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -18,7 +17,6 @@ public class Pong extends Juego {
     private Pelota pelota;
     private Paleta paleta1, paleta2;
     private BufferedImage imgCancha, imgDivisor, imgGameOver;
-    private Marcador marcador;
     private int puntosJ1=0, puntosJ2=0;
     private boolean juegoFinalizado = false;
     private Jugador jugador1, jugador2;
@@ -44,6 +42,10 @@ public class Pong extends Juego {
     private BufferedImage imgLoading;
     private double acumTiempo = 0.0;
     private boolean enCarga = true;
+
+    //Estado de juego
+    public enum EstadoJuego {JUGANDO, GAME_OVER}
+    private EstadoJuego estadoActual = EstadoJuego.JUGANDO;
 
     public Pong() {
         super("PIPOO PONG", 800, 600); // titulo y tamaño de ventana
@@ -140,8 +142,7 @@ public class Pong extends Juego {
             }
 
 
-            //cargamos los assets (DEFAULT)
-            // --- LOGICA PARA LA PELOTA ---
+            //cargamos las skins (DEFAULT, Modo SHPONG, Modo Japong)
             rutaPelota = "/pipoo/pong/imagenes/pelota_default.png";
             if (skinPelota.equalsIgnoreCase("Shpong")) {
                 pelota = new Pelota(400, 300, 32, 32);
@@ -153,7 +154,7 @@ public class Pong extends Juego {
             BufferedImage imgPelota = ImageIO.read(getClass().getResource(rutaPelota));
             pelota.setImagen(imgPelota);
 
-            // --- LOGICA PARA LAS PALETAS ---
+            // Skins para paletas dependiendo el modo
             rutaPaleta = "/pipoo/pong/imagenes/paleta_default.png";
             rutaPaleta2 = null;
             if (skinPaleta.equalsIgnoreCase("Shpong")) {
@@ -171,7 +172,7 @@ public class Pong extends Juego {
             paleta2.setImagen(imgPaleta);
             paleta1.setImagen(imgPaleta2);
 
-            // --- LÓGICA PARA LA CANCHA ---
+            // Skins de la cancha, puntaje y gameover dependiendo el modo
             rutaCancha = "/pipoo/pong/imagenes/cancha_default.png"; // Default
             rutaDivisor = "/pipoo/pong/imagenes/barra_del_medio.png";
             this.imgNumeros = new BufferedImage[16];
@@ -201,6 +202,7 @@ public class Pong extends Juego {
             System.err.println("Error cargando assets de Pong " +e.getMessage());
 
         }
+        //agregamos un window listener para cerrar la ventana
         this.getFrame().addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
@@ -211,15 +213,15 @@ public class Pong extends Juego {
 
     @Override
     public void gameUpdate(double delta) {
+        Keyboard teclado = this.getKeyboard();
         if (enCarga) {
-            // --- ESTADO DE CARGA ---
+            // ESTADO DE CARGA
             acumTiempo += delta;
             if (acumTiempo >= 3.0) {
                 enCarga = false;
             }
-        } else {
+        } else if (estadoActual == EstadoJuego.JUGANDO) {
             if (!verificarFinDeJuego()) {
-                Keyboard teclado = this.getKeyboard();
 
                 // Movimiento Jugador 1
                 if (teclado.isKeyPressed(KeyEvent.VK_W)) {
@@ -229,7 +231,7 @@ public class Pong extends Juego {
                     paleta1.moverAbajo(delta);
                 }
 
-                // Lógica del Jugador 2 o BOT
+                // logica del Jugador 2 o BOT
                 if (this.jugador2 instanceof Bot) {
                     this.actualizarBOT(delta);
                 } else {
@@ -239,10 +241,23 @@ public class Pong extends Juego {
                         paleta2.moverAbajo(delta);
                     }
                 }
-
                 pelota.mover(delta);
                 detectarColisiones();
                 actualizarPuntaje();
+            } else {
+                // si verificarFinDeJuego() devuelve true, cambiamos el estado
+                this.estadoActual = EstadoJuego.GAME_OVER;
+                pelota.setVelocidadX(0);
+                pelota.setVelocidadY(0);
+                paleta1.setVelocidadY(0);
+                paleta2.setVelocidadY(0);
+            }
+        }
+        else if (estadoActual == EstadoJuego.GAME_OVER) {
+            // GAME OVER
+            // Si el jugador presiona ESC, cerramos el juego para volver a PIPOO
+            if (teclado.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+                this.stop(); // Llama a gameShutdown()
             }
         }
     }
@@ -250,7 +265,7 @@ public class Pong extends Juego {
     @Override
     public void gameDraw(Graphics2D g) {
         if (enCarga) {
-            // pantalla de carga...
+            // pantalla de carga
             if (imgLoading != null) {
                 g.drawImage(imgLoading, 0, 0, getWidth(), getHeight(), null);
             }
@@ -300,6 +315,20 @@ public class Pong extends Juego {
             g.setColor(Color.WHITE);
             if (this.nombreJ1 != null) g.drawString(this.nombreJ1, (getWidth() / 4) - 20, 75);
             if (this.nombreJ2 != null) g.drawString(this.nombreJ2, (getWidth() / 4) * 3 - 45, 75);
+
+            if (juegoFinalizado) {
+                g.setColor(Color.WHITE);
+
+                g.setFont(new Font("Consolas", Font.BOLD, 22));
+
+                String instruccion = "Presione ESC para volver a PIPOO";
+
+                int xInstruccion = (getWidth() / 2) - 190;
+                int yInstruccion = (getHeight() / 2) + 200;
+
+                g.drawString(instruccion, xInstruccion, yInstruccion);
+            }
+
         }
     }
 
@@ -324,12 +353,11 @@ public class Pong extends Juego {
         pelota = null;
         paleta1 = null;
         paleta2 = null;
-        marcador = null;
     }
 
     @Override
     protected void detectarColisiones() {
-        // Reboteeeee con borde superior
+        // Reboteee con borde superior
         if (pelota.intersects(bordeSuperior)) {
             pelota.rebotarVertical(0, true);
             pelota.y = bordeSuperior.y + bordeSuperior.height + 1;

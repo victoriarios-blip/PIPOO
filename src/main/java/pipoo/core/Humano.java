@@ -4,7 +4,7 @@ public class Humano extends Jugador{
     public Humano(String nombre) {
         super(nombre);
     }
-    // Constructor por defecto (para cuando no le pides el nombre al usuario)
+    // Constructor por defecto
     public Humano() {
         super("Jugador 1");
     }
