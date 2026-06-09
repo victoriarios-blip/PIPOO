@@ -1,15 +1,22 @@
 package pipoo.core.configuracion;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 public class ConfiguracionSI extends Configuracion {
     private String skinNave, skinInvasores, skinProyectiles;
     private String velocidadInvasores; // "Lenta", "Media", "Rápida" <- String?? ver
     private int teclaIzq, teclaDer, teclaDisparo;
+    private String nombreJ1;
+
+
 
     public ConfiguracionSI() {
         super("jgame.properties");
+        this.leer();
     }
+
 
     @Override
     public void reset() {
@@ -36,9 +43,37 @@ public class ConfiguracionSI extends Configuracion {
         prop.setProperty("teclaIzq", String.valueOf(this.teclaIzq));
         prop.setProperty("teclaDer", String.valueOf(this.teclaDer));
         prop.setProperty("teclaDisparo", String.valueOf(this.teclaDisparo));
+        prop.setProperty("nombreJ1", this.nombreJ1);
 
-        persistirEnArchivo(prop, "config_space_invaders.properties");
+        persistirEnArchivo(prop, "jgame.properties");
+        try (FileOutputStream out = new FileOutputStream("jgame.properties")) {
+            prop.store(out, "Configuracion PIPOO");
+            System.out.println("DEBUG: Configuración guardada.");
+        } catch (IOException e) {
+            System.err.println("Error al guardar: " + e.getMessage());
+        }
+
+
     }
+
+    public void leer() {
+        // Parametros de audio y sistema
+        this.pistaMusical = propiedades.getProperty("pistaMusical", "Ninguna");
+        this.sonidoActivado = Boolean.parseBoolean(propiedades.getProperty("sonidoActivado", "true"));
+        this.pantallaCompleta = Boolean.parseBoolean(propiedades.getProperty("fullScreen", "false"));
+
+        // Parametros de personalizacion (Skins)
+        this.skinNave = propiedades.getProperty("skinNave", "Original");
+        this.skinInvasores = propiedades.getProperty("skinInvasores", "Original");
+
+        // Logica de juego
+        this.velocidadInvasores = propiedades.getProperty("velocidadInvasores", "Media");
+
+    }
+
+
+
+
 
     public void setVelocidadInvasores(String velocidad) {
         this.velocidadInvasores = velocidad;
@@ -46,5 +81,8 @@ public class ConfiguracionSI extends Configuracion {
     public String getVelocidadInvasores() {
         return velocidadInvasores;
     }
+    public String getNombreJ1() { return nombreJ1;}
+    public void setNombreJ1(String nombreJ1) { this.nombreJ1 = nombreJ1; }
+
 }
 

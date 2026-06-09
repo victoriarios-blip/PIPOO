@@ -173,7 +173,10 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
             prepararJuego(juegoActual, configLR);
             esLanzamientoDeJuego = true;
         } else if (origen == btnSpaceInvaders) {
+            String nombreUsuario = txtNombreUsuario.getText();
+            configSI.setNombreJ1(nombreUsuario);
             juegoActual = new SpaceInvaders();
+            prepararJuego(juegoActual, configSI);
             esLanzamientoDeJuego = true;
         } else if (origen == btnConfigP) {
             cardLayout.show(this, "CONFIG_PONG");
