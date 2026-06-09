@@ -83,16 +83,4 @@ public class ConfiguracionLR extends Configuracion {
 
     public String getNombreJ1() { return nombreJ1;}
     public void setNombreJ1(String nombreJ1) { this.nombreJ1 = nombreJ1; }
-
-    public int getTeclaEfectos() { return teclaEfectos; }
-    public void setTeclaEfectos(int teclaEfectos) { this.teclaEfectos = teclaEfectos; }
-
-    public int getTeclaMusica() { return teclaMusica; }
-    public void setTeclaMusica(int teclaMusica) { this.teclaMusica = teclaMusica; }
-
-    public int getTeclaCavar() { return teclaCavar; }
-    public void setTeclaCavar(int teclaCavar) { this.teclaCavar = teclaCavar; }
-
-    public int getTeclaEnter() { return teclaEnter; }
-    public void setTeclaEnter(int teclaEnter) { this.teclaEnter = teclaEnter; }
 }

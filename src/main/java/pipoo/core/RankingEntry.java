@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Implementa Serializable para facilitar el guardado de objetos en archivos.
+ * Implementa Serializable para facilitar el guardado de objetos en archivos
  */
 
 public class RankingEntry implements Serializable {

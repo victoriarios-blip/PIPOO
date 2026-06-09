@@ -49,7 +49,6 @@ public abstract class Juego extends JGame {
         if (fileRaiz.exists()) {
             try (java.io.FileInputStream fis = new java.io.FileInputStream(fileRaiz)) {
                 this.appProperties.load(fis);
-                System.out.println("DEBUG: Cambios del usuario cargados desde la raiz ");
                 return;
             } catch (Exception e) {
                 System.err.println("Error al leer archivo de raíz: " + e.getMessage());
@@ -60,7 +59,6 @@ public abstract class Juego extends JGame {
         try (java.io.InputStream input = getClass().getClassLoader().getResourceAsStream("jgame.properties")) {
             if (input != null) {
                 this.appProperties.load(input);
-                System.out.println("DEBUG: Cargada configuración por defecto del Classpath.");
             } else {
                 System.err.println("ADVERTENCIA: No se encontró jgame.properties en ninguna ubicacion.");
             }

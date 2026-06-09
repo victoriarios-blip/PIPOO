@@ -15,7 +15,7 @@ public class PanelConfiguracionLR extends JPanel {
         this.config = config;
         this.setLayout(new BorderLayout(10, 10));
 
-        // --- PANEL CENTRAL (formulario) ---
+        // PANEL CENTRAL
         JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
 
         // Checkboxes
@@ -65,7 +65,7 @@ public class PanelConfiguracionLR extends JPanel {
 
         this.add(panelFormulario, BorderLayout.CENTER);
 
-        // --- PANEL DE BOTONES (sur) ---
+        // PANEL DE BOTONES (sur)
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnGuardar = new JButton("Guardar");
         btnReset   = new JButton("Reset");
@@ -76,7 +76,7 @@ public class PanelConfiguracionLR extends JPanel {
         panelBotones.add(btnVolver);
         this.add(panelBotones, BorderLayout.SOUTH);
 
-        // --- LÓGICA DE BOTONES ---
+        // LÓGICA DE BOTONES
 
         btnGuardar.addActionListener(e -> {
             config.setPantallaCompleta(chkPantalla.isSelected());

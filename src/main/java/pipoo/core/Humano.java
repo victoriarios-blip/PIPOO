@@ -5,7 +5,4 @@ public class Humano extends Jugador{
         super(nombre);
     }
     // Constructor por defecto
-    public Humano() {
-        super("Jugador 1");
-    }
 }
