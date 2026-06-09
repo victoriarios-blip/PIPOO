@@ -7,17 +7,15 @@ public class PanelConfiguracionSI extends JPanel {
     private ConfiguracionSI config;
     private JCheckBox chkSonido, chkPantalla;
     private JComboBox<String> comboSkins, comboMusica, comboVelocidad, comboControles;
-    private JTextField txtNombreJ1;
     private JButton btnGuardar, btnReset, btnVolver;
 
     public PanelConfiguracionSI(ConfiguracionSI config, JPanel contenedor, CardLayout cl) {
         this.config = config;
         this.setLayout(new BorderLayout(10, 10));
 
-        // 1. Formulario central de configuraciones
+        // 1. Formulario central de configuraciones (Grid de filas dinámicas x 2 columnas)
         JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
 
-        txtNombreJ1 = new JTextField(config.getNombreJ1(), 10);
         chkSonido = new JCheckBox("Sonido Activado", config.isSonidoActivado());
         chkPantalla = new JCheckBox("Pantalla Completa", config.isPantallaCompleta());
 
@@ -26,7 +24,7 @@ public class PanelConfiguracionSI extends JPanel {
         comboMusica = new JComboBox<>(new String[]{"Tema 1 (Original)", "Tema 2 (Alternativo)"});
         comboControles = new JComboBox<>(new String[]{"Flechas + Espacio", "A, D + K"});
 
-        panelFormulario.add(new JLabel("Nombre del Piloto:"));   panelFormulario.add(txtNombreJ1);
+        // Agregamos componentes al formulario
         panelFormulario.add(new JLabel("Ajustes de Audio:"));     panelFormulario.add(chkSonido);
         panelFormulario.add(new JLabel("Modo de Pantalla:"));   panelFormulario.add(chkPantalla);
         panelFormulario.add(new JLabel("Modo de Skins:"));      panelFormulario.add(comboSkins);
@@ -51,7 +49,6 @@ public class PanelConfiguracionSI extends JPanel {
         btnVolver.addActionListener(e -> cl.show(contenedor, "INICIO"));
 
         btnGuardar.addActionListener(e -> {
-            config.setNombreJ1(txtNombreJ1.getText());
             config.setSonidoActivado(chkSonido.isSelected());
             config.setPantallaCompleta(chkPantalla.isSelected());
             config.setSkinModo((String) comboSkins.getSelectedItem());
@@ -87,7 +84,6 @@ public class PanelConfiguracionSI extends JPanel {
     }
 
     private void actualizarGUI() {
-        txtNombreJ1.setText(config.getNombreJ1());
         chkSonido.setSelected(config.isSonidoActivado());
         chkPantalla.setSelected(config.isPantallaCompleta());
         comboSkins.setSelectedItem(config.getSkinModo());
