@@ -18,29 +18,29 @@ public class PanelConfiguracionLR extends JPanel {
         // PANEL CENTRAL
         JPanel panelFormulario = new JPanel(new GridLayout(0, 2, 10, 10));
 
-        // Checkboxes
+        // checkboxes
         chkSonido   = new JCheckBox("Sonido Activado",  config.isSonidoActivado());
         chkPantalla = new JCheckBox("Pantalla Completa", config.isPantallaCompleta());
 
-        // Skins: "Original" y la nueva "DeGalaRunner"
+        // skins: "Original" y "DeGalaRunner"
         comboSkinsPersonaje = new JComboBox<>(new String[]{"Original", "DeGalaRunner"});
 
-        // Música
+        // musica
         comboMusica = new JComboBox<>(new String[]{"Ninguna", "Tema LR Original", "The Mountain Retro"});
 
-        // SECCIÓN: Video y Audio
+        // video y audio
         panelFormulario.add(new JLabel("Modo de Pantalla:"));
         panelFormulario.add(chkPantalla);
         panelFormulario.add(new JLabel("Sonido:"));
         panelFormulario.add(chkSonido);
 
-        // SECCIÓN: Personalización
+        // personalizacion
         panelFormulario.add(new JLabel("Skin Personaje:"));
         panelFormulario.add(comboSkinsPersonaje);
         panelFormulario.add(new JLabel("Pista Musical:"));
         panelFormulario.add(comboMusica);
 
-        // SECCIÓN: Controles (informativos, fijos)
+        // controles
         panelFormulario.add(new JLabel("Movimiento:"));
         panelFormulario.add(new JLabel("Flechas direccionales"));
         panelFormulario.add(new JLabel("Cavar Pozo:"));
@@ -51,33 +51,19 @@ public class PanelConfiguracionLR extends JPanel {
         panelFormulario.add(new JLabel("W"));
         panelFormulario.add(new JLabel("Iniciar"));
         panelFormulario.add(new JLabel("Enter"));
-
-
-
-
-
-
-
-
-
-
-
-
         this.add(panelFormulario, BorderLayout.CENTER);
 
-        // PANEL DE BOTONES (sur)
+        // PANEL DE BOTONES
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnGuardar = new JButton("Guardar");
         btnReset   = new JButton("Reset");
         btnVolver  = new JButton("Volver al Menú");
-
         panelBotones.add(btnGuardar);
         panelBotones.add(btnReset);
         panelBotones.add(btnVolver);
         this.add(panelBotones, BorderLayout.SOUTH);
 
-        // LÓGICA DE BOTONES
-
+        // LOGICA DE BOTONES
         btnGuardar.addActionListener(e -> {
             config.setPantallaCompleta(chkPantalla.isSelected());
             config.setSonidoActivado(chkSonido.isSelected());
@@ -86,14 +72,12 @@ public class PanelConfiguracionLR extends JPanel {
             config.guardar();
             JOptionPane.showMessageDialog(this, "Configuración de Lode Runner guardada.");
         });
-
         btnReset.addActionListener(e -> {
             config.reset();
             config.guardar();
             actualizarGUI();
             JOptionPane.showMessageDialog(this, "Valores de Lode Runner restaurados por defecto.");
         });
-
         btnVolver.addActionListener(e -> cl.show(contenedor, "INICIO"));
         actualizarGUI();
     }

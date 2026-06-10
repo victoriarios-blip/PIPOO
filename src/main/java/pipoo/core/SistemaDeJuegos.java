@@ -31,7 +31,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
     private JTextArea areaTexto;
     Color fondoAzul = new Color(12,6,46); // azul suave
 
-
     public SistemaDeJuegos() {
         setLayout(new GridLayout(1, 3, 10, 10));
 
@@ -40,7 +39,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
 
         panelInicio = new JPanel();
         panelInicio.setBackground(fondoAzul);
-
         panelInicio.setLayout(new BorderLayout());
 
         // panel con titulo
@@ -73,6 +71,7 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         btnConfigP = new JButton("Configuración");
         btnRankingP = new JButton("Ranking");
         registrarBotones(panelPong, btnPong, btnConfigP, btnRankingP, new Color(180, 30, 10));
+
         //panel configuracion PONG
         PanelConfiguracionPong guiPong = new PanelConfiguracionPong(configPong, this, cardLayout);
 
@@ -86,7 +85,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         //panel configuracion lode runner
         PanelConfiguracionLR guiLR = new PanelConfiguracionLR(configLR, this, cardLayout);
 
-
         // panel space invaders
         panelSpaceInvaders = crearPanelJuego("SPACE INVADERS", "/pipoo/core/imagenes/space_invaders.png"); // por ahora sin imagen
         btnSpaceInvaders = new JButton("¡Jugar!");
@@ -97,21 +95,17 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         //panel configuracion Space Invaders
         PanelConfiguracionSI guiSI = new PanelConfiguracionSI(configSI, this, cardLayout);
 
-
         //agregar cada panel de juego al panel de juegos
         panelJuegos.add(panelPong);
         panelJuegos.add(panelSpaceInvaders);
         panelJuegos.add(panelLodeRunner);
-
         panelInicio.add(panelJuegos, BorderLayout.CENTER);
-
         txtNombreUsuario = new JTextField("Jugador 1", 15);
 
         // Panel para el nombre
         JPanel panelNombre = new JPanel();
         panelNombre.setLayout(new BoxLayout(panelNombre, BoxLayout.Y_AXIS));
         panelNombre.setBackground(new Color(12,6,46));
-
         try {
             BufferedImage imgEnter = ImageIO.read(getClass().getResourceAsStream("/pipoo/core/imagenes/enter_name.png"));
             Image scaledEnter = imgEnter.getScaledInstance(115, 15, Image.SCALE_SMOOTH);
@@ -124,7 +118,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
             lblIdentificacion.setAlignmentX(Component.CENTER_ALIGNMENT);
             panelNombre.add(lblIdentificacion);
         }
-
         txtNombreUsuario.setMaximumSize(new Dimension(200, 30));
         txtNombreUsuario.setAlignmentX(Component.CENTER_ALIGNMENT);
         panelNombre.add(Box.createVerticalStrut(5));
@@ -186,7 +179,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
         btnRanking.addActionListener(this);
 
         Dimension tamBoton = new Dimension(160, 35);
-
 
         for (JButton btn : new JButton[]{btnJugar, btnConfig, btnRanking}) {
             btn.setPreferredSize(tamBoton);

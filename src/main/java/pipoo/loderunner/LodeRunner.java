@@ -29,7 +29,6 @@ public class LodeRunner extends Juego {
     private double timerTransicion = 0;
     private boolean keyUp = false, keyDown = false, keyLeft = false, keyRight = false, keyEnter = false;
 
-
     // variables de juego
     private Heroe heroe;
     private int ultimaDireccion = 30;
@@ -102,14 +101,12 @@ public class LodeRunner extends Juego {
     @Override
     public void gameStartup() {
         System.out.println("Iniciando Lode Runner y cargando recursos...");
-
         pozos = new ArrayList<>();
         guardias = new ArrayList<>();
         lingotes = new ArrayList<>();
         plataformas = new ArrayList<>();
         escaleras = new ArrayList<>();
         barras = new ArrayList<>();
-
         ConfiguracionLR config = (ConfiguracionLR) this.getConfiguracion();
         String rutaSkin = "";
         if (config != null) {
@@ -117,11 +114,9 @@ public class LodeRunner extends Juego {
             System.out.println("Skin: " + config.getSkinPersonaje());
             this.sonidoActivado = config.isSonidoActivado();
             this.pistaMusical = config.getPistaMusical();
-
             if ("DeGalaRunner".equals(config.getSkinPersonaje())) {
                 rutaSkin = "gala_";
             }
-
         } else {
             this.sonidoActivado = true;
             this.pistaMusical = "Tema LR Original";
@@ -131,7 +126,7 @@ public class LodeRunner extends Juego {
         this.sfxActivado = this.sonidoActivado;
         this.bgmActivado = this.sonidoActivado;
 
-        // 3. CARGAR AUDIOS
+        // CARGAR AUDIOS
         if (!sonidoActivado) {
             gestorAudio.detenerMusica();
         } else {
@@ -143,7 +138,7 @@ public class LodeRunner extends Juego {
                 gestorAudio.precargarEfecto("miss", this.getClass().getResource("/pipoo/loderunner/audio/miss.wav"));
                 gestorAudio.precargarEfecto("game_over", this.getClass().getResource("/pipoo/loderunner/audio/game_over.wav"));
 
-                // Reproducimos la música del menu SOLO si no eligio "ninguna"
+                // reproducimos la musica del menu SOLO si no eligio "ninguna"
                 if (pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
                     URL urlMusicaMenu = this.getClass().getResource("/pipoo/loderunner/audio/title_screen.wav");
                     if (urlMusicaMenu != null) {
@@ -164,23 +159,18 @@ public class LodeRunner extends Juego {
             imgTitulo = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/loderunner_menu.png"));
             imgLives = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/lives.png"));
             imgGameOver = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/game_over.png"));
-
+            imgTimeBonus = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/time_bonus.png"));
+            imgLevelCompleted = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level_completed.png"));
+            imgBloqueRegenerandose = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/bloque_regenerandose.png"));
             numeros = new BufferedImage[10];
             for (int i = 0; i <= 9; i++) {
                 numeros[i] = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + i + ".png"));
             }
-
-            // Assets nuevos
-            try { imgTimeBonus = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/time_bonus.png")); } catch(Exception e){}
-            try { imgLevelCompleted = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/level_completed.png")); } catch(Exception e){}
-            try { imgBloqueRegenerandose = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/bloque_regenerandose.png")); } catch(Exception e){}
-
             // heroe
             imgHeroeDer = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_mirando_der.png"));
             imgHeroeIzq = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_mirando_izq.png"));
             imgHeroeEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_subiendo_escalera.png"));
             imgHeroeColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_colgado_barramanos.png"));
-
             framesMuerteHeroe = new BufferedImage[7];
             for (int i = 1; i <= 7; i++) {
                 framesMuerteHeroe[i-1] = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "heroe_muriendo_" + i + ".png"));
@@ -192,6 +182,7 @@ public class LodeRunner extends Juego {
             imgGuardiaEscalera = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "guardia_en_escalera.png"));
             imgGuardiaColgado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "guardia_izq_colgado.png"));
             imgGuardiaAtrapado = ImageIO.read(this.getClass().getResource("/pipoo/loderunner/imagenes/" + rutaSkin + "guardia_atrapado_pozo.png"));
+
             // escenario
             imgEscCorta = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera corta.png"));
             imgEscMediana = ImageIO.read(getClass().getResource("/pipoo/loderunner/imagenes/escalera mediana.png"));
@@ -208,12 +199,8 @@ public class LodeRunner extends Juego {
         } catch (Exception e) {
             System.out.println("Error cargando imagenes: " + e.getMessage());
         }
-
-
         // arrancamos el juego en la pantalla de menu
         estadoActual = EstadoJuego.MENU;
-
-
     }
 
     // METODO PARA CONSTRUIR EL MAPA CUANDO SE ELIGE UN NIVEL
@@ -234,15 +221,13 @@ public class LodeRunner extends Juego {
         orosRecolectadosNivel = 0;
         guardiasAtrapadosNivel = 0;
 
-        // PISO BASE (siempre en todos los mapas)
+        //lo que compartarten todos los niveles
         agregarFila(0, 500, 39, imgBloque);
         for (int i = 0; i < 41; i++) {
             Plataforma ladrillo = new Plataforma(i * 30, 530, 30, 30);
             if (imgLadrilloInferior != null) ladrillo.setImagen(imgLadrilloInferior);
             plataformas.add(ladrillo);
         }
-
-        //lo que compartarten todos los niveles
         int heroeStartX = 430;
         int heroeStartY = 510;
         ArrayList<Point> posGuardias = new ArrayList<>();
@@ -361,7 +346,6 @@ public class LodeRunner extends Juego {
 
             case 3:
                 //plataformas
-
                 //PISO 4
                 agregarFila(5, 440, 5, imgBloque);
                 agregarFila(5, 410, 5, imgBloque);
@@ -375,19 +359,16 @@ public class LodeRunner extends Juego {
                 agregarFila(610, 440, 5, imgBloque);
                 agregarFila(490, 380, 13, imgBloque);
                 agregarFila(1020, 350, 6, imgBloque);
-
                 //PISO 3
                 agregarFila(390, 320, 11, imgBloque);
                 agregarFila(8, 290, 6, imgBloque);
                 agregarFila(220, 290, 1, imgBloque);
-
                 //PISO 2
                 agregarFila(255, 230, 8, imgBloque);
                 agregarFila(530, 230, 5, imgBloque);
                 agregarFila(720, 230, 2, imgBloque);
                 agregarFila(8, 200, 7, imgBloque);
                 agregarFila(782, 200, 16, imgBloque);
-
                 //PISO 1
                 agregarFila(350, 140, 13, imgBloque);
 
@@ -434,7 +415,6 @@ public class LodeRunner extends Juego {
                 posGuardias.add(new Point(810, 350));
                 break;
         }
-
         // crear heroe
         heroe = new Heroe(heroeStartX, heroeStartY, 30, 30);
         heroe.setImagen(imgHeroeDer);
@@ -442,18 +422,16 @@ public class LodeRunner extends Juego {
         heroe.setImagenIzq(imgHeroeIzq);
         heroe.setImagenEscalera(imgHeroeEscalera);
         heroe.setImagenColgado(imgHeroeColgado);
-
         for (int i = 0; i < 7; i++) {
             if (framesMuerteHeroe != null && framesMuerteHeroe[i] != null) {
                 heroe.setImagenMuriendo(i, framesMuerteHeroe[i]);
             }
         }
 
-        // 2. Crear Guardias Dinámicos
+        //crear guardias
         for (Point p : posGuardias) {
             guardias.add(new Guardia(p.x, p.y, 30, 30, heroe));
         }
-
         for (Guardia guardia : guardias) {
             guardia.setMapa(escaleras, plataformas, barras, pozos);
             guardia.setImagen(imgGuardiaDer);
@@ -463,17 +441,14 @@ public class LodeRunner extends Juego {
             guardia.setImgColgado(imgGuardiaColgado);
             guardia.setImgAtrapado(imgGuardiaAtrapado);
         }
-
         try {
             gestorAudio.detenerMusica();
             if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
-
-                // Elegimos la ruta del archivo según la pista configurada
-                String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav"; // Por defecto
+                // elegimos la ruta del archivo segun la pista elegida
+                String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav"; // por defecto
                 if ("The Mountain Retro".equals(pistaMusical)) {
-                    rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav"; // Tu nuevo archivo .wav
+                    rutaArchivoMusica = "/pipoo/loderunner/audio/the_mountain_retro.wav"; // 2da opcion
                 }
-
                 URL urlMusica = this.getClass().getResource(rutaArchivoMusica);
                 System.out.println("DEBUG MÚSICA: " + urlMusica);
                 if (urlMusica != null) {
@@ -532,7 +507,11 @@ public class LodeRunner extends Juego {
         if (estadoActual == EstadoJuego.MENU) {
             if (actUp && !keyUp) opcionMenu = 0;
             if (actDown && !keyDown) opcionMenu = 1;
-
+            boolean actEsc = teclado.isKeyPressed(KeyEvent.VK_ESCAPE);
+            if (actEsc) {
+                gestorAudio.detenerMusica();
+                this.stop();
+            }
             if (actEnter && !keyEnter) {
                 if (opcionMenu == 0) {
                     nivel = 1;
@@ -568,6 +547,7 @@ public class LodeRunner extends Juego {
             actualizarTeclas(actUp, actDown, actLeft, actRight, actEnter);
             return;
         }
+
         // ESTADO: TRANSICION ("STAGE 00X")
         else if (estadoActual == EstadoJuego.TRANSICION) {
             timerTransicion -= delta;
@@ -583,7 +563,6 @@ public class LodeRunner extends Juego {
             if (teclado.isKeyPressed(KeyEvent.VK_ENTER)) {
                 estadoActual = EstadoJuego.MENU;
                 juegoTerminado = false;
-
                 try {
                     gestorAudio.detenerMusica();
                     if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
@@ -593,16 +572,13 @@ public class LodeRunner extends Juego {
                 } catch (Exception e) {
                     System.out.println("Error reiniciando música menú: " + e.getMessage());
                 }
-
             } else if (teclado.isKeyPressed(KeyEvent.VK_ESCAPE)) {
                 System.exit(0);
             }
             return;
         }
-
         if (pantallaVictoria) {
             boolean actEsc = teclado.isKeyPressed(KeyEvent.VK_ESCAPE);
-
             if (actEnter) {
                 pantallaVictoria = false;
                 if (nivel == 3) {
@@ -615,7 +591,6 @@ public class LodeRunner extends Juego {
                     rankingArcade.guardarRanking();
                     System.out.println("Arcade completado. Score total: " + scoreAcumuladoArcade);
                     scoreAcumuladoArcade = 0; // reset para la proxima partida
-
                     estadoActual = EstadoJuego.MENU;
                     try {
                         gestorAudio.detenerMusica();
@@ -635,7 +610,6 @@ public class LodeRunner extends Juego {
             }
             return;
         }
-
         if (heroe.isEstaMuriendo()) {
             boolean animacionTerminada = heroe.actualizarAnimacionMuerte(delta);
             if (animacionTerminada) {
@@ -669,7 +643,6 @@ public class LodeRunner extends Juego {
             if (mapaLimpio && !guardiasTienenOro) {
                 System.out.println("¡Todo el oro recolectado y asegurado! Aparece la escalera de salida aleatoria.");
                 double yPiso = ultimoOroY + 30;
-
                 ArrayList<Plataforma> plataformasValidas = new ArrayList<>();
                 for (Plataforma p : plataformas) {
                     if (Math.abs(p.y - yPiso) <= 10) {
@@ -705,13 +678,12 @@ public class LodeRunner extends Juego {
             }
         }
 
-        // Cavar pozos
+        // cavar pozos
         if (teclado.isKeyPressed(KeyEvent.VK_SPACE)) {
             int columnaHeroe = (int) ((heroe.x + (heroe.width / 2.0)) / 30);
             int columnaObjetivo = columnaHeroe + (ultimaDireccion > 0 ? 1 : -1);
             double puntoImpactoX = (columnaObjetivo * 30) + 15;
             double puntoImpactoY = heroe.y + heroe.height + 15;
-
             if (puntoImpactoY < 530) {
                 intentarCavar(puntoImpactoX, puntoImpactoY);
             }
@@ -722,14 +694,11 @@ public class LodeRunner extends Juego {
         while (iteradorPozos.hasNext()) {
             Pozo pozoActual = iteradorPozos.next();
             pozoActual.actualizar(delta);
-
             if (pozoActual.getEstado() == 2) {
-
                 if (heroe.intersects(pozoActual) && heroe.y >= pozoActual.y - 10) {
                     System.out.println("¡El héroe fue enterrado vivo!");
                     heroe.iniciarMuerte();
                 }
-
                 for (Guardia g : guardias) {
                     if (g.intersects(pozoActual)) {
                         System.out.println("¡Un guardia fue eliminado! +75 pts");
@@ -738,7 +707,6 @@ public class LodeRunner extends Juego {
                         g.reaparecer();
                     }
                 }
-
                 Plataforma bloqueRegenerado = new Plataforma(pozoActual.x, pozoActual.y, 30, 30);
                 if (imgBloque != null)
                     bloqueRegenerado.setImagen(imgBloque);
@@ -755,7 +723,6 @@ public class LodeRunner extends Juego {
             else if (teclado.isKeyPressed(KeyEvent.VK_LEFT)) heroe.setVelocidadX(-2);
             else heroe.setVelocidadX(0);
         }
-
         if (heroe.isEnEscalera()) {
             if (teclado.isKeyPressed(KeyEvent.VK_UP)) heroe.setVelocidadY(-2.5);
             else if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) heroe.setVelocidadY(2.5);
@@ -763,7 +730,6 @@ public class LodeRunner extends Juego {
         } else if (!heroe.isEstaCayendo()) {
             heroe.setVelocidadY(0);
         }
-
         if (teclado.isKeyPressed(KeyEvent.VK_RIGHT)) {
             heroe.setVelocidadX(2.5);
             ultimaDireccion = 30;
@@ -795,26 +761,18 @@ public class LodeRunner extends Juego {
         } else {
             timerEscalera = 0.35;
         }
-
         heroe.mover(delta);
-
         for (Guardia guardia : guardias) {
             guardia.mover(delta);
             guardia.x = Math.max(30, Math.min(1170 - guardia.width, guardia.x));
         }
         heroe.x = Math.max(30, Math.min(1170 - heroe.width, heroe.x));
-
         detectarColisiones();
 
         // camara
         cameraX = heroe.x - ANCHO_PANTALLA / 2.0;
         cameraX = Math.max(0, cameraX);
         cameraX = Math.min(ANCHO_MUNDO  - ANCHO_PANTALLA, cameraX);
-    }
-
-    // Metodo auxiliar para el teclado en menu
-    private void actualizarTeclas(boolean u, boolean d, boolean l, boolean r, boolean e) {
-        keyUp = u; keyDown = d; keyLeft = l; keyRight = r; keyEnter = e;
     }
 
     // CAVAR
@@ -826,23 +784,19 @@ public class LodeRunner extends Juego {
                 double pozoX = p.x;
                 double pozoY = p.y;
                 it.remove();
-
                 Pozo nuevoPozo = new Pozo(pozoX, pozoY, 30, 30);
                 if (imgFragmentoPozo != null && imgPozo != null)
                     nuevoPozo.configurarAnimacion(imgFragmentoPozo, imgPozo);
                 else if (imgPozo != null)
                     nuevoPozo.setImagen(imgPozo);
-
                 if (imgBloqueRegenerandose != null) {
                     nuevoPozo.setImagenCerrandose(imgBloqueRegenerandose);
                 }
-
                 pozos.add(nuevoPozo);
                 return;
             }
         }
     }
-
 
     @Override
     public void gameDraw(Graphics2D g) {
@@ -867,7 +821,14 @@ public class LodeRunner extends Juego {
 
             if (opcionMenu == 1) g.setColor(Color.YELLOW); else g.setColor(Color.WHITE);
             g.drawString(textoSelect, xSelect, 470);
+
+            //esc para volver a PIPOO
+            g.setColor(Color.gray);
+            g.setFont(new Font("Consolas", Font.BOLD, 16));
+            g.drawString("ESC TO RETURN TO PIPOO", xSelect+40, 530);
             return;
+
+
         }
 
         // PANTALLA: SELECCION DE NIVEL
@@ -879,11 +840,9 @@ public class LodeRunner extends Juego {
             String textoTitulo = "SELECT YOUR STAGE";
             int xTitulo = (this.getWidth() - fmTitulo.stringWidth(textoTitulo)) / 2;
             g.drawString(textoTitulo, xTitulo, 200);
-
             int assetY = 260;
             if (imgHeroeDer != null) g.drawImage(imgHeroeDer, 350, assetY, 40, 40, null);
             if (imgGuardiaDer != null) g.drawImage(imgGuardiaDer, 420, assetY, 40, 40, null);
-
             g.setColor(Color.RED);
             Font fuenteNumeros = new Font("Consolas", Font.BOLD, 36);
             g.setFont(fuenteNumeros);
@@ -891,7 +850,6 @@ public class LodeRunner extends Juego {
             String textoNumeros = "< " + String.format("%02d", nivelSeleccionado) + " >";
             int xNumeros = (this.getWidth() - fmNumeros.stringWidth(textoNumeros)) / 2;
             g.drawString(textoNumeros, xNumeros, 360);
-
             g.setColor(Color.LIGHT_GRAY);
             Font fuenteEnter = new Font("Consolas", Font.BOLD, 16);
             g.setFont(fuenteEnter);
@@ -899,7 +857,6 @@ public class LodeRunner extends Juego {
             String textoEnter = "PRESS ENTER TO START";
             int xEnter = (this.getWidth() - fmEnter.stringWidth(textoEnter)) / 2;
             g.drawString(textoEnter, xEnter, 500);
-
             return;
         }
 
@@ -908,7 +865,6 @@ public class LodeRunner extends Juego {
             g.setColor(Color.WHITE);
             g.setFont(new Font("Consolas", Font.BOLD, 30));
             g.drawString(String.format("%02d STAGE", nivel), 330, 280);
-
             if (imgHeroeDer != null) g.drawImage(imgHeroeDer, 340, 340, 40, 40, null);
             if (imgGuardiaDer != null) g.drawImage(imgGuardiaDer, 420, 340, 40, 40, null);
             return;
@@ -917,7 +873,6 @@ public class LodeRunner extends Juego {
         // PANTALLA: JUEGO NORMAL
         Graphics2D mundo = (Graphics2D) g.create();
         mundo.translate((int) -cameraX, 0);
-
         for (Plataforma p : plataformas)
             p.dibujar(mundo);
         for (Escalera e : escaleras)
@@ -928,7 +883,6 @@ public class LodeRunner extends Juego {
             oro.dibujar(mundo);
         for (Pozo pozo : pozos)
             pozo.dibujar(mundo);
-
         if (imgParedLimite != null) {
             for (int y =0; y <= 510; y += 30) {
                 mundo.drawImage(imgParedLimite, 0, y, 30, 30, null);
@@ -939,13 +893,11 @@ public class LodeRunner extends Juego {
         for (Guardia guardia : guardias) {
             guardia.dibujar(mundo);
         }
-
         mundo.dispose();
 
         // HUD
         int hudY = 575;
         double escala = 1.5;
-
         if (imgScore != null) {
             double escalaScore = 2.0;
             int w = (int) (imgScore.getWidth() * escalaScore);
@@ -953,7 +905,6 @@ public class LodeRunner extends Juego {
             g.drawImage(imgScore, 20, hudY, w, h, null);
             dibujarNumero(g, String.format("%06d", score), 20 + w + 10, hudY, escalaScore);
         }
-
         if (imgLives != null) {
             double escalaLives = 2.0;
             int w = 100;
@@ -961,7 +912,6 @@ public class LodeRunner extends Juego {
             g.drawImage(imgLives, 280, 555, w, h, null);
             dibujarNumero(g, String.format("%03d", vidas), 280 + w + 10, 577, escalaLives);
         }
-
         if (imgLevel != null) {
             double escalaLevel = 2.0;
             int w = (int) (imgLevel.getWidth() * escalaLevel);
@@ -969,37 +919,29 @@ public class LodeRunner extends Juego {
             g.drawImage(imgLevel, 500, hudY, w, h, null);
             dibujarNumero(g, String.format("%03d", nivel), 500 + w + 10, hudY, escalaLevel);
         }
-
         g.setColor(Color.WHITE);
         g.setFont(new Font("Consolas", Font.BOLD, 20));
         g.drawString("TIME:", 700, hudY + 14);
-
         double escalaTime = 1.2;
         dibujarNumero(g, String.format("%03d", (int) tiempoRestante), 765, hudY +5, escalaTime);
-
         if (imgLadrilloInferior != null) {
-            // Recorremos todo el ancho de la pantalla (de 30 en 30 píxeles)
             for (int x = 0; x < this.getWidth(); x += 30) {
                 g.drawImage(imgLadrilloInferior, x, 610, 30, 30, null);
             }
         }
+
         // GAME OVER
         if (juegoTerminado && imgGameOver != null) {
             g.setColor(new Color(0, 0, 0, 195));
             g.fillRect(0, 0, this.getWidth(), this.getHeight());
-
             int nuevoAncho = 580;
             int nuevoAlto = (nuevoAncho * imgGameOver.getHeight()) / imgGameOver.getWidth();
-
             int x = (800 - nuevoAncho) / 2;
             int y = (630 - nuevoAlto) / 2 + 20;
-
             g.drawImage(imgGameOver, x, y, nuevoAncho, nuevoAlto, null);
-
             g.setColor(Color.WHITE);
             g.setFont(new Font("Consolas", Font.BOLD, 20));
             g.drawString("PRESS ENTER TO MAIN MENU", 270, y + nuevoAlto - 20);
-
             g.setColor(Color.LIGHT_GRAY);
             g.setFont(new Font("Consolas", Font.BOLD, 20));
             g.drawString("PRESS ESC TO EXIT", 325, y + nuevoAlto + 15);
@@ -1009,11 +951,9 @@ public class LodeRunner extends Juego {
         if (pantallaVictoria) {
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, this.getWidth(), this.getHeight());
-
             int basePlataformaX = 10;
             int basePlataformaY = 520;
             int sizeP = 45;
-
             if (imgBloque != null) {
                 g.drawImage(imgBloque, basePlataformaX, basePlataformaY, sizeP, sizeP, null);
                 g.drawImage(imgBloque, basePlataformaX + sizeP, basePlataformaY, sizeP, sizeP, null);
@@ -1028,13 +968,11 @@ public class LodeRunner extends Juego {
             double ciclo = (System.currentTimeMillis() % 2000) / 2000.0;
             int maxDesplazamiento = 70;
             int desplazamientoY;
-
             if (ciclo < 0.5) {
                 desplazamientoY = (int) (ciclo * 2 * maxDesplazamiento);
             } else {
                 desplazamientoY = (int) (maxDesplazamiento - ((ciclo - 0.5) * 2 * maxDesplazamiento));
             }
-
             if (imgHeroeEscalera != null) {
                 g.drawImage(imgHeroeEscalera, escVictoriaX, basePlataformaY + desplazamientoY, sizeP, sizeP, null);
             }
@@ -1044,10 +982,8 @@ public class LodeRunner extends Juego {
             int datosY = 200;
             int filaSeparacion = 75;
             double tamañoNumeros = 3.0;
-
             g.setFont(new Font("Consolas", Font.BOLD, 22));
             g.setColor(Color.WHITE);
-
             // ORO
             int totalPuntosOro = orosRecolectadosNivel * 250;
             if (imgOro != null) {
@@ -1103,8 +1039,7 @@ public class LodeRunner extends Juego {
         ArrayList<Lingote> orosSoltados = new ArrayList<>();
         Keyboard teclado = this.getKeyboard();
 
-        // COLISIONES HÉROE
-
+        // COLISIONES HEROE
         // heroe con oro
         Iterator<Lingote> itOro = lingotes.iterator();
         while (itOro.hasNext()) {
@@ -1116,7 +1051,8 @@ public class LodeRunner extends Juego {
                 itOro.remove();
                 score += 250;
                 orosRecolectadosNivel++;
-                if (sfxActivado) gestorAudio.reproducirEfecto("oro");            }
+                if (sfxActivado) gestorAudio.reproducirEfecto("oro");
+            }
         }
 
         // heroe con escalera
@@ -1156,7 +1092,6 @@ public class LodeRunner extends Juego {
         for (Pozo pozo : pozos) {
             if (heroe.intersects(pozo)) {
                 if (pozo.getEstado() == 0) { // pozo abierto
-
                     // verificamos si hay un bloque real de soporte abajo
                     boolean tieneSueloAbajo = false;
                     for (Plataforma plat : plataformas) {
@@ -1165,17 +1100,14 @@ public class LodeRunner extends Juego {
                             break;
                         }
                     }
-
                     if (tieneSueloAbajo && heroe.y >= pozo.y - 10) {
                         heroeEnPozo = true;
                         heroeSoportado = true;
                         heroe.x = pozo.x;
                         heroe.setVelocidadX(0);
                     }
-
                 } else if (pozo.getEstado() == -1) { // pozo cerrandose (pisable)
                     boolean vieneDesdeArriba = (heroe.y + heroe.height <= pozo.y + 5);
-
                     if (vieneDesdeArriba && heroe.x + heroe.width > pozo.x + 8 && heroe.x < pozo.x + pozo.width - 8) {
                         heroeSoportado = true;
                         if (!heroe.isEnEscalera())
@@ -1184,13 +1116,11 @@ public class LodeRunner extends Juego {
                 }
             }
         }
-
         heroe.setEnBarra(heroeEnBarra);
         heroe.setEstaCayendo(!heroeSoportado);
         heroe.setEnEscalera(heroeEnEscalera);
 
         //COLSIONES GUARDIAS
-
         for (Guardia guardia : guardias) {
             boolean guardiaSoportado = false;
             boolean guardiaEnEscalera = false;
@@ -1205,7 +1135,6 @@ public class LodeRunner extends Juego {
                     Lingote oro = itOroGuardia.next();
                     boolean mismoX = Math.abs((guardia.x + 15) - (oro.x + 15)) < 10;
                     boolean mismoY = Math.abs((guardia.y + 15) - (oro.y + 15)) < 10;
-
                     if (mismoX && mismoY) {
                         guardia.setTieneOro(true);
                         itOroGuardia.remove();
@@ -1219,19 +1148,15 @@ public class LodeRunner extends Juego {
                 double pieY = guardia.y + guardia.height;
                 boolean alineadoX = Math.abs(pieX - (escalera.x + escalera.width / 2.0)) <= 5;
                 boolean dentroY = pieY >= escalera.y - 5 && guardia.y <= (escalera.y + escalera.height) + 5;
-
                 if (alineadoX && dentroY) {
                     guardiaEnEscalera = true;
                     guardiaSoportado = true;
-
                     boolean subiendo = guardia.getEstado() == Guardia.Estado.SUBIENDO_ESCALERA;
                     boolean bajando = guardia.getEstado() == Guardia.Estado.BAJANDO_ESCALERA;
-
                     if (subiendo || bajando) {
                         guardia.x = escalera.x;
                     }
                 }
-
                 if (guardia.intersects(escalera) && pieY <= escalera.y + 15) {
                     guardiaSoportado = true;
                 }
@@ -1242,7 +1167,6 @@ public class LodeRunner extends Juego {
                 if (guardia.intersects(plataforma)) {
                     if (guardia.x + guardia.width > plataforma.x + 8 &&
                             guardia.x < plataforma.x + plataforma.width - 8) {
-
                         if (guardia.y < plataforma.y + 15) {
                             if (!guardiaEnPozo) {
                                 guardiaSoportado = true;
@@ -1261,7 +1185,6 @@ public class LodeRunner extends Juego {
                     guardiaEnBarra = true;
                     if (!guardiaEnEscalera) {
                         guardia.y = barra.y;
-
                         if (guardia.getVelocidadX() == 0) {
                             double difX = heroe.x - guardia.x;
                             if (Math.abs(difX) > 2) {
@@ -1276,24 +1199,21 @@ public class LodeRunner extends Juego {
 
             // guardia con pozos
             boolean guardiaTocandoPozo = false;
-
             for (Pozo pozo : pozos) {
                 if (guardia.intersects(pozo)) {
                     guardiaTocandoPozo = true;
-
                     //LOGICA DE ESCAPE
                     if (guardia.getEstado() == Guardia.Estado.ESCAPANDO_POZO) {
                         guardiaEnPozo = true;
                         guardiaSoportado = true;
-
                         if (guardia.y <= pozo.y - 15) {
                             guardia.y = pozo.y - guardia.height;
                             guardia.notificarSalidaPozo();
-
                             double nuevaX = guardia.x + ((heroe.x > guardia.x) ? 20 : -20);
                             guardia.x = Math.max(30, Math.min(1170 - guardia.width, nuevaX));
                         }
                     }
+
                     //LOGICA DE ATRAPE
                     else if (pozo.getEstado() == 0) {
                         if (guardia.getEstado() == Guardia.Estado.ATRAPADO_POZO) {
@@ -1301,7 +1221,6 @@ public class LodeRunner extends Juego {
                             guardiaSoportado = true;
                             guardia.x = pozo.x;
                         } else {
-
                             if (guardia.y >= pozo.y - 10) {
                                 if (guardia.getEstado() != Guardia.Estado.ATRAPADO_POZO &&
                                         guardia.getEstado() != Guardia.Estado.ESCAPANDO_POZO) {
@@ -1313,9 +1232,7 @@ public class LodeRunner extends Juego {
                                             oroRecuperado.setImagen(imgOro);
                                         }
                                         orosSoltados.add(oroRecuperado);
-                                        System.out.println("¡El guardia soltó el oro al caer al pozo!");
                                     }
-
                                     guardia.notificarEntradaPozo();
                                     score += 75;
                                     guardiasAtrapadosNivel++;
@@ -1328,6 +1245,7 @@ public class LodeRunner extends Juego {
                             }
                         }
                     }
+
                     // POZO CERRANDOSE
                     else if (pozo.getEstado() == -1) {
                         boolean vieneDesdeArriba = (guardia.y + guardia.height <= pozo.y + 5);
@@ -1341,18 +1259,15 @@ public class LodeRunner extends Juego {
                     }
                 }
             }
-
             if (guardia.getEstado() == Guardia.Estado.ESCAPANDO_POZO && !guardiaTocandoPozo) {
                 guardia.notificarSalidaPozo();
             }
-
             guardia.setEstaCayendo(!guardiaSoportado);
             guardia.setEnBarra(guardiaEnBarra);
 
             if (estabaCayendo && guardiaSoportado && !guardiaEnPozo) {
                 guardia.notificarAterrizaje();
             }
-
             if (guardiaEnEscalera) {
                 for (Escalera e : escaleras) {
                     if (guardia.intersects(e)) {
@@ -1365,7 +1280,6 @@ public class LodeRunner extends Juego {
                     }
                 }
             }
-
             if (!guardiaSoportado
                     && guardia.getEstado() != Guardia.Estado.ATRAPADO_POZO
                     && guardia.getEstado() != Guardia.Estado.ESCAPANDO_POZO
@@ -1376,14 +1290,11 @@ public class LodeRunner extends Juego {
         }
 
         // COLISION HEROE vs GUARDIA
-
         boolean atrapado = false;
         for (Guardia guardia : guardias) {
             if (heroe.intersects(guardia)) {
-
                 if (guardia.getEstado() == Guardia.Estado.ATRAPADO_POZO) {
                     boolean pisandoCabeza = (heroe.y + heroe.height <= guardia.y + 15);
-
                     if (pisandoCabeza) {
                         if (teclado.isKeyPressed(KeyEvent.VK_DOWN)) {
                             atrapado = true;
@@ -1393,13 +1304,11 @@ public class LodeRunner extends Juego {
                             heroe.setEstaCayendo(false);
                         }
                     }
-
                 } else {
                     atrapado = true;
                 }
             }
         }
-
         if (atrapado) {
             if (sfxActivado) gestorAudio.reproducirEfecto("miss");
             heroe.iniciarMuerte();
@@ -1407,10 +1316,8 @@ public class LodeRunner extends Juego {
         lingotes.addAll(orosSoltados);
     }
 
-
     private void reiniciarPosiciones() {
         vidas--;
-
         if (vidas <= 0) {
             gestorAudio.detenerMusica();
             if (sfxActivado) gestorAudio.reproducirEfecto("game_over");
@@ -1458,11 +1365,9 @@ public class LodeRunner extends Juego {
         System.out.println("¡NIVEL COMPLETADO!");
         vidasFinales = vidas;
         tiempoFinal = (int) tiempoRestante;
-
         // sumamos las bonificaciones al score
         int bonusNivel = 1500;
         score += bonusNivel;
-
         int puntosTiempo = tiempoFinal * 10;
         score += puntosTiempo;
         try {
@@ -1498,7 +1403,6 @@ public class LodeRunner extends Juego {
         scoreAcumuladoArcade = 0;
     }
 
-
     private void avanzarSiguienteNivel() {
         nivel++;
         vidas=vidas+1; //vida extra por pasar de nivel
@@ -1514,7 +1418,6 @@ public class LodeRunner extends Juego {
         vidas = 5;
         score = 0;
         nivel = 1;
-
         cargarNivel(nivel);
         if (bgmActivado && pistaMusical != null && !"Ninguna".equals(pistaMusical)) {
             String rutaArchivoMusica = "/pipoo/loderunner/audio/main_bgm.wav";
@@ -1523,12 +1426,14 @@ public class LodeRunner extends Juego {
             }
             gestorAudio.reproducirMusica(this.getClass().getResource(rutaArchivoMusica));
         }
-
         estadoActual = EstadoJuego.TRANSICION;
         timerTransicion = 2.5;
     }
 
-    // MAIN
+    // metodo auxiliar para el teclado en menu
+    private void actualizarTeclas(boolean u, boolean d, boolean l, boolean r, boolean e) {
+        keyUp = u; keyDown = d; keyLeft = l; keyRight = r; keyEnter = e;
+    }
 
     public static void main(String[] args) {
         LodeRunner juego = new LodeRunner();
