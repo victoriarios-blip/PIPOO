@@ -38,3 +38,15 @@ processResources {
     }
     into("${buildDir}/classes/java/main")
 }
+
+jar {
+    manifest {
+        attributes (
+                'Main-Class' : 'pipoo.core.SistemaDeJuegos'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
