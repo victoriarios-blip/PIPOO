@@ -12,7 +12,7 @@ public class NaveNodriza extends Movible {
     private static final double DURACION_PUNTAJE = 1.0; // 1 segundo en pantalla
 
     public NaveNodriza(double x, double y) {
-        super(x, y, 72, 27); // x3 como el resto de sprites
+        super(x, y, 72, 27);
         this.velocidadX = 100;
         this.valorPuntaje = 0;
     }
@@ -22,12 +22,11 @@ public class NaveNodriza extends Movible {
         if (destruida) {
             tiempoMuestraPuntaje += delta;
             if (tiempoMuestraPuntaje >= DURACION_PUNTAJE) {
-                this.visible = false; // Recién acá desaparece del juego
+                this.visible = false; // recien acá desaparece del juego
             }
-            return; // Si está destruida, no se desplaza
+            return; // si está destruida, no se desplaza
         }
-
-        // Movimiento normal si está viva
+        // movimiento normal mientras está viva
         this.x += this.velocidadX * delta;
         if (this.velocidadX > 0 && this.x > 800) this.visible = false;
     }
@@ -37,7 +36,6 @@ public class NaveNodriza extends Movible {
         if (!visible) return;
 
         if (destruida) {
-            // Podés usar el g.drawString de Java temporalmente para probar:
             g.setColor(Color.RED);
             g.setFont(new Font("Arial", Font.BOLD, 25));
             g.drawString(String.valueOf(valorPuntaje), (int)this.x, (int)this.y + 15);
@@ -51,19 +49,19 @@ public class NaveNodriza extends Movible {
         if (destruida) return;
         if (otro instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.HEROE) {
             this.destruida = true;
-            this.velocidadX = 0; // Se frena en el lugar
+            this.velocidadX = 0; // se frena en el lugar
             int disparosActuales = SpaceInvaders.getContadorDisparos();
             calcularPuntajeMisterioso(disparosActuales);
         }
     }
 
     private void calcularPuntajeMisterioso(int disparos) {
-        // Regla matemática: Disparo 23, 38, 53, 68...
-        // Cumplen que (disparos - 23) es divisible por 15
+        // regla: disparo 23, 38, 53, 68...
+        // cumplen que (disparos - 23) es divisible por 15
         if (disparos >= 23 && (disparos - 23) % 15 == 0) {
-            this.valorPuntaje = 300; // ¡Premio gordo!
+            this.valorPuntaje = 300; // puntaje mayor
         } else {
-            // Valores clásicos fallbacks del arcade original (50, 100 o 150)
+            // valores del SI original (50, 100 o 150)
             int[] deConsolacion = {50, 100, 150};
             int indice = (int) (Math.random() * deConsolacion.length);
             this.valorPuntaje = deConsolacion[indice];

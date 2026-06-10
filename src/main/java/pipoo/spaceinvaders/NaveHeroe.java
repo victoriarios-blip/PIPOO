@@ -28,9 +28,12 @@ public class NaveHeroe extends Movible implements Disparador {
         this.vidas = 3;
     }
 
-    public void setImagenIntacta(BufferedImage img)     { this.imagenIntacta = img;     this.bufferImage = img; }
-    public void setImagenExplosion1(BufferedImage img)  { this.imagenExplosion1 = img;  }
-    public void setImagenExplosion2(BufferedImage img)  { this.imagenExplosion2 = img;  }
+    public void setImagenIntacta(BufferedImage img) {
+        this.imagenIntacta = img;     this.bufferImage = img; }
+    public void setImagenExplosion1(BufferedImage img) {
+        this.imagenExplosion1 = img;  }
+    public void setImagenExplosion2(BufferedImage img) {
+        this.imagenExplosion2 = img;  }
 
     public void moverIzquierda() { this.velocidadX = -200; }
     public void moverDerecha()   { this.velocidadX =  200; }
@@ -39,12 +42,10 @@ public class NaveHeroe extends Movible implements Disparador {
     @Override
     public void mover(double delta) {
         this.x += this.velocidadX * delta;
-
         // tope izquierdo
         if (this.x < 0) {
             this.x = 0;
         }
-
         // tope derecho
         if (this.x + this.width > 800) {
             this.x = 800 - this.width;
@@ -78,13 +79,13 @@ public class NaveHeroe extends Movible implements Disparador {
 
     @Override
     public void reaccionarAColision(ElementoGrafico otro) {
-        if (muriendo) return; // Si ya está explotando, ignoramos más impactos
+        if (muriendo) return; // si ya está explotando, ignoramos más impactos
 
         if (otro instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.ENEMIGO) {
             vidas--;
             muriendo = true;
             tiempoMuerte = 0;
-            this.bufferImage = imagenExplosion1; // Comienza el estado de explosión
+            this.bufferImage = imagenExplosion1; // comienza el estado de explosión
         }
 
         if (otro instanceof Borde) {
@@ -98,22 +99,22 @@ public class NaveHeroe extends Movible implements Disparador {
         if (muriendo) {
             tiempoMuerte += delta;
 
-            // Alternamos entre los dos frames de explosión a la mitad del tiempo
+            // alternar entre frames de explosión
             if (tiempoMuerte < DURACION_MUERTE / 2) {
                 this.bufferImage = imagenExplosion1;
             } else {
                 this.bufferImage = imagenExplosion2;
             }
 
-            // Cuando termina el tiempo de animación de la muerte
+            // cuando termina el tiempo de animación de la muerte
             if (tiempoMuerte >= DURACION_MUERTE) {
                 muriendo = false;
                 tiempoMuerte = 0;
 
                 if (vidas <= 0) {
-                    this.visible = false; // Solo se vuelve invisible si es GAME OVER definitivo
+                    this.visible = false; // solo se vuelve invisible si es game over definitivo
                 } else {
-                    resetear(); // Si le quedan vidas, reaparece sano y salvo en su lugar
+                    resetear(); // si le quedan vidas reaparece en su lugar
                 }
             }
         }

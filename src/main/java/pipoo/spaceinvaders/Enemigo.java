@@ -18,16 +18,17 @@ public abstract class Enemigo extends Movible implements Disparador{
     private double tiempoMuerte = 0;
     private static final double DURACION_MUERTE = 0.4;
 
-    public void setFrame1(BufferedImage img) { this.frame1 = img; this.bufferImage = img; } // frame1 Y imagen inicial
-    public void setFrame2(BufferedImage img) { this.frame2 = img; }
-    public void setImagenMuerte(BufferedImage img) { this.imagenMuerte = img; }
+    public void setFrame1(BufferedImage img) {
+        this.frame1 = img; this.bufferImage = img;} // frame1 e imagen inicial
+    public void setFrame2(BufferedImage img) {
+        this.frame2 = img;}
+    public void setImagenMuerte(BufferedImage img) {
+        this.imagenMuerte = img;}
 
     public void actualizarFrame(double delta) {
         if (muriendo) {
             tiempoMuerte += delta;
-            System.out.println("tiempoMuerte: " + tiempoMuerte);
             if (tiempoMuerte >= DURACION_MUERTE) {
-                System.out.println("Enemigo desapareciendo");
                 this.visible = false;
             }
             return;
@@ -56,7 +57,7 @@ public abstract class Enemigo extends Movible implements Disparador{
     @Override
     public void mover(double delta) {
         this.x += this.velocidadX * delta;
-        this.y += this.velocidadY * delta; // velocidadY solo es != 0 al bajar una fila
+        this.y += this.velocidadY * delta; // velocidadY solo es != 0 cuando baja una fila
     }
 
     @Override
@@ -66,7 +67,7 @@ public abstract class Enemigo extends Movible implements Disparador{
         }
     }
 
-    // Llamado por spaceinvaders cuando toca bajar una fila
+    // llamado por spaceinvaders cuando toca bajar una fila
     public void bajarFila(double distancia) {
         this.y += distancia;
         this.velocidadX = -this.velocidadX; // invierte dirección horizontal
@@ -74,7 +75,7 @@ public abstract class Enemigo extends Movible implements Disparador{
 
     @Override
     public Proyectil disparar() {
-        // Dispara con baja probabilidad por frame, sino retorna null
+        // dispara con baja probabilidad por frame, sino retorna null
         if (Math.random() < 0.0005) {
             return new Proyectil(
                     this.x + this.width / 2,
@@ -88,7 +89,6 @@ public abstract class Enemigo extends Movible implements Disparador{
     @Override
     public void reaccionarAColision(ElementoGrafico c) {
         if (c instanceof Proyectil p && p.getOrigen() == Proyectil.Origen.HEROE) {
-            System.out.println("Enemigo impactado! muriendo = true");
             this.bufferImage = imagenMuerte;
             this.muriendo = true;
         }
