@@ -47,8 +47,6 @@ public class Pong extends Juego {
 
     public Pong() {
         super("PIPOO PONG", 800, 600); // titulo y tamaño de ventana
-        System.out.println("Propiedades en memoria: " + this.appProperties.stringPropertyNames());
-
     }
 
     @Override
