@@ -28,20 +28,18 @@ public class ConfiguracionLR extends Configuracion {
 
     @Override
     public void leer() {
-        // Intentamos cargar el archivo; si no existe, nos quedamos con los valores del reset()
+        // intentamos cargar el archivo, si no existe, nos quedamos con los valores del reset()
         try (FileInputStream in = new FileInputStream(this.nombreArchivo)) {
             this.propiedades.load(in);
         } catch (IOException e) {
             System.out.println("Archivo '" + this.nombreArchivo + "' no encontrado. Usando valores por defecto.");
-            return; // sin archivo => se usan los valores del reset() ya aplicados en el constructor
+            return;
         }
-
-        // Parámetros comunes
+        // parametros comunes
         this.pantallaCompleta = Boolean.parseBoolean(propiedades.getProperty("fullScreen", "false"));
         this.sonidoActivado   = Boolean.parseBoolean(propiedades.getProperty("sonidoActivado", "true"));
         this.pistaMusical     = propiedades.getProperty("pistaMusical", "Ninguna");
-
-        // Parámetros específicos de Lode Runner
+        // parametros Lode Runner
         this.skinPersonaje = propiedades.getProperty("skinPersonaje", "Original");
         this.teclaEfectos  = Integer.parseInt(propiedades.getProperty("teclaEfectos", "81"));
         this.teclaMusica   = Integer.parseInt(propiedades.getProperty("teclaMusica",  "87"));
@@ -56,18 +54,17 @@ public class ConfiguracionLR extends Configuracion {
     public void guardar() {
         Properties prop = new Properties();
 
-        // Parámetros comunes
+        // parametros comunes
         prop.setProperty("fullScreen",     String.valueOf(this.pantallaCompleta));
         prop.setProperty("sonidoActivado", String.valueOf(this.sonidoActivado));
         prop.setProperty("pistaMusical",   this.pistaMusical != null ? this.pistaMusical : "Ninguna");
 
-        // Parámetros específicos de Lode Runner
+        // parametros Lode Runner
         prop.setProperty("skinPersonaje", this.skinPersonaje);
         prop.setProperty("teclaEfectos",  String.valueOf(this.teclaEfectos));
         prop.setProperty("teclaMusica",   String.valueOf(this.teclaMusica));
         prop.setProperty("teclaCavar",    String.valueOf(this.teclaCavar));
         prop.setProperty("teclaEnter",    String.valueOf(this.teclaEnter));
-
         persistirEnArchivo(prop, this.nombreArchivo);
         try (FileOutputStream out = new FileOutputStream("jgame.properties")) {
             prop.store(out, "Configuracion PIPOO");
@@ -76,7 +73,6 @@ public class ConfiguracionLR extends Configuracion {
             System.err.println("Error al guardar: " + e.getMessage());
         }
     }
-
     // Getters y Setters
     public String getSkinPersonaje() { return skinPersonaje; }
     public void setSkinPersonaje(String skin) { this.skinPersonaje = skin; }
