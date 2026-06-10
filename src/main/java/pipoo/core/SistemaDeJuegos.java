@@ -254,7 +254,6 @@ public class SistemaDeJuegos extends JPanel implements ActionListener {
                 } else if (origen == btnRankingSI) {
             Ranking manager = new Ranking("ranking_si.dat");
             manager.cargarRanking();
-            // CAMBIADO: Usamos el método con modo para que liste la columna "Nivel" requerida
             this.areaTexto.setText(manager.toStrOrdenado("TOP 10 MEJORES PUNTAJES SPACE INVADERS", "SPACE"));
 
                 } else if (origen == btnRankingLR) {

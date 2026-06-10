@@ -29,6 +29,7 @@ public class Proyectil extends Movible {
 
     @Override
     public void reaccionarAColision(ElementoGrafico c) {
+        // desaparece en cualquier colisión
         if (c instanceof NaveHeroe && origen == Origen.ENEMIGO) {
             this.visible = false;
         }
